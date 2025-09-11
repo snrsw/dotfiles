@@ -81,6 +81,10 @@ brew install orbstack
 
 ## VScode
 
+```
+brew install --cask visual-studio-code
+```
+
 ## clip board
 
 https://github.com/Clipy/Clipy
@@ -100,3 +104,8 @@ brew install awscli
 ```
 aws configure
 ```
+
+## Others
+
+* 1password: https://1password.com/jp/downloads/mac/
+* 1password for chrome: https://chromewebstore.google.com/detail/1password-%E2%80%93-password-mana/aeblfdkhhhdcdjpifhhbdiojplfjncoa?hl=ja
