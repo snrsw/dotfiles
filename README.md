@@ -44,7 +44,8 @@ exec $SHELL -l
 
 ### theme
 - iceberg: https://github.com/cocopon/iceberg.vim/
-- font: menlo, 13pt
+- font: fira mono, 14pt
+  - `brew install --cask font-fira-mono-nerd-font`
 - 90%
 
 ### tools
@@ -103,6 +104,16 @@ brew install awscli
 ```
 ```
 aws configure
+```
+
+## claude code
+```
+curl -fsSL https://claude.ai/install.sh | zsh
+```
+
+## codex
+```
+brew install codex
 ```
 
 ## Others

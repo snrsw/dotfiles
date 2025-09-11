@@ -53,11 +53,10 @@ alias beep='afplay /System/Library/Sounds/Glass.aiff'
 
 alias todo='cd ~/src/github.com/snarisawa/todo && code .'
 
-# settingså
+# settings
 source "${ZDOTDIR:-$HOME}/.zprezto/init.zsh"
 
 export EDITOR=/usr/local/bin/code
-source $HOME/.config/broot/launcher/bash/br
 
 ## Google Cloud SDK
 source "$(brew --prefix)/share/google-cloud-sdk/path.zsh.inc"
