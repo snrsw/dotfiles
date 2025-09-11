@@ -1,42 +1,75 @@
-if [[ -s "${ZDOTDIR:-$HOME}/.zprezto/init.zsh" ]]; then
-  source "${ZDOTDIR:-$HOME}/.zprezto/init.zsh"
-fi
+# paths
+typeset -U path PATH
+path=(
+  /opt/homebrew/bin(N-/)
+  /opt/homebrew/sbin(N-/)
+  /usr/bin
+  /usr/sbin
+  /bin
+  /sbin
+  /usr/local/bin(N-/)
+  /usr/local/sbin(N-/)
+  /Library/Apple/usr/bin
+)
 
-# history
-HISTFILE=$HOME/.zsh-history
-HISTSIZE=100000
-SAVEHIST=1000000
+# mise
+eval "$(mise activate bash)"
+
+## go
+export PATH=$(go env GOPATH)/bin:$PATH
+
+## cargo
+source $HOME/.cargo/env
+
+## bun
+export BUN_INSTALL="$HOME/Library/Application Support/reflex/bun"
+export PATH="$BUN_INSTALL/bin:$PATH"
+export VOLTA_HOME="$HOME/.volta"
+export PATH="$VOLTA_HOME/bin:$PATH"
+
+## java
+export PATH="/opt/homebrew/opt/openjdk/bin:$PATH"
 
 # alias
-alias python="python3"
-alias pip="pip3"
-alias repos='cd $(ghq root)/$(ghq list | peco)'
-alias gorepo='hub browse $(ghq list | peco | cut -d "/" -f 2,3)'
-alias getrepo='ghq get'
-# paths
-export PYENV_ROOT="$HOME/.pyenv"
-export PATH="$PYENV_ROOT/bin:$PATH"
-export PYENV_ROOT="$HOME/.pyenv"
-export PATH="$PYENV_ROOT/bin:$PATH"
-if command -v pyenv 1>/dev/null 2>&1; then
-  eval "$(pyenv init -)"
+if [[ $(command -v bat) ]]; then
+  alias cat='bat'
 fi
 
-# autcomplite
-autoload -Uz compinit && compinit
-zstyle ':completion:*' matcher-list 'm:{a-z}={A-Z}'
-zstyle ':completion:*' format '%B%F{blue}%d%f%b'
-zstyle ':completion:*' group-name ''
-zstyle ':completion:*:default' menu select=2
+if [[ $(command -v eza) ]]; then
+  alias ls='eza --icons --git'
+  alias la='eza -T -L 1 -a -l --icons'
+  alias lt='eza -T -L 3 -a --icons'
+  alias lta='eza -T -L 3 -a -l --icons'
+fi
 
-# option
-# enable japanese file name
-setopt print_eight_bit
+alias repos='cd $(ghq root)/$(ghq list | peco)'
+alias getrepo='ghq get'
+
+alias workspace='cd $(ghq root)/$(ghq list | peco) && code --add .'
+
+alias gcps='gcloud config set project $(gcloud projects list --format="value(projectId)" | peco) && echo -e "\nYour current config is:\n" && gcloud config list'
+
+alias beep='afplay /System/Library/Sounds/Glass.aiff'
+
+alias todo='cd ~/src/github.com/snarisawa/todo && code .'
+
+# settingså
+source "${ZDOTDIR:-$HOME}/.zprezto/init.zsh"
+
+export EDITOR=/usr/local/bin/code
+source $HOME/.config/broot/launcher/bash/br
+
+## Google Cloud SDK
+source "$(brew --prefix)/share/google-cloud-sdk/path.zsh.inc"
+source "$(brew --prefix)/share/google-cloud-sdk/completion.zsh.inc"
 
 
+# Created by `pipx` on 2024-10-29 08:29:51
+export PATH="$PATH:$HOME/.local/bin"
 
-# The next line updates PATH for the Google Cloud SDK.
-if [ -f '/Users/shota-narisawa/google-cloud-sdk/path.zsh.inc' ]; then . '/Users/shota-narisawa/google-cloud-sdk/path.zsh.inc'; fi
+fpath+=~/.zfunc; autoload -Uz compinit; compinit
 
-# The next line enables shell command completion for gcloud.
-if [ -f '/Users/shota-narisawa/google-cloud-sdk/completion.zsh.inc' ]; then . '/Users/shota-narisawa/google-cloud-sdk/completion.zsh.inc'; fi
+zstyle ':completion:*' menu select
+export PATH="/opt/homebrew/opt/mysql-client@8.0/bin:$PATH"
+alias claude="$HOME/.claude/local/claude"
+
