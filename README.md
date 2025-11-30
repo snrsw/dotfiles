@@ -16,7 +16,7 @@ xcode-select --install
 brew update
 ```
 
-## ghq, peco
+## ghq, fzf
 ```console
 brew install ghq
 ```
@@ -24,7 +24,7 @@ brew install ghq
 git config --global ghq.root ~/src
 ```
 ```console
-brew install peco
+brew install fzf
 ```
 
 ## zsh
