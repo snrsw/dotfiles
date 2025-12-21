@@ -1,9 +1,9 @@
 ---
-name: commits
-description: Follow strict commit discipline for clean git history. Use when committing changes, managing git commits, writing commit messages, or organizing code changes for version control.
+name: commit-message
+description: Follow strict commit message discipline to maintain a clean, useful git history. Use when making commits to ensure clarity and context in version control.
 ---
 
-# Commits
+# commit-message
 
 ## Instructions
 
@@ -27,24 +27,6 @@ Use `<type emoji>(<target>): <description>` format. `<type emoji>` indicates cha
 - 🔧 `chore`: Build process, dependencies
 - ⚡ `perf`: Performance improvements
 - 🧹 `tidy`: Structural code changes (renaming, extracting methods)
-
-### Commit Frequency
-
-**Prefer small, frequent commits over large, infrequent ones**
-
-#### Benefits of Small Commits:
-- Easier to review
-- Easier to understand
-- Easier to revert if needed
-- Clearer history
-- Better bisection for debugging
-- Reduced merge conflicts
-
-#### Guidelines:
-- Commit after each passing test (in TDD)
-- Commit each refactoring separately
-- Commit each feature increment separately
-- Don't wait until "everything is done"
 
 ## Examples
 

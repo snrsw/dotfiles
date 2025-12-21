@@ -1,6 +1,6 @@
 ---
 name: tdd
-description: Guide development following Kent Beck's Test-Driven Development (TDD) and Tidy First principles. Use when writing tests, implementing features with TDD, following red-green-refactor cycle, or when test-driven development is required.
+description: Guide development following Kent Beck's Test-Driven Development (TDD). Use when writing tests, implementing features with TDD, following red-green-refactor cycle, or when test-driven development is required.
 ---
 
 # Test-Driven Development (TDD)
@@ -81,20 +81,14 @@ When fixing a defect:
 - Improve structure
 - Maintain high code quality throughout development
 
-### Integration with Tidy First
-
-- Follow Beck's "Tidy First" approach by separating structural changes from behavioral changes
-- Always make structural changes first when both are needed
-- Validate structural changes do not alter behavior by running tests before and after
-- Never mix structural and behavioral changes in the same commit
-
 ### Commit Standards
+
+Use the `commit-message` skill format for all commits.
 
 Only commit when:
 1. ALL tests are passing
 2. ALL compiler/linter warnings have been resolved
 3. The change represents a single logical unit of work
-4. Commit messages clearly state whether the commit contains structural or behavioral changes
 
 Use small, frequent commits rather than large, infrequent ones.
 

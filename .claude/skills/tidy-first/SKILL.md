@@ -3,7 +3,7 @@ name: tidy-first
 description: Follow Kent Beck's Tidy First principles by separating structural changes from behavioral changes. Use when refactoring code, restructuring code, making structural changes, separating concerns, or preparing code for new features.
 ---
 
-# Tidy First
+# tidy-first
 
 ## Instructions
 Follow Kent Beck's "Tidy First" approach by strictly separating structural changes from behavioral changes in all development work.
@@ -61,21 +61,16 @@ Separate all changes into two distinct types:
 
 ### Commit Discipline
 
+#### Commit Message Format
+Use the `commit-message` skill format:
+- Structural changes: ♻️ refactor or 🧹 tidy
+- Behavioral changes: ✨ feat or 🐛 fix
+
 #### Commit Requirements
 Only commit when:
 1. ALL tests are passing
 2. ALL compiler/linter warnings have been resolved
 3. The change represents a single logical unit of work
-4. Commit message clearly states whether it contains structural or behavioral changes
-
-#### Commit Messages
-- **Structural commits**: Prefix with "refactor:", "restructure:", or "tidy:"
-  - Example: "refactor: extract calculateTotal method"
-  - Example: "tidy: rename userId to customerId for clarity"
-
-- **Behavioral commits**: Prefix with "feat:", "fix:", or describe the behavior
-  - Example: "feat: add user authentication"
-  - Example: "fix: correct tax calculation for Canadian customers"
 
 #### Commit Frequency
 - Use small, frequent commits rather than large, infrequent ones
@@ -123,46 +118,40 @@ Use established refactoring patterns with their proper names:
 - **Replace Temp with Query**: Replace temporary variable with method
 - **Introduce Parameter Object**: Group parameters into object
 
-### Integration with TDD
-
-When following TDD:
-1. Write failing test (Red)
-2. Write minimum code to pass (Green)
-3. Make structural changes if needed (Tidy First)
-   - Each structural change committed separately
-   - Tests remain green throughout
-4. Move to next test
-
 ### Examples
 
-#### Good: Separated Changes
+#### Structural Change Example
 
-**Commit 1 (Structural)**:
-```
-refactor: rename validateUser to validateUserCredentials
-
-No behavior change. Tests pass before and after.
-```
-
-**Commit 2 (Behavioral)**:
-```
-feat: add email validation to user registration
-
-Added email format validation when creating new users.
-```
-
-#### Bad: Mixed Changes
-
-**Commit (Mixed - Don't Do This)**:
-```
-Add email validation and rename methods
-
-- Renamed validateUser to validateUserCredentials
-- Added email format validation
-- Moved validation logic to separate class
+```go
+// Before Refactoring
+func CalculateTotal(price float64, taxRate float64) float64 {
+    tax := price * taxRate
+    return price + tax
+}
+// After Refactoring - Extract Method
+func CalculateTotal(price float64, taxRate float64) float64 {
+    tax := CalculateTax(price, taxRate)
+    return price + tax
+}
+func CalculateTax(price float64, taxRate float64) float64 {
+    return price * taxRate
+}
 ```
 
-This mixes structural (rename, move) with behavioral (add validation).
+#### Behavioral Change Example
+
+```go
+// Before Behavioral Change
+func CalculateTotal(price float64, taxRate float64) float64 {
+    tax := price * taxRate
+    return price + tax
+}
+// After Behavioral Change - Change Tax Calculation
+func CalculateTotal(price float64, taxRate float64) float64 {
+    tax := price * taxRate * 1.1 // New tax logic
+    return price + tax
+}
+```
 
 ### Benefits
 
