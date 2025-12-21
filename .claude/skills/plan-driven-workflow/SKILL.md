@@ -1,6 +1,6 @@
 ---
 name: plan-driven-workflow
-description: Follow plan.md-driven development workflow. Use when the user says "go", references plan.md, or asks to proceed with the next test or task from a plan file.
+description: Follow plan.md-driven development workflow with strict TDD discipline. Use when the user says "go", references plan.md, asks to proceed with next test or task, create implementation plan, or needs step-by-step test-driven development from a plan file. Enforces one test at a time with explicit user control.
 ---
 
 # Plan-Driven Workflow

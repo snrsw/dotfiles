@@ -1,6 +1,6 @@
 ---
 name: tidy-first
-description: Follow Kent Beck's Tidy First principles by separating structural changes from behavioral changes. Use when refactoring code, restructuring code, making structural changes, separating concerns, or preparing code for new features.
+description: Follow Kent Beck's Tidy First principles by strictly separating structural changes from behavioral changes. Use when refactoring code, restructuring code, making structural changes without changing behavior, renaming variables/functions, extracting methods, separating concerns, preparing code for new features, or need to ensure structural and behavioral changes are in separate commits.
 ---
 
 # tidy-first

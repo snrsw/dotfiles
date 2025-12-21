@@ -1,6 +1,6 @@
 ---
 name: commit-message
-description: Follow strict commit message discipline to maintain a clean, useful git history. Use when making commits to ensure clarity and context in version control.
+description: Write clear, emoji-based commit messages following conventional commits format. Use when committing code, writing git commit messages, staging changes, or need guidance on commit message format. Supports types like ✨ feat, 🐛 fix, ♻️ refactor, 🧹 tidy, ✅ test, 📝 docs.
 ---
 
 # commit-message

@@ -1,6 +1,6 @@
 ---
 name: tdd
-description: Guide development following Kent Beck's Test-Driven Development (TDD). Use when writing tests, implementing features with TDD, following red-green-refactor cycle, or when test-driven development is required.
+description: Guide development following Kent Beck's Test-Driven Development (TDD) using Red → Green → Refactor cycle. Use when writing tests first, implementing features with TDD, need to write failing tests, make tests pass, refactoring after tests pass, following red-green-refactor, fixing defects with tests, or practicing test-driven development methodology.
 ---
 
 # Test-Driven Development (TDD)
