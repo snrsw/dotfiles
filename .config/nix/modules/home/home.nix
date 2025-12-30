@@ -98,12 +98,13 @@
   # ghostty from brew-nix
   programs.ghostty = {
     enable = true;
-    package = pkgs.brewCasks."ghostty@tip";
+    package = pkgs.brewCasks.ghostty;
     enableFishIntegration = true;
     settings = {
       font-family = "JetBrainsMono Nerd Font Mono";
       font-size = 14;
       theme = "Iceberg Dark";
+      auto-update-channel = "tip";
     };
   };
 
