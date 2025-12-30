@@ -98,7 +98,7 @@
   # ghostty from brew-nix
   programs.ghostty = {
     enable = true;
-    package = pkgs.brewCasks.ghostty;
+    package = pkgs.brewCasks."ghostty@tip";
     enableFishIntegration = true;
     settings = {
       font-family = "JetBrainsMono Nerd Font Mono";
