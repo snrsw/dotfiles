@@ -1,6 +1,6 @@
 ---
 name: commit-message
-description: Write clear, emoji-based commit messages following conventional commits format. Use when committing code, writing git commit messages, staging changes, or need guidance on commit message format. Supports types like ✨ feat, 🐛 fix, ♻️ refactor, 🧹 tidy, ✅ test, 📝 docs.
+description: Write git one-line commit messages.
 ---
 
 # commit-message
@@ -15,7 +15,7 @@ Commit messages should be clear, concise, and follow a standard format, and shou
 
 ### Commit Message Format
 
-Use `<type emoji>(<target>): <description>` format. `<type emoji>` indicates change type, `<target>` is optional scope, `<description>` is concise summary.
+Use `<type emoji>(<target>): <description>` format. `<type emoji>` indicates change type, `<target>` is optional scope, `<description>` is one-line concise summary with no indent.
 
 **Types**:
 - ✨ `feat`: New feature
