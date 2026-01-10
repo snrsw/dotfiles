@@ -23,7 +23,6 @@
     # pkgs.hello
     # Essentials
     curl
-    fish
     tmux
     vscode
     codex
@@ -32,7 +31,6 @@
     gh
     raycast
     # VCS
-    git
     ghq
     # Altenatives
     bat
@@ -42,8 +40,13 @@
     # Shell plugins
     oh-my-posh
     # Container
-    orbstack
+    orbstack # kubectl is included
     k9s
+    kubecolor
+    # Cloud
+    awscli2
+    google-cloud-sdk
+    azure-cli
     # # It is sometimes useful to fine-tune packages, for example, by applying
     # # overrides. You can do that directly here, just don't forget the
     # # parentheses. Maybe you want to install Nerd Fonts with a limited number of
@@ -95,6 +98,27 @@
     EDITOR = "vim";
   };
 
+  programs.git = {
+    enable = true;
+    settings = {
+      extraConfig = {
+        init.defaultBranch = "main";
+        pull.rebase = true;
+        push.autoSetupRemote = true;
+      };
+    };
+  };
+
+  programs.delta = {
+    enable = true;
+    enableGitIntegration = true;
+    options = {
+      navigate = true;
+      line-numbers = true;
+      side-by-side = true;
+    };
+  };
+
   # ghostty from brew-nix
   programs.ghostty = {
     enable = true;
@@ -110,33 +134,34 @@
 
   programs.vscode = {
     enable = true;
-    extensions = with pkgs.vscode-extensions; [
-          github.copilot
-          ms-python.python
-          pkief.material-icon-theme
-          ms-vscode-remote.remote-containers
-          ms-azuretools.vscode-containers
-        ] ++ pkgs.vscode-utils.extensionsFromVscodeMarketplace [
-          {
-            name = "claude-code";
-            publisher = "anthropic";
-            version = "2.1.1";
-            sha256 = "sha256-CZ/D1wtxigJ++TYc7qhbO/yaWz6Oojea4zLLlutPGyM=";  # ← 新しいハッシュ
-          }
-          {
-            name = "moonlight";
-            publisher = "atomiks";
-            version = "0.11.1";
-            sha256 = "0klbgjwx9hvjlri604j6i9scj005wbw31h7dxw5zzrnnlcxx2wb1";
-          }
-          {
-            name = "nix";
-            publisher = "bbenoist";
-            version = "1.0.1";
-            sha256 = "0zd0n9f5z1f0ckzfjr38xw2zzmcxg1gjrava7yahg5cvdcw6l35b";
-          }
-        ];
-    userSettings = {
+    profiles.default = {
+      extensions = with pkgs.vscode-extensions; [
+            github.copilot
+            ms-python.python
+            pkief.material-icon-theme
+            ms-vscode-remote.remote-containers
+            ms-azuretools.vscode-containers
+          ] ++ pkgs.vscode-utils.extensionsFromVscodeMarketplace [
+            {
+              name = "claude-code";
+              publisher = "anthropic";
+              version = "2.1.1";
+              sha256 = "sha256-CZ/D1wtxigJ++TYc7qhbO/yaWz6Oojea4zLLlutPGyM=";  # ← 新しいハッシュ
+            }
+            {
+              name = "moonlight";
+              publisher = "atomiks";
+              version = "0.11.1";
+              sha256 = "0klbgjwx9hvjlri604j6i9scj005wbw31h7dxw5zzrnnlcxx2wb1";
+            }
+            {
+              name = "nix";
+              publisher = "bbenoist";
+              version = "1.0.1";
+              sha256 = "0zd0n9f5z1f0ckzfjr38xw2zzmcxg1gjrava7yahg5cvdcw6l35b";
+            }
+          ];
+      userSettings = {
         # Theme
         "workbench.colorTheme" = "Moonlight II";
         "workbench.iconTheme" = "material-icon-theme";
@@ -170,6 +195,7 @@
           };
         };
       };
+    };
   };
 
   programs.fish = {
@@ -184,18 +210,37 @@
       getrepo = "ghq get";
       workspace = "cd $(ghq root)/$(ghq list | fzf) && code --add .";
       gcps = ''gcloud config set project $(gcloud projects list --format="value(projectId)" | fzf) && echo -e "\nYour current config is:\n" && gcloud config list'';
+      awsps = ''export AWS_PROFILE=$(aws configure list-profiles | fzf) && echo -e "\nSelected AWS Profile: $AWS_PROFILE"'';
+      k8sctx = ''kubectl config use-context $(kubectl config get-contexts -o name | fzf) && echo -e "\nCurrent context:" && kubectl config current-context'';
       beep = "afplay /System/Library/Sounds/Glass.aiff";
+      kubectl = "kubecolor";
     };
     interactiveShellInit = ''
       # Nix PATH
       fish_add_path /nix/var/nix/profiles/default/bin
       fish_add_path ~/.nix-profile/bin
 
-      # Antigravity
-      fish_add_path ~/.antigravity/antigravity/bin
-
       # oh-my-posh
       oh-my-posh init fish --config 'bubblesextra' | source
+
+      # gcloud
+      if test -f ~/.nix-profile/share/google-cloud-sdk/path.fish.inc
+        source ~/.nix-profile/share/google-cloud-sdk/path.fish.inc
+      end
+
+      # aws cli completion
+      if type -q aws_completer
+        complete -c aws -f -a '(begin; set -lx COMP_SHELL fish; set -lx COMP_LINE (commandline); aws_completer | sed \'s/ $//\'; end)'
+      end
+
+      # aws profile completion for --profile flag
+      complete -c aws -l profile -f -a '(aws configure list-profiles 2>/dev/null)'
+
+      # kubectl context completion
+      if type -q kubectl
+        complete -c kubectl -l context -f -a '(kubectl config get-contexts -o name 2>/dev/null)'
+        complete -c kubectl -n "config use-context" -f -a '(kubectl config get-contexts -o name 2>/dev/null)'
+      end
     '';
   };
 
