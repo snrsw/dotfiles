@@ -1,10 +1,10 @@
-{ config, pkgs, ... }:
+{ config, pkgs, username, ... }:
 
 {
   # Home Manager needs a bit of information about you and the paths it should
   # manage.
-  home.username = "snrsw";
-  home.homeDirectory = "/Users/snrsw";
+  home.username = username;
+  home.homeDirectory = "/Users/${username}";
 
   # This value determines the Home Manager release that your configuration is
   # compatible with. This helps avoid breakage when a new Home Manager release
@@ -92,7 +92,7 @@
   #  /etc/profiles/per-user/snrsw/etc/profile.d/hm-session-vars.sh
   #
   home.sessionVariables = {
-    # EDITOR = "emacs";
+    EDITOR = "vim";
   };
 
   # ghostty from brew-nix
@@ -104,14 +104,39 @@
       font-family = "JetBrainsMono Nerd Font Mono";
       font-size = 14;
       theme = "Iceberg Dark";
-      auto-update-channel = "tip";
+      background-opacity = 0.9;
     };
   };
 
   programs.vscode = {
     enable = true;
-    profiles.default = {
-      userSettings = {
+    extensions = with pkgs.vscode-extensions; [
+          github.copilot
+          ms-python.python
+          pkief.material-icon-theme
+          ms-vscode-remote.remote-containers
+          ms-azuretools.vscode-containers
+        ] ++ pkgs.vscode-utils.extensionsFromVscodeMarketplace [
+          {
+            name = "claude-code";
+            publisher = "anthropic";
+            version = "2.1.1";
+            sha256 = "sha256-CZ/D1wtxigJ++TYc7qhbO/yaWz6Oojea4zLLlutPGyM=";  # ← 新しいハッシュ
+          }
+          {
+            name = "moonlight";
+            publisher = "atomiks";
+            version = "0.11.1";
+            sha256 = "0klbgjwx9hvjlri604j6i9scj005wbw31h7dxw5zzrnnlcxx2wb1";
+          }
+          {
+            name = "nix";
+            publisher = "bbenoist";
+            version = "1.0.1";
+            sha256 = "0zd0n9f5z1f0ckzfjr38xw2zzmcxg1gjrava7yahg5cvdcw6l35b";
+          }
+        ];
+    userSettings = {
         # Theme
         "workbench.colorTheme" = "Moonlight II";
         "workbench.iconTheme" = "material-icon-theme";
@@ -141,11 +166,10 @@
         "terminal.integrated.defaultProfile.osx" = "fish";
         "terminal.integrated.profiles.osx" = {
           "fish" = {
-            "path" = "/Users/snrsw/.nix-profile/bin/fish";
+            "path" = "/Users/${username}/.nix-profile/bin/fish";
           };
         };
       };
-    };
   };
 
   programs.fish = {
