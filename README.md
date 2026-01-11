@@ -42,3 +42,10 @@ nix run home-manager/master -- switch --flake .config/nix/modules/home/ --impure
 
 ```shell
 nix-prefetch-url --type sha256 https://marketplace.visualstudio.com/_apis/public/gallery/publishers/{{ PUBLISHER }}/vsextensions/{{ NAME }}/{{ VERSION }}/vspackage
+```
+
+## Search Packages
+
+```shell
+nix search nixpkgs {{ QUERY }}
+```

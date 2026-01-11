@@ -28,7 +28,6 @@
     codex
     gemini-cli
     claude-code
-    gh
     raycast
     # VCS
     ghq
@@ -108,6 +107,14 @@
       };
     };
   };
+
+  programs.gh = {
+  enable = true;
+  settings = {
+    git_protocol = "ssh";
+    editor = "vim";
+  };
+};
 
   programs.delta = {
     enable = true;
@@ -215,6 +222,7 @@
       beep = "afplay /System/Library/Sounds/Glass.aiff";
       kubectl = "kubecolor";
     };
+
     interactiveShellInit = ''
       # Nix PATH
       fish_add_path /nix/var/nix/profiles/default/bin
@@ -242,11 +250,28 @@
         complete -c kubectl -n "config use-context" -f -a '(kubectl config get-contexts -o name 2>/dev/null)'
       end
     '';
+
+    loginShellInit = ''
+      # gh cli - gh-triage extension
+      if not gh extension list | grep -q "k1LoW/gh-triage"
+        gh extension install k1LoW/gh-triage
+      end
+
+      # gh cli - gh-dash extension
+      if not gh extension list | grep -q "dawidd6/gh-dash"
+        gh extension install dlvhdr/gh-dash
+      end
+    '';
   };
 
   programs.direnv = {
     enable = true;
     nix-direnv.enable = true;
+  };
+
+  xdg = {
+    enable = true;
+    configFile."gh-triage/default.yml".source = ./gh-triage/default.yml;
   };
 
   # Let Home Manager install and manage itself.
