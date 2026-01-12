@@ -31,6 +31,7 @@
     raycast
     # VCS
     ghq
+    git-secrets
     # Altenatives
     bat
     eza
@@ -46,6 +47,12 @@
     awscli2
     google-cloud-sdk
     azure-cli
+    # Neovim
+    ripgrep
+    fd
+    lazygit
+    stylua
+    nil
     # # It is sometimes useful to fine-tune packages, for example, by applying
     # # overrides. You can do that directly here, just don't forget the
     # # parentheses. Maybe you want to install Nerd Fonts with a limited number of
@@ -93,9 +100,6 @@
   #
   #  /etc/profiles/per-user/snrsw/etc/profile.d/hm-session-vars.sh
   #
-  home.sessionVariables = {
-    EDITOR = "vim";
-  };
 
   programs.git = {
     enable = true;
@@ -109,12 +113,12 @@
   };
 
   programs.gh = {
-  enable = true;
-  settings = {
-    git_protocol = "ssh";
-    editor = "vim";
+    enable = true;
+    settings = {
+      git_protocol = "ssh";
+      editor = "vim";
+    };
   };
-};
 
   programs.delta = {
     enable = true;
@@ -258,7 +262,7 @@
       end
 
       # gh cli - gh-dash extension
-      if not gh extension list | grep -q "dawidd6/gh-dash"
+      if not gh extension list | grep -q "dlvhdr/gh-dash"
         gh extension install dlvhdr/gh-dash
       end
     '';
@@ -269,9 +273,17 @@
     nix-direnv.enable = true;
   };
 
+  programs.neovim = {
+    enable = true;
+    defaultEditor = true;
+    vimAlias = true;
+    viAlias = true;
+  };
+
   xdg = {
     enable = true;
     configFile."gh-triage/default.yml".source = ./gh-triage/default.yml;
+    configFile."nvim/init.lua".source = ./nvim/init.lua;
   };
 
   # Let Home Manager install and manage itself.
