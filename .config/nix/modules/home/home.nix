@@ -282,7 +282,7 @@
 
   xdg = {
     enable = true;
-    configFile."gh-triage/default.yml".source = ./gh-triage/default.yml;
+    dataFile."gh-triage/default.yml".source = ./gh-triage/default.yml;
     configFile."nvim/init.lua".source = ./nvim/init.lua;
   };
 
