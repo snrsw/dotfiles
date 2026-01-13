@@ -221,6 +221,7 @@
       lta = "eza -T -L 3 -a -l --icons";
       repos = "cd $(ghq root)/$(ghq list | fzf)";
       getrepo = "ghq get";
+      worktrees = "git wt $(git wt | tail -n +2 | fzf | awk '{print $(NF-1)}')";
       workspace = "cd $(ghq root)/$(ghq list | fzf) && code --add .";
       gcps = ''gcloud config set project $(gcloud projects list --format="value(projectId)" | fzf) && echo -e "\nYour current config is:\n" && gcloud config list'';
       awsps = ''export AWS_PROFILE=$(aws configure list-profiles | fzf) && echo -e "\nSelected AWS Profile: $AWS_PROFILE"'';
