@@ -8,3 +8,6 @@
 	smudge = git-lfs smudge -- %f
 	process = git-lfs filter-process
 	required = true
+[wt]
+	copyignored = true
+	basedir = /Users/shota-narisawa/worktrees
