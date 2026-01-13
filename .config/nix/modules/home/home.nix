@@ -1,5 +1,6 @@
 { config, pkgs, username, ... }:
 
+
 {
   # Home Manager needs a bit of information about you and the paths it should
   # manage.
@@ -32,6 +33,7 @@
     # VCS
     ghq
     git-secrets
+    git-wt
     # Altenatives
     bat
     eza
@@ -253,6 +255,9 @@
         complete -c kubectl -l context -f -a '(kubectl config get-contexts -o name 2>/dev/null)'
         complete -c kubectl -n "config use-context" -f -a '(kubectl config get-contexts -o name 2>/dev/null)'
       end
+
+      # git wt
+      git wt --init fish | source
     '';
 
     loginShellInit = ''
