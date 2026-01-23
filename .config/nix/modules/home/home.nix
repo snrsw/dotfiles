@@ -150,6 +150,7 @@
     profiles.default = {
       extensions = with pkgs.vscode-extensions; [
             github.copilot
+            github.github-vscode-theme
             ms-python.python
             pkief.material-icon-theme
             ms-vscode-remote.remote-containers
@@ -176,7 +177,7 @@
           ];
       userSettings = {
         # Theme
-        "workbench.colorTheme" = "Moonlight II";
+        "workbench.colorTheme" = "GitHub Light";
         "workbench.iconTheme" = "material-icon-theme";
 
         # Editor

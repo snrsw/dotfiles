@@ -10,4 +10,4 @@
 	required = true
 [wt]
 	copyignored = true
-	basedir = /Users/snrsw/worktrees
+	basedir = .worktrees
