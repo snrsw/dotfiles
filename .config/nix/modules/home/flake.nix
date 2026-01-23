@@ -31,17 +31,16 @@
         (final: prev: {
           git-wt = final.buildGoModule rec {
             pname = "git-wt";
-            version = "0.13.0";
+            version = "0.15.0";
 
             src = final.fetchFromGitHub {
               owner = "k1LoW";
               repo = "git-wt";
               rev = "v${version}";
-              hash = "sha256-513y6uB32ln1k3N4f8L2ph6sf2/1tLfLSO+4kEc4nB8=";
+              hash = "sha256-A8vkwa8+RfupP9UaUuSVjkt5HtWvqR5VmSsVg2KpeMo=";
             };
 
             vendorHash = "sha256-K5geAvG+mvnKeixOyZt0C1T5ojSBFmx2K/Msol0HsSg=";
-
             subPackages = [ "." ];
             ldflags = [ "-s" "-w" ];
           };
