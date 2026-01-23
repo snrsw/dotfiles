@@ -140,7 +140,7 @@
     settings = {
       font-family = "JetBrainsMono Nerd Font Mono";
       font-size = 14;
-      theme = "Iceberg Dark";
+      theme = "Github Light Default";
       background-opacity = 0.9;
     };
   };
