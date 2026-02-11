@@ -26,9 +26,9 @@
     curl
     tmux
     vscode
-    codex
-    gemini-cli
-    claude-code
+    llm-agents.codex
+    llm-agents.gemini-cli
+    llm-agents.claude-code
     raycast
     # VCS
     ghq
@@ -156,12 +156,6 @@
             ms-vscode-remote.remote-containers
             ms-azuretools.vscode-containers
           ] ++ pkgs.vscode-utils.extensionsFromVscodeMarketplace [
-            {
-              name = "claude-code";
-              publisher = "anthropic";
-              version = "2.1.1";
-              sha256 = "sha256-CZ/D1wtxigJ++TYc7qhbO/yaWz6Oojea4zLLlutPGyM=";  # ← 新しいハッシュ
-            }
             {
               name = "moonlight";
               publisher = "atomiks";

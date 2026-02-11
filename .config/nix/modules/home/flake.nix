@@ -12,6 +12,7 @@
       url = "github:BatteredBunny/brew-nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    llm-agents.url = "github:numtide/llm-agents.nix";
   };
 
   outputs =
@@ -19,6 +20,7 @@
       nixpkgs,
       home-manager,
       brew-nix,
+      llm-agents,
       ...
     }:
     let
@@ -27,6 +29,7 @@
 
       overlays = [
         brew-nix.overlays.default
+        llm-agents.overlays.default
 
         (final: prev: {
           git-wt = final.buildGoModule rec {
