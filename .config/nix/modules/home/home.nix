@@ -30,6 +30,7 @@
     llm-agents.gemini-cli
     llm-agents.claude-code
     raycast
+    comma
     # VCS
     ghq
     git-secrets
@@ -39,6 +40,7 @@
     eza
     # Search
     fzf
+    duckdb
     # Shell plugins
     oh-my-posh
     # Container
@@ -142,6 +144,7 @@
       font-size = 14;
       theme = "Github Light Default";
       background-opacity = 0.9;
+      
     };
   };
 
