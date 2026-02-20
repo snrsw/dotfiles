@@ -86,6 +86,12 @@
     #   org.gradle.console=verbose
     #   org.gradle.daemon.idletimeout=3600000
     # '';
+
+    ".claude/CLAUDE.md".source = ./.claude/CLAUDE.md;
+    ".claude/skills" = {
+      source = ./.claude/skills;
+      recursive = true;
+    };
   };
 
   # Home Manager can also manage your environment variables through
