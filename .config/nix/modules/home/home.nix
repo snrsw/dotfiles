@@ -288,6 +288,9 @@
     enableFishIntegration = true;
     shellWrapperName = "y";
     settings = {
+      mgr = {
+        ratio = [1 2 4];
+      };
       opener = {
         edit = [{ run = ''hx "$@"''; block = true; }];
       };
