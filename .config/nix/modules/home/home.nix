@@ -286,6 +286,7 @@
   programs.yazi = {
     enable = true;
     enableFishIntegration = true;
+    shellWrapperName = "y";
     settings = {
       opener = {
         edit = [{ run = ''hx "$@"''; block = true; }];
