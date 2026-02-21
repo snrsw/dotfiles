@@ -283,6 +283,20 @@
     nix-direnv.enable = true;
   };
 
+  programs.helix = {
+    enable = true;
+    settings = {
+      theme = "github_light_transparent";
+      editor.file-picker.hidden = false;
+    };
+    themes = {
+      github_light_transparent = {
+        inherits = "github_light";
+        "ui.background" = {};
+      };
+    };
+  };
+
   programs.neovim = {
     enable = true;
     defaultEditor = true;
