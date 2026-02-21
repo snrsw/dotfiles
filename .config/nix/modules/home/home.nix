@@ -283,6 +283,16 @@
     nix-direnv.enable = true;
   };
 
+  programs.yazi = {
+    enable = true;
+    enableFishIntegration = true;
+    settings = {
+      opener = {
+        edit = [{ run = ''hx "$@"''; block = true; }];
+      };
+    };
+  };
+
   programs.helix = {
     enable = true;
     settings = {
