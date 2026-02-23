@@ -1,9 +1,9 @@
 ---
-name: pr-creation
+name: pr-content
 description: Create a GitHub pull request following project conventions. Use when the user asks to create a PR or open a pull request.
 ---
 
-# pr-creation
+# pr-content
 
 ## Instructions
 
