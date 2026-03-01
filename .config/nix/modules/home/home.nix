@@ -290,6 +290,7 @@
     settings = {
       mgr = {
         ratio = [1 2 4];
+        show_hidden = true;
       };
       opener = {
         edit = [{ run = ''hx "$@"''; block = true; }];
