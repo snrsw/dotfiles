@@ -50,7 +50,7 @@
     # Cloud
     awscli2
     google-cloud-sdk
-    azure-cli
+    # azure-cli
     # Neovim
     ripgrep
     fd
