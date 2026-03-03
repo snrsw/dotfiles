@@ -150,6 +150,7 @@
       font-size = 14;
       theme = "Github Light Default";
       background-opacity = 0.9;
+      link-url = true;
       keybind = "global:cmd+backquote=toggle_quick_terminal";
     };
   };
