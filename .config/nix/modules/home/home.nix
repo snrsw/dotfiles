@@ -310,6 +310,63 @@
         "ui.background" = {};
       };
     };
+    extraPackages = with pkgs; [
+      # Python
+      python3Packages.python-lsp-server
+      ruff
+      # Go
+      gopls
+      delve
+      # Rust
+      rust-analyzer
+      # TypeScript
+      typescript-language-server
+      typescript
+      # YAML
+      yaml-language-server
+    ];
+    languages = {
+      language-server = {
+        pylsp.config.plugins = {
+          ruff = {
+            enabled = true;
+            formatEnabled = true;
+          };
+        };
+      };
+      language = [
+        {
+          name = "python";
+          language-servers = [ "pylsp" ];
+          auto-format = true;
+        }
+        {
+          name = "go";
+          language-servers = [ "gopls" ];
+          auto-format = true;
+        }
+        {
+          name = "rust";
+          language-servers = [ "rust-analyzer" ];
+          auto-format = true;
+        }
+        {
+          name = "typescript";
+          language-servers = [ "typescript-language-server" ];
+          auto-format = true;
+        }
+        {
+          name = "tsx";
+          language-servers = [ "typescript-language-server" ];
+          auto-format = true;
+        }
+        {
+          name = "yaml";
+          language-servers = [ "yaml-language-server" ];
+          auto-format = true;
+        }
+      ];
+    };
   };
 
   programs.neovim = {
