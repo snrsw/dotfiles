@@ -306,6 +306,17 @@
       editor = {
         file-picker.hidden = false;
         clipboard-provider = "pasteboard";
+        line-number = "relative";
+        cursorline = true;
+        color-modes = true;
+        auto-save = true;
+        rulers = [80 120];
+        indent-guides.render = true;
+        lsp = {
+          display-inlay-hints = true;
+          display-messages = true;
+        };
+        soft-wrap.enable = true;
       };
     };
     themes = {
