@@ -303,7 +303,10 @@
     enable = true;
     settings = {
       theme = "github_light_transparent";
-      editor.file-picker.hidden = false;
+      editor = {
+        file-picker.hidden = false;
+        clipboard-provider = "pasteboard";
+      };
     };
     themes = {
       github_light_transparent = {
