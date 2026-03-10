@@ -1,9 +1,9 @@
 ---
 name: commit-message
-description: Write git one-line commit messages.
+description: Write conventional git commit messages with emoji type prefixes. Use this whenever committing changes, creating a commit message, or formatting a commit — even if the user just says "commit this" or "what should my commit message be". Always apply this when working in any git workflow.
 ---
 
-# commit-message
+# Commit Message
 
 ## Instructions
 

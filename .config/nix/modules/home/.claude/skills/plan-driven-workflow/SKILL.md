@@ -70,40 +70,5 @@ This workflow enforces strict TDD discipline by:
 
 ### Example Interaction
 
-**User**: "Please write the plan.md for adding a calculator feature."
-
-**Assistant**:
-1. Creates plan.md with description of the feature and tests:
-```
-# Calculator
-
-## Feature description
-
-create a simple calculator with basic operations: add, subtract, multiply, divide.
-
-## Tests
-- [ ] Test that Add(2, 3) returns 5
-- [ ] Test that Subtract(5, 3) returns 2
-- [ ] Test that Multiply(2, 3) returns 6
-- [ ] Test that Divide(6, 3) returns 2
-```
-
 **User**: "go"
-
-**Assistant**:
-1. Reads plan.md
-2. Finds: "[ ] Test that Add(2, 3) returns 5"
-3. Writes the test
-4. Runs test (Red)
-5. Implements Add function
-6. Runs test (Green)
-7. Updates plan.md: "[x] Test that Add(2, 3) returns 5"
-8. Waits for next "go"
-
-### Benefits
-
-- **Explicit control**: User controls pace of development
-- **Clear progress**: Plan file shows what's done and what's next
-- **Prevents over-implementation**: Can't skip ahead
-- **Enforces TDD**: Each step follows proper cycle
-- **Accountability**: Clear record of completed work
+→ Read plan.md → find next `[ ]` test → write test (Red) → implement minimum code (Green) → mark `[x]` → wait.

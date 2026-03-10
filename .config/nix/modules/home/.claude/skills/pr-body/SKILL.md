@@ -1,27 +1,22 @@
 ---
-name: pr-content
-description: Create a GitHub pull request following project conventions. Use when the user asks to create a PR or open a pull request.
+name: pr-body
+description: Draft a well-structured GitHub pull request body following project conventions. Use whenever the user wants to write a PR description, open a pull request, or needs PR body content — even if they just say "write the PR" or "draft the PR description".
 ---
 
-# pr-content
+# pr-body
 
 ## Instructions
 
-Follow this process to create a well-structured pull request.
+Follow this process to draft a well-structured pull request body.
 
 ### Steps
 
 1. **Gather context** — run these in parallel:
-    - `git status` to see uncommitted changes
     - `git diff <base>...HEAD` to review all commits on the branch
     - `git log --oneline` to see commit history
     - `gh pr list --state merged --limit 3` to recall recent PR style
 
-2. **Draft the PR title**
-    - Plain text, imperative, concise (no emoji in title)
-    - Mirrors the commit message subject without the type prefix
-
-3. **Draft the PR body** using this format:
+2. **Draft the PR body** using this format:
 
 ```
 ## <One paragraph explaining the WHY — motivation, context, problem solved.>
@@ -33,8 +28,6 @@ Follow this process to create a well-structured pull request.
 
 🤖 Generated with Claude Code
 ```
-
-4. **Create the PR** with `gh pr create --title "..." --body "..."` using a HEREDOC for the body.
 
 ### Body Format Rules
 
@@ -61,7 +54,7 @@ orphaned duplicate.
 
 ## Test plan
 
-- [] No duplicate version headings remain in CHANGELOG.md
+- [x] No duplicate version headings remain in CHANGELOG.md
 
 🤖 Generated with Claude Code
 ```

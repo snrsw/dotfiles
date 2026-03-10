@@ -77,35 +77,6 @@ Only commit when:
 - Each structural change gets its own commit
 - Each behavioral change gets its own commit
 
-### Code Quality Standards
-
-Apply these principles during structural changes:
-
-- **Eliminate duplication ruthlessly**
-  - Look for repeated code patterns
-  - Extract common functionality
-  - Use DRY (Don't Repeat Yourself) principle
-
-- **Express intent clearly through naming and structure**
-  - Use descriptive names for variables, functions, classes
-  - Make code self-documenting
-  - Structure code to reveal intent
-
-- **Make dependencies explicit**
-  - Clearly show what depends on what
-  - Avoid hidden dependencies
-  - Use dependency injection where appropriate
-
-- **Keep methods small and focused on a single responsibility**
-  - Each function/method should do one thing well
-  - Follow Single Responsibility Principle
-  - Extract large methods into smaller, focused ones
-
-- **Minimize state and side effects**
-  - Prefer pure functions when possible
-  - Make side effects explicit and controlled
-  - Reduce mutable state
-
 ### Refactoring Patterns
 
 Use established refactoring patterns with their proper names:
@@ -153,10 +124,3 @@ func CalculateTotal(price float64, taxRate float64) float64 {
 }
 ```
 
-### Benefits
-
-- **Easier code review**: Reviewers can quickly verify structural changes don't alter behavior
-- **Safer refactoring**: Tests guarantee no behavior changed
-- **Better git history**: Clear separation makes debugging easier
-- **Easier rollback**: Can revert behavioral changes without losing structural improvements
-- **Lower risk**: Small, focused changes reduce chance of introducing bugs
