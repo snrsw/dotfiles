@@ -92,6 +92,10 @@
       source = ./.claude/skills;
       recursive = true;
     };
+    ".claude/agents" = {
+      source = ./.claude/agents;
+      recursive = true;
+    };
   };
 
   # Home Manager can also manage your environment variables through
@@ -110,6 +114,10 @@
   #
   #  /etc/profiles/per-user/snrsw/etc/profile.d/hm-session-vars.sh
   #
+
+  home.sessionVariables = {
+    CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS = "1";
+  };
 
   programs.git = {
     enable = true;
