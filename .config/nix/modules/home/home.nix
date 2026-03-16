@@ -88,6 +88,11 @@
     # '';
 
     ".claude/CLAUDE.md".source = ./.claude/CLAUDE.md;
+    ".codex/AGENTS.md".source = ./.claude/CLAUDE.md;
+    ".agents/skills" = {
+      source = ./.claude/skills;
+      recursive = true;
+    };
     ".claude/skills" = {
       source = ./.claude/skills;
       recursive = true;
