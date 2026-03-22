@@ -35,6 +35,7 @@
     ghq
     git-secrets
     git-wt
+    mo
     # Altenatives
     bat
     eza

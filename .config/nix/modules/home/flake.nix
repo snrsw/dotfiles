@@ -32,6 +32,20 @@
         llm-agents.overlays.default
 
         (final: prev: {
+          mo = final.stdenv.mkDerivation rec {
+            pname = "mo";
+            version = "0.20.1";
+
+            src = final.fetchzip {
+              url = "https://github.com/k1LoW/mo/releases/download/v${version}/mo_v${version}_darwin_arm64.zip";
+              hash = "sha256-MUUOR2sHdNUJXpHHeyQYFyRWX1Fm6DbQybJeh8CQHZc=";
+            };
+
+            installPhase = ''
+              install -Dm755 mo $out/bin/mo
+            '';
+          };
+
           git-wt = final.buildGoModule rec {
             pname = "git-wt";
             version = "0.25.0";
