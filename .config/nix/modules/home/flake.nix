@@ -39,6 +39,7 @@
             src = final.fetchzip {
               url = "https://github.com/k1LoW/mo/releases/download/v${version}/mo_v${version}_darwin_arm64.zip";
               hash = "sha256-MUUOR2sHdNUJXpHHeyQYFyRWX1Fm6DbQybJeh8CQHZc=";
+              stripRoot = false;
             };
 
             installPhase = ''
