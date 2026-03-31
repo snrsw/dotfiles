@@ -66,6 +66,9 @@
     # (nerdfonts.override { fonts = [ "JetBrainsMono" ]; })
     nerd-fonts.jetbrains-mono
 
+    # Claude Desktop from brew-nix
+    pkgs.brewCasks.claude
+
     # # You can also create simple shell scripts directly inside your
     # # configuration. For example, this adds a command 'my-hello' to your
     # # environment:
