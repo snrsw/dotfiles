@@ -29,6 +29,13 @@
     llm-agents.codex
     llm-agents.gemini-cli
     llm-agents.claude-code
+    # Claude Desktop app only (no bin/claude wrapper to avoid conflict with claude-code CLI)
+    (pkgs.brewCasks.claude.overrideAttrs (old: {
+      installPhase = ''
+        mkdir -p "$out/Applications/Claude.app"
+        cp -R . "$out/Applications/Claude.app"
+      '';
+    }))
     raycast
     comma
     # VCS
