@@ -14,7 +14,7 @@ Follow this process to draft a well-structured pull request body.
 1. **Gather context** — run these in parallel:
     - `git diff <base>...HEAD` to review all commits on the branch
     - `git log --oneline` to see commit history
-    - `gh pr list --state merged --limit 3` to recall recent PR style
+    - `gh pr list --state merged --limit 3 --json title,body` to recall recent PR style and detect language
 
 2. **Draft the PR body** using this format:
 
@@ -28,6 +28,10 @@ Follow this process to draft a well-structured pull request body.
 
 🤖 Generated with Claude Code
 ```
+
+### Language
+
+Detect the language used in the recent merged PRs fetched above. Write the PR body in that same language to stay consistent with the project's convention. However, keep section headings (`## Changes`, `## Test plan`, etc.) in English regardless of the body language — headings serve as structural anchors and should remain universal.
 
 ### Body Format Rules
 
