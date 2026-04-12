@@ -109,6 +109,10 @@
       source = ./.claude/agents;
       recursive = true;
     };
+    ".claude/rules" = {
+      source = ./.claude/rules;
+      recursive = true;
+    };
   };
 
   # Home Manager can also manage your environment variables through
