@@ -47,6 +47,47 @@
             '';
           };
 
+          difit = final.stdenv.mkDerivation (finalAttrs: {
+            pname = "difit";
+            version = "4.0.3";
+
+            src = final.fetchFromGitHub {
+              owner = "yoshiko-pg";
+              repo = "difit";
+              rev = "v${finalAttrs.version}";
+              hash = "sha256-FXxHxujI1hM0LmWm+y9dFiQdtU9GmQmwrbDsegGlSwk=";
+            };
+
+            pnpmDeps = final.pnpm_10.fetchDeps {
+              inherit (finalAttrs) pname version src;
+              fetcherVersion = 3;
+              hash = "sha256-ze7Z/qV3RYmqrmsdSDLHdbpN9UOZl+68qHxj2Doalio=";
+            };
+
+            nativeBuildInputs = [
+              final.nodejs_22
+              final.pnpm_10.configHook
+              final.makeWrapper
+            ];
+
+            buildPhase = ''
+              runHook preBuild
+              pnpm build
+              runHook postBuild
+            '';
+
+            installPhase = ''
+              runHook preInstall
+              mkdir -p $out/lib/node_modules/difit
+              cp -r dist package.json node_modules $out/lib/node_modules/difit/
+              find $out -xtype l -delete
+              mkdir -p $out/bin
+              makeWrapper ${final.nodejs_22}/bin/node $out/bin/difit \
+                --add-flags "$out/lib/node_modules/difit/dist/cli/index.js"
+              runHook postInstall
+            '';
+          });
+
           git-wt = final.buildGoModule rec {
             pname = "git-wt";
             version = "0.25.0";
