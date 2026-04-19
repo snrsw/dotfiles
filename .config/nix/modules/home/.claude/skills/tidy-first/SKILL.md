@@ -27,12 +27,14 @@ Separate all changes into two distinct types:
 ### Golden Rules
 
 #### Never Mix Change Types
-- **Never mix structural and behavioral changes in the same commit**
-- Each commit should be either purely structural OR purely behavioral
-- This makes code review easier and debugging simpler
+- **Never mix structural and behavioral changes in the same PR**
+- Each PR should be either purely structural OR purely behavioral
+- Within a PR, each commit should also be a single logical unit of the same type
+- This makes code review easier, debugging simpler, and reverts safer
 
 #### Structural Changes First
 - **Always make structural changes first when both are needed**
+- Create and merge the structural PR before starting the behavioral PR
 - Tidy the code before adding new behavior
 - Prepare the structure to receive new functionality
 
@@ -46,20 +48,28 @@ Separate all changes into two distinct types:
 ### Workflow
 
 #### When Making Structural Changes
-1. Ensure all tests are currently passing
-2. Make one structural change at a time
-3. Run tests to verify behavior unchanged
-4. Commit the structural change with clear message
-5. Repeat for next structural change if needed
+1. Create a dedicated branch for structural changes
+2. Ensure all tests are currently passing
+3. Make one structural change at a time
+4. Run tests to verify behavior unchanged
+5. Commit the structural change with clear message
+6. Repeat for next structural change if needed
+7. Open a PR containing only structural changes
 
 #### When Making Behavioral Changes
-1. Complete all structural changes first
-2. Commit all structural changes separately
-3. Now make behavioral changes
+1. Merge the structural PR first
+2. Create a new branch from the updated base for behavioral changes
+3. Make behavioral changes
 4. Follow TDD cycle (Red → Green → Refactor)
 5. Commit behavioral changes separately
+6. Open a PR containing only behavioral changes
 
-### Commit Discipline
+### PR and Commit Discipline
+
+#### PR Separation
+- One PR per change type: structural OR behavioral, never both
+- Structural PRs are merged before their corresponding behavioral PRs
+- Keep PRs small and focused on a single purpose
 
 #### Commit Message Format
 Use the `commit-message` skill format:
