@@ -106,10 +106,6 @@
       source = ./.claude/skills;
       recursive = true;
     };
-    ".claude/agents" = {
-      source = ./.claude/agents;
-      recursive = true;
-    };
     ".claude/rules" = {
       source = ./.claude/rules;
       recursive = true;
