@@ -20,13 +20,18 @@ Use `<type emoji>(<target>): <description>` format. `<type emoji>` indicates cha
 **Types**:
 - ✨ `feat`: New feature
 - 🐛 `fix`: Bug fix
-- ♻️ `refactor`: Code refactoring
+- ♻️ `refactor`: Restructure how code is organized — module boundaries, control flow, dependencies between components — without changing behavior
+- 🧹 `tidy`: Small mechanical cleanups without changing behavior — rename, extract method/variable, reorder, dead-code removal
+- 🎨 `style`: Formatting-only changes (whitespace, semicolons, quotes) — no code structure change
+- ⚡ `perf`: Performance improvements
 - ✅ `test`: Adding/updating tests
 - 📝 `docs`: Documentation changes
-- 🎨 `style`: Code style changes (formatting)
-- 🔧 `chore`: Build process, dependencies
-- ⚡ `perf`: Performance improvements
-- 🧹 `tidy`: Structural code changes (renaming, extracting methods)
+- 🔧 `chore`: Build process, dependencies, tooling
+
+**Choosing when types overlap**:
+- **🧹 tidy vs ♻️ refactor**: if an IDE could perform the change mechanically (symbol rename, extract method, reorder) — even across files — it is 🧹. If it requires judgment about module boundaries, control flow, or dependency direction, it is ♻️.
+- **Multi-type diffs** (e.g. feat + its tests + its new dependency): use the type of the change that delivers the primary user-facing value; supporting tests/deps/docs that exist only to land that change fold into the same commit.
+- **Unrelated changes**: split into separate commits instead of picking a combined type.
 
 ## Examples
 
@@ -34,7 +39,8 @@ Use `<type emoji>(<target>): <description>` format. `<type emoji>` indicates cha
 ```
 ✨(auth): add OAuth2 login support since many users requested it
 🐛: fix crash on null pointer in order processing
-♻️(cart): extract calculateTotal method
+♻️(cart): invert dependency between pricing and inventory modules
+🧹(cart): extract calculateTotal method
 ✅: add tests for user registration
 📝: update API documentation for payment endpoint
 ```
