@@ -47,6 +47,21 @@
             '';
           };
 
+          newrelic-cli = final.stdenv.mkDerivation rec {
+            pname = "newrelic-cli";
+            version = "0.111.7";
+
+            src = final.fetchzip {
+              url = "https://github.com/newrelic/newrelic-cli/releases/download/v${version}/newrelic-cli_${version}_Darwin_arm64.tar.gz";
+              hash = "sha256-qb09bIWrYX1bTTzLJ+vVDYGvyeI8z4vULzPSKgYfdOI=";
+              stripRoot = false;
+            };
+
+            installPhase = ''
+              install -Dm755 newrelic $out/bin/newrelic
+            '';
+          };
+
           difit = final.stdenv.mkDerivation (finalAttrs: {
             pname = "difit";
             version = "4.0.3";

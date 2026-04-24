@@ -60,6 +60,8 @@
     awscli2
     google-cloud-sdk
     # azure-cli
+    argo-workflows
+    newrelic-cli
     # Neovim
     ripgrep
     fd
