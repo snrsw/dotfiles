@@ -35,9 +35,11 @@ Always follow: **Red → Green → Refactor**
 
 #### Defect Fixing
 When fixing a defect:
-1. First write an API-level failing test
-2. Then write the smallest possible test that replicates the problem
+1. First write an API-level failing test (exercises only the public contract the caller sees)
+2. Then write the smallest possible test that replicates the problem — the minimum inputs and minimum assertion surface that still pin the defect
 3. Get both tests to pass
+
+If the fix requires a signature change (e.g., adding an `error` return), updating pre-existing tests to the new contract is a mechanical migration, not a forbidden refactor — preserve their behavioral assertions verbatim while adapting call sites.
 
 ### Implementation Guidelines
 
