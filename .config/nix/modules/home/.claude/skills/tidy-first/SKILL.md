@@ -72,32 +72,34 @@ Separate all changes into two distinct types:
 - Keep PRs small and focused on a single purpose
 
 #### Commit Message Format
-Use the `commit-message` skill format:
-- Structural changes: ♻️ refactor or 🧹 tidy
+Use the `commit-message` skill format. Decision rule for structural commits: use `♻️ refactor` when the change reshapes code structure (function/class boundaries, method placement, parameter shape). Use `🧹 tidy` when the change only touches names or surface layout without reshaping structure.
+- Structural changes:
+  - ♻️ refactor — structural refactoring pattern: Extract Method, Move Method, Extract Class, Inline Method, Replace Temp with Query, Introduce Parameter Object
+  - 🧹 tidy — surface cleanup: Rename, whitespace, dead code removal, small reorganization
 - Behavioral changes: ✨ feat or 🐛 fix
 
 #### Commit Requirements
 Only commit when:
-1. ALL tests are passing
+1. ALL tests are passing. TDD interaction: the "all tests passing" rule applies at the end of a Red → Green → Refactor cycle. Never commit a standalone Red (failing) test — keep the Red test in the working tree and commit it together with the Green implementation in a single behavioral commit. If a test fails during the Refactor step, the cycle is not complete: fix or revert the refactor before committing.
 2. ALL compiler/linter warnings have been resolved
 3. The change represents a single logical unit of work
 
 #### Commit Frequency
 - Use small, frequent commits rather than large, infrequent ones
-- Each structural change gets its own commit
-- Each behavioral change gets its own commit
+- Each structural change gets its own commit. "One structural change" = one applied refactoring pattern (one Extract Method, one Rename, one Move Method, etc.). Do not bundle multiple pattern applications into one commit.
+- Each behavioral change gets its own commit. "One behavioral change" = one completed Red → Green → Refactor cycle (one failing test made to pass, plus any inline refactor of the new code).
 
 ### Refactoring Patterns
 
-Use established refactoring patterns with their proper names:
+Use established refactoring patterns with their proper names. The commit prefix for each is shown in parentheses:
 
-- **Extract Method**: Pull code into a new method
-- **Rename**: Change names to better express intent
-- **Move Method**: Relocate method to more appropriate class
-- **Extract Class**: Split large class into smaller ones
-- **Inline Method**: Replace method call with method body
-- **Replace Temp with Query**: Replace temporary variable with method
-- **Introduce Parameter Object**: Group parameters into object
+- **Extract Method** (♻️ refactor): Pull code into a new method
+- **Rename** (🧹 tidy): Change names to better express intent
+- **Move Method** (♻️ refactor): Relocate method to more appropriate class
+- **Extract Class** (♻️ refactor): Split large class into smaller ones
+- **Inline Method** (♻️ refactor): Replace method call with method body
+- **Replace Temp with Query** (♻️ refactor): Replace temporary variable with method
+- **Introduce Parameter Object** (♻️ refactor): Group parameters into object
 
 ### Examples
 
