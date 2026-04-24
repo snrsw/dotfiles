@@ -67,7 +67,7 @@ Before writing any fix code, write a failing test that reproduces the bug. This 
 
 Use the `commit-message` skill format:
 
-- Bug fixes: `🐛 fix(<scope>): <description of root cause>`
+- Bug fixes: `🐛(<scope>): <description of root cause>`
 - Structural prep: `♻️ refactor` or `🧹 tidy` in separate commits before the fix
 - The commit message should explain the root cause (the "why"), not just what changed
 
@@ -104,7 +104,7 @@ func TestCalculateDiscount_ZeroRate(t *testing.T) {
 // ✅ PASSES
 
 // Phase 4 — Verify: full test suite passes
-// Commit: 🐛 fix(pricing): handle zero discount rate instead of applying default
+// Commit: 🐛(pricing): handle zero discount rate instead of applying default
 ```
 
 ### Investigation Mode
