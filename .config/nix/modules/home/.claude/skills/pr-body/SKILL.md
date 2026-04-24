@@ -19,14 +19,19 @@ Follow this process to draft a well-structured pull request body.
 2. **Draft the PR body** using this format:
 
 ```
-## <One paragraph explaining the WHY — motivation, context, problem solved.>
+## <type emoji> <Title>
+
+<One paragraph explaining the WHY — motivation, context, problem solved.>
 
 ## Changes
 
+- <bullet>
+
 ## Test plan
 
+- [x] <verification>
 
-🤖 Generated with Claude Code
+🤖 Generated with [Claude Code](https://claude.com/claude-code)
 ```
 
 ### Language
@@ -35,7 +40,7 @@ Detect the language used in the recent merged PRs fetched above. Write the PR bo
 
 ### Body Format Rules
 
-- **Heading**: `## <type emoji> <Title>` — use the same emoji as the commit type (✨ feat, 🐛 fix, ♻️ refactor, 📝 docs, ⚡ perf, 🧹 tidy, ✅ test, 🔧 chore)
+- **Heading**: `## <type emoji> <Title>` — use the same emoji as the commit type (✨ feat, 🐛 fix, ♻️ refactor, 📝 docs, ⚡ perf, 🧹 tidy, ✅ test, 🔧 chore). When commits mix types, pick the type of the change that delivers the PR's primary user-facing value (a feat with supporting chore/test commits → ✨). Drop the commit scope `(xxx)` from the title; the title should read as a standalone statement.
 - **Why paragraph**: explain motivation, not mechanics
 - **Changes**: one bullet per logical unit of change, referencing package/file names where helpful
 - **Test plan**: checked boxes `[x]` showing what was actually verified (build, tests, manual checks)
@@ -60,5 +65,5 @@ orphaned duplicate.
 
 - [x] No duplicate version headings remain in CHANGELOG.md
 
-🤖 Generated with Claude Code
+🤖 Generated with [Claude Code](https://claude.com/claude-code)
 ```
