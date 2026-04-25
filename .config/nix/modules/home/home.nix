@@ -99,6 +99,7 @@
     # '';
 
     ".claude/CLAUDE.md".source = ./.claude/CLAUDE.md;
+    ".claude/settings.json".source = ./.claude/settings.json;
     ".codex/AGENTS.md".source = ./.claude/CLAUDE.md;
     ".agents/skills" = {
       source = ./.claude/skills;
