@@ -18,4 +18,4 @@ When approaching a new feature follow this process using plan-driven workflow, t
 1. use plan-driven-workflow to design the implementation plan in plan.md
 2. use plan-driven-workflow to implement tasks from plan.md
 3. use tdd and tidy-first skills to implement a feature. When you commit changes, use commit-message skill.
-4. document at the right layer: Code → How, Tests → What, Commits → Why, Comments → Why not. Keep documentation up to date with code changes.
+4. follow the `documentation-layers` rule (Code → How, Tests → What, Commits → Why, Comments → Why not). Keep documentation up to date with code changes.
