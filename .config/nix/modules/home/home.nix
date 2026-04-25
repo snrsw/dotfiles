@@ -1,4 +1,4 @@
-{ config, pkgs, username, ... }:
+{ config, pkgs, lib, username, ... }:
 
 
 {
@@ -113,6 +113,20 @@
       recursive = true;
     };
   };
+
+  home.activation.installApmSkills = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    APM_BIN="$(PATH="$HOME/.local/bin:/opt/homebrew/bin:/usr/local/bin:$PATH" command -v apm || true)"
+    if [ -z "$APM_BIN" ]; then
+      echo "WARN: apm CLI not found; skipping mizchi/skills/empirical-prompt-tuning install." >&2
+      echo "      Install via 'brew install microsoft/apm/apm' or 'pip install apm-cli'." >&2
+    else
+      for skill in empirical-prompt-tuning; do
+        if [ ! -f "$HOME/.claude/skills/$skill/SKILL.md" ]; then
+          $DRY_RUN_CMD "$APM_BIN" install -g "mizchi/skills/$skill"
+        fi
+      done
+    fi
+  '';
 
   # Home Manager can also manage your environment variables through
   # 'home.sessionVariables'. These will be explicitly sourced when using a
