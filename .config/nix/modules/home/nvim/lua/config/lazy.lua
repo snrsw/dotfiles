@@ -1,2 +1,0 @@
--- This file is not needed with LazyVim, but kept for compatibility
--- All lazy.nvim setup is done in init.lua

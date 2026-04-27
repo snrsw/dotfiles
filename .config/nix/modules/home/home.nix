@@ -423,17 +423,9 @@
     };
   };
 
-  programs.neovim = {
-    enable = true;
-    defaultEditor = true;
-    vimAlias = true;
-    viAlias = true;
-  };
-
   xdg = {
     enable = true;
     dataFile."gh-triage/default.yml".source = ./gh-triage/default.yml;
-    configFile."nvim/init.lua".source = ./nvim/init.lua;
   };
 
   # Let Home Manager install and manage itself.
