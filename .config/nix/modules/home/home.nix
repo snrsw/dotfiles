@@ -38,7 +38,6 @@
     }))
     raycast
     comma
-    difit
     # VCS
     ghq
     git-secrets
