@@ -157,6 +157,7 @@
         pull.rebase = true;
         push.autoSetupRemote = true;
       };
+      url."git@github.com-snrsw:snrsw/".insteadOf = "ssh://git@github.com/snrsw/";
     };
   };
 
