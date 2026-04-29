@@ -152,12 +152,9 @@
   programs.git = {
     enable = true;
     settings = {
-      extraConfig = {
-        init.defaultBranch = "main";
-        pull.rebase = true;
-        push.autoSetupRemote = true;
-      };
-      url."git@github.com-snrsw:snrsw/".insteadOf = "ssh://git@github.com/snrsw/";
+      init.defaultBranch = "main";
+      pull.rebase = true;
+      push.autoSetupRemote = true;
     };
   };
 
