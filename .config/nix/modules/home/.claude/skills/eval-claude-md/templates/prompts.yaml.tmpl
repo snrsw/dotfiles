@@ -1,0 +1,35 @@
+# One file per rule at `prompts/<rule_id>.yaml`.
+# Each entry: {id, text, expected_fire?: bool, note?: str}.
+#
+# expected_fire = true  → on-target (rule SHOULD fire on this prompt)
+# expected_fire = false → off-target (rule should NOT fire here; tests false-trigger)
+# expected_fire defaults to true.
+#
+# For rules that fire every turn (e.g., a global "always rewrite the prompt"),
+# omit all expected_fire: false entries — the off-target list ends up empty,
+# which is fine.
+#
+# The off-target prompts are the hard set when they exist: they must share
+# keywords or domain with on-target prompts but require different behavior.
+# Easy negatives ("write a fibonacci function" for a communication rule)
+# test nothing — see references/methodology.md for what discriminating
+# negatives look like.
+#
+# Example below targets an english_rewrite rule.
+
+- id: ot_001
+  text: "ファイル全部をJSONに変換して"
+  expected_fire: true
+  note: "Mixed-language input; rule should produce an English rewrite at line 1."
+
+- id: ot_002
+  text: "give me a func that does the thing"
+  expected_fire: true
+  note: "Casual English; rule still applies — rewrite normalizes to clearer phrasing."
+
+# An off-target example for a CONDITIONAL rule (uncomment if applicable):
+#
+# - id: nt_001
+#   text: "Refactor the auth middleware to use JWT instead of sessions, focusing on token validation in src/auth/middleware.ts."
+#   expected_fire: false
+#   note: "Already in clean English — rewriting would be over-application."

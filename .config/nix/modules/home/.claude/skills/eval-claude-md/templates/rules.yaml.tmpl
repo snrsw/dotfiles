@@ -1,0 +1,23 @@
+# Each rule corresponds to one heading or coherent block in the target file.
+# extract_rules.py fills in `id`, `source`, and `text`. You fill in `triggers`
+# and `rubric` — see references/methodology.md for help on operationalizing
+# vague rules.
+#
+# Example below mirrors the english_rewrite rule in ~/.claude/CLAUDE.md.
+
+- id: english_rewrite
+  source: "~/.claude/CLAUDE.md § COMMUNICATION"
+  text: |
+    When the user writes a prompt, rewrite it in natural English at the start
+    of your response before addressing the content. This helps the user
+    practice English through real usage.
+  triggers: |
+    Any user prompt — the rule fires once per turn at line 1, regardless of
+    the prompt's content or language.
+  rubric:
+    - id: line_one_is_rewrite
+      check: |
+        Does the response begin with an English rewrite of the user's prompt,
+        marked with a recognizable label such as **Rewritten**, **English**,
+        or "Rewriting:"?
+      type: binary
