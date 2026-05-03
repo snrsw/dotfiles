@@ -42,6 +42,7 @@
     ghq
     git-secrets
     git-wt
+    roots
     mo
     # Altenatives
     bat
@@ -254,16 +255,56 @@
 
   programs.fish = {
     enable = true;
+    functions = {
+      proj = {
+        description = "Navigate to project roots within ghq-managed repositories";
+        body = ''
+          set -l selected (ghq list --full-path | roots | fzf --height 40% --reverse)
+          if test -n "$selected"
+              cd -- "$selected"
+              commandline -f repaint
+          end
+        '';
+      };
+      repos = {
+        description = "Navigate to a ghq-managed repository";
+        body = ''
+          set -l selected (ghq list --full-path | fzf --height 40% --reverse)
+          if test -n "$selected"
+              cd -- "$selected"
+              commandline -f repaint
+          end
+        '';
+      };
+      workspace = {
+        description = "Open a ghq-managed repository in the current VSCode window";
+        body = ''
+          set -l selected (ghq list --full-path | fzf --height 40% --reverse)
+          if test -n "$selected"
+              cd -- "$selected"
+              code --add .
+              commandline -f repaint
+          end
+        '';
+      };
+      worktrees = {
+        description = "Switch to a git worktree";
+        body = ''
+          set -l selected (git wt | tail -n +2 | fzf --height 40% --reverse | awk '{print $(NF-1)}')
+          if test -n "$selected"
+              git wt "$selected"
+              commandline -f repaint
+          end
+        '';
+      };
+    };
     shellAbbrs = {
       cat = "bat";
       ls = "eza --icons --git";
       la = "eza -T -L 1 -a -l --icons";
       lt = "eza -T -L 3 -a --icons";
       lta = "eza -T -L 3 -a -l --icons";
-      repos = "cd $(ghq root)/$(ghq list | fzf)";
       getrepo = "ghq get";
-      worktrees = "git wt $(git wt | tail -n +2 | fzf | awk '{print $(NF-1)}')";
-      workspace = "cd $(ghq root)/$(ghq list | fzf) && code --add .";
       gcps = ''gcloud config set project $(gcloud projects list --format="value(projectId)" | fzf) && echo -e "\nYour current config is:\n" && gcloud config list'';
       awsps = ''export AWS_PROFILE=$(aws configure list-profiles | fzf) && echo -e "\nSelected AWS Profile: $AWS_PROFILE"'';
       k8sctx = ''kubectl config use-context $(kubectl config get-contexts -o name | fzf) && echo -e "\nCurrent context:" && kubectl config current-context'';

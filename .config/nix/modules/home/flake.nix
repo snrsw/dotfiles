@@ -79,6 +79,22 @@
             subPackages = [ "." ];
             ldflags = [ "-s" "-w" ];
           };
+
+          roots = final.buildGoModule rec {
+            pname = "roots";
+            version = "0.4.1";
+
+            src = final.fetchFromGitHub {
+              owner = "k1LoW";
+              repo = "roots";
+              rev = "v${version}";
+              hash = "sha256-ACMRfWY/lhc3C/KVhuUyS1rgkSHGWPxZrmYt+pXupJI=";
+            };
+
+            vendorHash = "sha256-uxcT5VzlTCxxnx09p13mot0wVbbas/otoHdg7QSDt4E=";
+            subPackages = [ "." ];
+            ldflags = [ "-s" "-w" ];
+          };
         })
       ];
 
