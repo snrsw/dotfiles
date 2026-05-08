@@ -74,7 +74,7 @@
     # # fonts?
     # (pkgs.nerdfonts.override { fonts = [ "FantasqueSansMono" ]; })
     # (nerdfonts.override { fonts = [ "JetBrainsMono" ]; })
-    nerd-fonts.jetbrains-mono
+    udev-gothic-nf
 
     # # You can also create simple shell scripts directly inside your
     # # configuration. For example, this adds a command 'my-hello' to your
@@ -113,21 +113,16 @@
       source = ./.claude/rules;
       recursive = true;
     };
+    ".claude/skills/empirical-prompt-tuning" = {
+      source = "${pkgs.fetchFromGitHub {
+        owner = "mizchi";
+        repo = "skills";
+        rev = "2036fb480a8b442c7b6298595b38c9a7a25b97af";
+        sha256 = "0bryjacahbzcsgsdpx6mfnl997k3q88dwkxrl77nyv9gcf6sx17k";
+      }}/empirical-prompt-tuning";
+      recursive = true;
+    };
   };
-
-  home.activation.installApmSkills = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-    APM_BIN="$(PATH="$HOME/.local/bin:/opt/homebrew/bin:/usr/local/bin:$PATH" command -v apm || true)"
-    if [ -z "$APM_BIN" ]; then
-      echo "WARN: apm CLI not found; skipping mizchi/skills/empirical-prompt-tuning install." >&2
-      echo "      Install via 'brew install microsoft/apm/apm' or 'pip install apm-cli'." >&2
-    else
-      for skill in empirical-prompt-tuning; do
-        if [ ! -f "$HOME/.claude/skills/$skill/SKILL.md" ]; then
-          $DRY_RUN_CMD "$APM_BIN" install -g "mizchi/skills/$skill"
-        fi
-      done
-    fi
-  '';
 
   # Home Manager can also manage your environment variables through
   # 'home.sessionVariables'. These will be explicitly sourced when using a
@@ -183,7 +178,7 @@
     package = pkgs.brewCasks.ghostty;
     enableFishIntegration = true;
     settings = {
-      font-family = "JetBrainsMono Nerd Font Mono";
+      font-family = "UdevGothic NF";
       font-size = 14;
       theme = "Github Light Default";
       background-opacity = 0.9;
