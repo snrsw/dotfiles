@@ -219,7 +219,7 @@ in
     package = pkgs.brewCasks.ghostty;
     enableFishIntegration = true;
     settings = {
-      font-family = "UdevGothic NF";
+      font-family = "UDEV Gothic 35NFLG";
       font-size = 14;
       theme = "Github Light Default";
       background-opacity = 0.9;
