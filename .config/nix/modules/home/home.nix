@@ -1,5 +1,38 @@
 { config, pkgs, lib, username, ... }:
 
+let
+  addyosmaniSkills = pkgs.fetchFromGitHub {
+    owner = "addyosmani";
+    repo = "agent-skills";
+    rev = "3ff4b518b3cd3077ca27cf883aa21d21faf53802";
+    sha256 = "1syiv9sx0gd5w03137xj4r4z2k7in1bm92v31mk1zr5r3nj7dlbm";
+  };
+  addyosmaniSkillNames = [
+    "api-and-interface-design"
+    "browser-testing-with-devtools"
+    "ci-cd-and-automation"
+    "code-review-and-quality"
+    "code-simplification"
+    "context-engineering"
+    "debugging-and-error-recovery"
+    "deprecation-and-migration"
+    "documentation-and-adrs"
+    "doubt-driven-development"
+    "frontend-ui-engineering"
+    "git-workflow-and-versioning"
+    "idea-refine"
+    "incremental-implementation"
+    "performance-optimization"
+    "planning-and-task-breakdown"
+    "security-and-hardening"
+    "shipping-and-launch"
+    "source-driven-development"
+    "spec-driven-development"
+    "test-driven-development"
+    "using-agent-skills"
+  ];
+  addyosmaniCommandNames = [ "build" "code-simplify" "plan" "review" "ship" "spec" "test" ];
+in
 
 {
   # Home Manager needs a bit of information about you and the paths it should
@@ -122,7 +155,15 @@
       }}/empirical-prompt-tuning";
       recursive = true;
     };
-  };
+  }
+  // builtins.listToAttrs (map (name: {
+    name = ".claude/skills/${name}";
+    value = { source = "${addyosmaniSkills}/skills/${name}"; recursive = true; };
+  }) addyosmaniSkillNames)
+  // builtins.listToAttrs (map (name: {
+    name = ".claude/commands/${name}.md";
+    value = { source = "${addyosmaniSkills}/.claude/commands/${name}.md"; };
+  }) addyosmaniCommandNames);
 
   # Home Manager can also manage your environment variables through
   # 'home.sessionVariables'. These will be explicitly sourced when using a
