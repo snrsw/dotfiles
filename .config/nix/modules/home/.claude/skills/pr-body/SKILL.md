@@ -38,12 +38,14 @@ Follow this process to draft a well-structured pull request body.
 
 Detect the language used in the recent merged PRs fetched above. Write the PR body in that same language to stay consistent with the project's convention. However, keep section headings (`## Changes`, `## Test plan`, etc.) in English regardless of the body language — headings serve as structural anchors and should remain universal.
 
+The section *names* are also fixed: even if recent merged PRs use different section labels (e.g., `## Summary` instead of `## Changes`), follow the format prescribed above. Mirror project convention for language only, not for structure.
+
 ### Body Format Rules
 
-- **Heading**: `## <type emoji> <Title>` — use the same emoji as the commit type (✨ feat, 🐛 fix, ♻️ refactor, 📝 docs, ⚡ perf, 🧹 tidy, ✅ test, 🔧 chore). When commits mix types, pick the type of the change that delivers the PR's primary user-facing value (a feat with supporting chore/test commits → ✨). Drop the commit scope `(xxx)` from the title; the title should read as a standalone statement.
+- **Heading**: `## <type emoji> <Title>` — use the same emoji as the commit type (✨ feat, 🐛 fix, ♻️ refactor, 📝 docs, ⚡ perf, 🧹 tidy, ✅ test, 🔧 chore). For commit emojis not in this table (e.g., 🔥 remove), carry the commit emoji through verbatim. When commits mix types, pick the type that delivers the PR's primary user-facing value (a feat with supporting chore/test commits → ✨). When no feat is present and multiple non-feat types coexist, tie-break by largest diff footprint (lines changed). Drop the commit scope `(xxx)` from the title; the title should read as a standalone statement.
 - **Why paragraph**: explain motivation, not mechanics
 - **Changes**: one bullet per logical unit of change, referencing package/file names where helpful
-- **Test plan**: checked boxes `[x]` showing what was actually verified (build, tests, manual checks)
+- **Test plan**: checked boxes `[x]` mark items where you actually verified the property — either by executing the check (build, test, manual interaction) or by direct static observation (e.g., grep, diff inspection) where the annotation makes the method explicit, e.g., `(verified by grep)`. Items needing execution that you did not run stay `[ ]`.
 - **Footer**: always include `🤖 Generated with [Claude Code](https://claude.com/claude-code)`
 
 ### Example
@@ -63,7 +65,8 @@ orphaned duplicate.
 
 ## Test plan
 
-- [x] No duplicate version headings remain in CHANGELOG.md
+- [x] No duplicate version headings remain in CHANGELOG.md (verified by grep)
+- [ ] Confirm tagpr's next release does not regress
 
 🤖 Generated with [Claude Code](https://claude.com/claude-code)
 ```
