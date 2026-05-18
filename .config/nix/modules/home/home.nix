@@ -32,6 +32,12 @@ let
     "using-agent-skills"
   ];
   addyosmaniCommandNames = [ "build" "code-simplify" "plan" "review" "ship" "spec" "test" ];
+  claudePluginsOfficial = pkgs.fetchFromGitHub {
+    owner = "anthropics";
+    repo = "claude-plugins-official";
+    rev = "205b6e0b30366a969412d9aab7b99bea99d58db1";
+    sha256 = "1qyxyrhxrqaybww0zyxvnzzg0khz7q4wg0s0585ys15ljkjlw9nj";
+  };
 in
 
 {
@@ -185,6 +191,28 @@ in
   home.sessionVariables = {
     CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS = "1";
   };
+
+  home.activation.installClaudeCodeSetupPlugin = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    _cacheDir="$HOME/.claude/plugins/cache/claude-plugins-official/claude-code-setup/1.0.0"
+    _pluginsFile="$HOME/.claude/plugins/installed_plugins.json"
+    _pluginKey="claude-code-setup@claude-plugins-official"
+
+    if [ ! -d "$_cacheDir" ]; then
+      $DRY_RUN_CMD mkdir -p "$_cacheDir"
+      $DRY_RUN_CMD cp -r "${claudePluginsOfficial}/plugins/claude-code-setup/." "$_cacheDir/"
+      $DRY_RUN_CMD chmod -R u+w "$_cacheDir"
+    fi
+
+    if [ -z "$DRY_RUN_CMD" ] && [ -f "$_pluginsFile" ]; then
+      if ! ${pkgs.jq}/bin/jq -e --arg k "$_pluginKey" '.plugins[$k]' "$_pluginsFile" > /dev/null 2>&1; then
+        ${pkgs.jq}/bin/jq \
+          --arg k "$_pluginKey" \
+          --arg p "$_cacheDir" \
+          '.plugins[$k] = [{"scope":"user","installPath":$p,"version":"1.0.0","installedAt":"2026-01-01T00:00:00.000Z","lastUpdated":"2026-01-01T00:00:00.000Z","gitCommitSha":"205b6e0b30366a969412d9aab7b99bea99d58db1"}]' \
+          "$_pluginsFile" > "$_pluginsFile.tmp" && mv "$_pluginsFile.tmp" "$_pluginsFile"
+      fi
+    fi
+  '';
 
   programs.git = {
     enable = true;
