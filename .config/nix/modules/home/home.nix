@@ -262,11 +262,16 @@ in
       extensions = with pkgs.vscode-extensions; [
             github.copilot
             github.github-vscode-theme
-            ms-python.python
             pkief.material-icon-theme
             ms-vscode-remote.remote-containers
             ms-azuretools.vscode-containers
           ] ++ pkgs.vscode-utils.extensionsFromVscodeMarketplace [
+            {
+              name = "python";
+              publisher = "ms-python";
+              version = "2026.4.0";
+              sha256 = "0aib3xpg28kr7gw3y0731dzd3a0mz9gn2c9r2070kkg57jywnqa3";
+            }
             {
               name = "moonlight";
               publisher = "atomiks";
