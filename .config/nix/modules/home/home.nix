@@ -94,7 +94,6 @@ in
     # Container
     orbstack # kubectl is included
     k9s
-    kubecolor
     # Cloud
     awscli2
     google-cloud-sdk
@@ -378,7 +377,6 @@ in
       awsps = ''export AWS_PROFILE=$(aws configure list-profiles | fzf) && echo -e "\nSelected AWS Profile: $AWS_PROFILE"'';
       k8sctx = ''kubectl config use-context $(kubectl config get-contexts -o name | fzf) && echo -e "\nCurrent context:" && kubectl config current-context'';
       beep = "afplay /System/Library/Sounds/Glass.aiff";
-      kubectl = "kubecolor";
     };
 
     interactiveShellInit = ''
