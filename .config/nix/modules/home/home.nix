@@ -75,6 +75,7 @@ in
         cp -R . "$out/Applications/Claude.app"
       '';
     }))
+    pkgs.brewCasks.codex-app
     raycast
     comma
     # VCS
