@@ -13,6 +13,7 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     llm-agents.url = "github:numtide/llm-agents.nix";
+    nix-claude-code.url = "github:ryoppippi/nix-claude-code";
   };
 
   outputs =
@@ -21,6 +22,7 @@
       home-manager,
       brew-nix,
       llm-agents,
+      nix-claude-code,
       ...
     }:
     let
@@ -30,6 +32,7 @@
       overlays = [
         brew-nix.overlays.default
         llm-agents.overlays.default
+        nix-claude-code.overlays.default
 
         (final: prev: {
           direnv = prev.direnv.overrideAttrs (_: { doCheck = false; });
