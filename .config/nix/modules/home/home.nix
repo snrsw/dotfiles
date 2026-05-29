@@ -67,7 +67,7 @@ in
     vscode
     llm-agents.codex
     llm-agents.gemini-cli
-    llm-agents.claude-code
+    claude-code-minimal
     # Claude Desktop app only (no bin/claude wrapper to avoid conflict with claude-code CLI)
     (pkgs.brewCasks.claude.overrideAttrs (old: {
       installPhase = ''
