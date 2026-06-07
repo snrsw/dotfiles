@@ -46,7 +46,6 @@ in
     }))
     pkgs.brewCasks.codex-app
     raycast
-    comma
     # VCS
     ghq
     git-secrets
@@ -389,6 +388,11 @@ in
     enable = true;
     nix-direnv.enable = true;
   };
+
+  # comma (`, <tool>`) backed by the prebuilt nix-index database, so missing
+  # tools can be run without installing them globally.
+  programs.nix-index.enable = true;
+  programs.nix-index-database.comma.enable = true;
 
   programs.yazi = {
     enable = true;

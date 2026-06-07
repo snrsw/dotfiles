@@ -14,6 +14,8 @@
     };
     llm-agents.url = "github:numtide/llm-agents.nix";
     nix-claude-code.url = "github:ryoppippi/nix-claude-code";
+    nix-index-database.url = "github:nix-community/nix-index-database";
+    nix-index-database.inputs.nixpkgs.follows = "nixpkgs";
   };
 
   outputs =
@@ -23,6 +25,7 @@
       brew-nix,
       llm-agents,
       nix-claude-code,
+      nix-index-database,
       ...
     }:
     let
@@ -109,7 +112,10 @@
     {
       homeConfigurations.${username} = home-manager.lib.homeManagerConfiguration {
         inherit pkgs;
-        modules = [ ./home.nix ];
+        modules = [
+          ./home.nix
+          nix-index-database.homeModules.default
+        ];
         extraSpecialArgs = {
           inherit username;
         };
