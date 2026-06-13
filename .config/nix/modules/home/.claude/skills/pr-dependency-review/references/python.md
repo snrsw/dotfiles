@@ -59,6 +59,25 @@ pipx run radon cc <changed files> -j > /tmp/radon.json   # per-function CC
 ```
 Or `pipx run lizard <files> --csv`.
 
+## Containment detectors (structural problems flat graphs miss)
+
+Flat per-level graphs hide problems that need the module→class→function nesting.
+`scripts/containment_detect.py` (stdlib `ast`, no deps) emits three text findings:
+
+```bash
+python3 scripts/containment_detect.py --base BASE_SHA --head HEAD_SHA > /tmp/cont.json
+```
+- `encapsulation_leaks` — a changed file imports a private (`_underscore`) symbol
+  from another module (reaches past its public surface).
+- `moves` — a top-level symbol kept its name but changed container module/class
+  (the refactor-move signal edge-diffs miss). Renamed-while-moved is out of scope.
+- `misplaced` — a changed function whose first-party references point mostly at one
+  *other* logic module (a move/coupling candidate; shared-type modules and test
+  files are excluded to cut noise).
+
+High precision, often silent — silence means the PR is clean on these axes, not
+that the tool failed. Confirm each hit; heuristic, not ground truth.
+
 ## Notes
 
 - Dynamic dispatch, decorators, and `getattr` calls are invisible to static

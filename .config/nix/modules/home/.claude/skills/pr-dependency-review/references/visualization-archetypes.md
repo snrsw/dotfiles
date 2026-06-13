@@ -83,9 +83,11 @@ below; otherwise state the secondary point in one sentence.
 
 ## Extraction recipes — make the diagram mechanical, not freeform
 
-These turn "read the whole PR" into "run a few greps, fill the template", which is
-what keeps producer cost down until a script automates it (a grep→edge extractor,
-the way `diff_deps.py` does for imports).
+Fastest path: `git diff BASE HEAD | python3 scripts/archetype_signals.py --mermaid`
+emits the candidates below as JSON — guard/atomicity sites, status transitions,
+secret sinks (traceback sinks flagged high-risk) — plus Mermaid scaffolds. Review
+the list and fill the template; it is heuristic, so confirm each candidate. The
+greps below are the same recipe by hand and document what the script looks for.
 
 Behavioral / temporal:
 - Guard: in the diff, find a read/check (`.query(...).first()`, `AsyncResult`, a
