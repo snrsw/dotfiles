@@ -185,11 +185,11 @@ markdown to the user.
 - Keep Mermaid graphs under ~30 nodes. If larger, collapse to directory
   level or show only the changed-node neighborhood. A huge graph is worse
   than no graph.
-- A graph must earn its space. Replace a "star" (one new node, only inbound
-  edges) with one sentence; never render two graphs with the same node set.
-- Match the diagram to the change. A correct graph of the wrong dimension (a call
-  graph for a race) is false reassurance — draw the dimension that holds the risk
-  and say what structure can't show.
+- One primary diagram per PR; a secondary archetype gets prose unless it earns
+  its space (reference thresholds). Replace a degenerate graph — a star or a
+  one-edge state diagram — with a sentence; never duplicate a node set.
+- Match the diagram to the change: a call graph for a race is false reassurance.
+  Draw the dimension that holds the risk, not the one the template defaults to.
 - Static call graphs miss dynamic dispatch / DI. Say so when relevant —
   present the slice as "static callers found", not ground truth.
 - Never fail the whole review because one tool failed; report what worked

@@ -1,7 +1,9 @@
 # Visualization archetypes
 
 Pick the PRIMARY diagram from what the PR *is*. A PR can have a secondary
-archetype — note it, but lead with the dominant one.
+archetype — lead with the dominant one; a secondary archetype gets prose, not
+its own diagram, unless it independently earns its space (see "When a diagram
+earns its space").
 
 | Archetype | The PR is about… | Primary visualization | Tooling |
 |---|---|---|---|
@@ -63,3 +65,49 @@ graph LR
     classDef gap fill:#ffd6d6,stroke:#c62828;
     class t2,t3 gap;
 ```
+
+## When a diagram earns its space
+
+One primary diagram per PR. Draw a second only if it independently clears the bar
+below; otherwise state the secondary point in one sentence.
+
+- Sequence: ≥2 actors that interleave on shared state. A lone call path → a
+  sentence.
+- State-machine: ≥3 states or ≥2 changed transitions. A single new edge (e.g. one
+  `SYNCING→ACTIVE`) → a sentence ("adds a `SYNCING→ACTIVE` restore on the
+  transient path"), not a diagram.
+- Data-flow: ≥1 uncovered sink, or ≥3 sinks worth contrasting. One source to one
+  scrubbed sink → a sentence.
+- Structural: defer to SKILL's "a graph must earn its space" (no stars, no
+  duplicate node sets).
+
+## Extraction recipes — make the diagram mechanical, not freeform
+
+These turn "read the whole PR" into "run a few greps, fill the template", which is
+what keeps producer cost down until a script automates it (a grep→edge extractor,
+the way `diff_deps.py` does for imports).
+
+Behavioral / temporal:
+- Guard: in the diff, find a read/check (`.query(...).first()`, `AsyncResult`, a
+  `get_*`/`is_*` helper) followed by a conditional write/dispatch (`.delay(`,
+  `.commit()`, assignment to the shared field).
+- Atomicity: `git show HEAD:<file> | grep -nE "with_for_update|FOR UPDATE|select_for_update|SETNX|Lock\(|\.lock\("`
+  near the guard. None found → the check→act window is unguarded; draw both
+  actors passing the guard.
+
+State-machine:
+- States: grep the lifecycle enum/constants — `grep -nE 'class .*Status|= "[A-Z_]+"'`.
+- Transitions: every assignment to that field in the diff —
+  `grep -nE '\.status ?= |status=.*\.value'`. Added/removed lines are the changed
+  edges; highlight those.
+
+Data-flow:
+- Source: name the sensitive value(s) — token, secret, verifier, password.
+- Sinks (check each: can the source reach it, and is it scrubbed there?):
+  log message · `record.args` · `exc_info`/`exc_text`/`stack_info` (tracebacks via
+  `logger.exception` / `exc_info=`) · `extra={}` structured fields · `print` ·
+  `raise ...(f"...{x}")` · DB columns shown in UI (`.last_error`, `.message`) ·
+  HTTP response body · Sentry `capture_*` · URLs / query strings.
+- Grep: `grep -nE 'logger\.(exception|error|warning|info|debug)|print\(|raise |extra=|\.last_error|capture_'`
+  over the diff and the sink module; mark red every sink the source reaches
+  unscrubbed.
