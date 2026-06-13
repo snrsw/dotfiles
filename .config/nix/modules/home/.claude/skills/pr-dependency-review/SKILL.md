@@ -63,8 +63,19 @@ lines. These names feed `call_graph_slice.py` later.
 First decide what the PR *is* — structural, behavioral, state-machine, or
 data-flow — and pick the primary diagram type. See
 `references/visualization-archetypes.md` for the selection table, rules, and
-templates. Structural is the common case (Steps 3–6); otherwise lead with the
-matching diagram and state what it cannot certify.
+templates.
+
+This branch decides which of the steps below you run:
+
+- **Structural** (the common case) — run Steps 3–6, then Step 7.
+- **Behavioral / state-machine / data-flow** — **skip Steps 3–5** (the dependency
+  pipeline: base/head worktree analysis, `diff_deps.py`, blast-radius slice). They
+  measure coupling, which is not where this PR's risk lives, and a clean graph is
+  false reassurance. Instead drive the diagram from `archetype_signals.py` plus a
+  direct read of the **full touched function/module, not just the diff** (the
+  script is a diff-only lower bound — see the reference's blind-spot note), run
+  Step 6 (complexity) only if it adds signal, and go to Step 7. Lead with the matching diagram and state what it cannot
+  certify; demote the dependency graph to one line or drop it if it degenerates.
 
 Then, for the structural path, choose analysis granularity:
 
@@ -96,9 +107,14 @@ git worktree add /tmp/base-tree $BASE_SHA
 git worktree remove /tmp/base-tree --force
 ```
 
-If a tool is missing, install it (npx/pipx/go install — see references). If
-installation fails, degrade gracefully: fall back to `references/generic.md`
-rather than skipping the analysis.
+If a tool is missing, try **one** zero-install runner (`pipx run` / `npx` / `go
+run`) — then stop. Do not thrash through a chain of system installers
+(`pip install`, `comma`, `go install`): in CI and sandboxes most of these are
+absent or need a TTY, and chasing them burns the bulk of the review's time for no
+gain. If the runner isn't there, go **straight** to the no-install fallback —
+every language reference has one (Python's grep-based import parser, `git grep`,
+`references/generic.md`'s tree-sitter/lizard path) — and add a one-line note that
+the tool was unavailable. The analysis must never block on tooling.
 
 ### Step 4 — Diff the graphs
 
@@ -131,6 +147,11 @@ Run the complexity tool from the language reference (lizard works for most
 languages) on base and head, restricted to changed files. Report per-function
 cyclomatic complexity before → after. Only surface functions whose
 complexity changed or that exceed 10.
+
+If no complexity tool is available (none installed and no zero-install runner),
+don't skip this step: for the handful of changed functions, compute CC by hand —
+`1 + count(if/elif/for/while/and/or/except/case/ternary)` — and label the table
+"hand-computed". The changed set is small by definition, so this is cheap.
 
 ### Step 7 — Write the PR comment
 

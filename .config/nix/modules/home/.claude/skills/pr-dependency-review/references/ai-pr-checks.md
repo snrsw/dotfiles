@@ -41,6 +41,10 @@ against the package registry (a hallucinated name often resembles a real one).
 
 ## Unnecessary abstraction / dead edges
 New module with fan-in of exactly 1; unused imports; dead edges introduced.
+`diff_deps.py --fan-in-threshold` flags the *opposite* end — high fan-in coupling
+hotspots — so it will **not** surface a fan-in-1 node. Read single-caller nodes
+straight off the normalized head graph: a newly added `to` node reached by exactly
+one distinct `from` edge is the fan-in-1 abstraction.
 
 ## Comprehension debt (loop-generated code)
 The most dangerous failure of an automated loop is code that merges without

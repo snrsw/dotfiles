@@ -89,6 +89,18 @@ secret sinks (traceback sinks flagged high-risk) — plus Mermaid scaffolds. Rev
 the list and fill the template; it is heuristic, so confirm each candidate. The
 greps below are the same recipe by hand and document what the script looks for.
 
+**The script sees only the diff — two blind spots you must cover by hand:**
+- *Classification*: when the triggering read/check sits on an *unchanged* context
+  line (e.g. a fix that adds `status = "running"` under a pre-existing
+  `if status == "pending"` guard), the script sees only the added write and can
+  mislabel a check-then-act race as a state-machine change. **Decide the archetype
+  by reading the control flow, not by the script's label** — the table at the top
+  of this file is the classifier of record.
+- *Enumeration*: sinks / transitions on unchanged lines are invisible to it, so its
+  list is a *lower bound*. Re-run the grep recipe over the **full touched
+  function/module** (`git show HEAD:<file>`), not just the diff — the sink a partial
+  "scrub" PR left untouched is exactly the unchanged line the diff hides.
+
 Behavioral / temporal:
 - Guard: in the diff, find a read/check (`.query(...).first()`, `AsyncResult`, a
   `get_*`/`is_*` helper) followed by a conditional write/dispatch (`.delay(`,
