@@ -96,15 +96,29 @@ DOT_EDGE = re.compile(
     r'^\s*"?([^"\->\s][^"\->]*?)"?\s*->\s*"?([^"\[;]+?)"?\s*(?:\[[^\]]*\])?\s*;?\s*$'
 )
 
+# A node-definition line carrying a name= attribute (code2flow puts the real
+# "file::func" symbol there while using an opaque node_xxxx id). pyreverse uses
+# label=<HTML record> with no name=, so it never matches and its ids stand.
+DOT_NODE_NAME = re.compile(r'^\s*"?([^"\[\s]+)"?\s*\[[^\]]*\bname="([^"]*)"')
+
 
 def parse_dot(text: str):
+    id_to_name = {}
+    for line in text.splitlines():
+        if "->" in line:
+            continue
+        m = DOT_NODE_NAME.match(line)
+        if m:
+            id_to_name[m.group(1).strip()] = m.group(2).strip()
+
     edges = []
     for line in text.splitlines():
         if "->" not in line:
             continue
         m = DOT_EDGE.match(line)
         if m:
-            edges.append((m.group(1).strip(), m.group(2).strip()))
+            a, b = m.group(1).strip(), m.group(2).strip()
+            edges.append((id_to_name.get(a, a), id_to_name.get(b, b)))
     return edges
 
 
