@@ -169,11 +169,11 @@ Changed symbols and their callers; note untested callers. Skip if it duplicates 
 (only changed/notable rows)
 
 ### AI-generated-PR checks
-- Reinvented existing utilities? (new code duplicating an existing module it
-  could have imported — check whether an existing module with similar
-  responsibility was *not* imported)
-- Unnecessary new abstraction layers? (new module with fan-in of exactly 1)
-- Unused imports / dead edges introduced?
+See `references/ai-pr-checks.md`. In brief: scope wider than the task (5+
+unrelated files / no one-sentence purpose), CI weakened (tests removed or
+skipped, coverage or workflow gating), reinvented utilities, phantom imports
+(not in the manifest), unnecessary fan-in-1 abstraction, and changed public
+behavior with no test that fails on the old code.
 ```
 
 Post it with `gh pr comment $PR_NUMBER --body-file /tmp/review.md` when

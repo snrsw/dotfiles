@@ -74,6 +74,12 @@ python3 scripts/containment_detect.py --base BASE_SHA --head HEAD_SHA > /tmp/con
 - `misplaced` — a changed function whose first-party references point mostly at one
   *other* logic module (a move/coupling candidate; shared-type modules and test
   files are excluded to cut noise).
+- `phantom_imports` — a newly added import not in stdlib / first-party / the
+  manifest (pyproject / requirements). Catches hallucinated packages and
+  undeclared deps; verify survivors against the registry.
+
+Add `--mermaid` for a changed-neighborhood containment diagram (drawn only when
+something is flagged; skipped when clean, per "a graph must earn its space").
 
 High precision, often silent — silence means the PR is clean on these axes, not
 that the tool failed. Confirm each hit; heuristic, not ground truth.

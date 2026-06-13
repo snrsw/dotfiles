@@ -22,8 +22,14 @@ Usage:
 import argparse
 import ast
 import json
+import re
 import subprocess
 import sys
+
+try:
+    import tomllib
+except ModuleNotFoundError:  # py<3.11
+    tomllib = None
 
 
 def git(repo, *args):
@@ -145,10 +151,91 @@ def func_refs(tree, table):
     return out
 
 
+# import-name -> distribution-name for the common mismatches (cuts false positives)
+_ALIASES = {"yaml": "pyyaml", "pil": "pillow", "bs4": "beautifulsoup4",
+            "cv2": "opencv-python", "sklearn": "scikit-learn",
+            "dateutil": "python-dateutil", "dotenv": "python-dotenv",
+            "jose": "python-jose", "jwt": "pyjwt", "attr": "attrs",
+            "dns": "dnspython", "magic": "python-magic", "git": "gitpython"}
+
+
+def _norm(name):
+    return name.lower().replace("_", "-").strip()
+
+
+def _norm_dist(spec):
+    return _norm(re.split(r"[<>=!~;\[\s]", spec.strip(), 1)[0])
+
+
+def declared_deps(repo, head):
+    """Distribution names declared in pyproject.toml / requirements*.txt at head."""
+    listing = git(repo, "ls-files") or ""
+    deps = set()
+    for mf in listing.splitlines():
+        base = mf.rsplit("/", 1)[-1]
+        is_req = base.startswith("requirements") and base.endswith(".txt")
+        if base != "pyproject.toml" and not is_req:
+            continue
+        src = git(repo, "show", f"{head}:{mf}")
+        if not src:
+            continue
+        if base == "pyproject.toml" and tomllib:
+            try:
+                data = tomllib.loads(src)
+            except (tomllib.TOMLDecodeError, ValueError):
+                continue
+            proj = data.get("project", {})
+            specs = list(proj.get("dependencies", []) or [])
+            for grp in (proj.get("optional-dependencies", {}) or {}).values():
+                specs += grp
+            deps |= {_norm_dist(s) for s in specs}
+            poetry = data.get("tool", {}).get("poetry", {})
+            deps |= {_norm(k) for k in poetry.get("dependencies", {})}
+            for g in poetry.get("group", {}).values():
+                deps |= {_norm(k) for k in g.get("dependencies", {})}
+        elif is_req:
+            for line in src.splitlines():
+                line = line.strip()
+                if line and not line.startswith(("#", "-")):
+                    deps.add(_norm_dist(line))
+    return deps - {"python"}
+
+
+def phantom_imports(tree, added, deps, roots):
+    """Newly-added imports not in stdlib / first-party / the manifest."""
+    std = getattr(sys, "stdlib_module_names", frozenset())
+    out, seen = [], set()
+
+    def check(lineno, top):
+        if lineno not in added or not top or top in seen:
+            return
+        if top in std or top in roots:
+            return
+        norm = _norm(top)
+        if norm in deps or _ALIASES.get(norm) in deps:
+            return
+        seen.add(top)
+        out.append({"line": lineno, "module": top,
+                    "why": "import not in stdlib / first-party / manifest "
+                           "— undeclared or hallucinated; verify"})
+
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Import):
+            for a in node.names:
+                check(node.lineno, a.name.split(".")[0])
+        elif isinstance(node, ast.ImportFrom):
+            if not node.level and node.module:  # skip relative (first-party)
+                check(node.lineno, node.module.split(".")[0])
+    return out
+
+
 def detect(repo, base, head, min_refs, ratio):
     files = changed_py_files(repo, base, head)
     base_map, head_map = {}, {}
-    leaks, misplaced = [], []
+    leaks, misplaced, phantom = [], [], []
+    deps = declared_deps(repo, head)
+    roots = {"app", "src"} | {module_name(p).split(".")[0]
+                              for p in files if p.endswith(".py")}
 
     for path in files:
         if is_test(path):  # tests legitimately reach into privates / their target module
@@ -170,6 +257,8 @@ def detect(repo, base, head, min_refs, ratio):
                           "imports": f"{src_mod}.{name}",
                           "why": "imports a private (_underscore) symbol"})
         adds = added_lines(repo, base, head, path)
+        for ph in phantom_imports(tree, adds, deps, roots):
+            phantom.append({"file": path, **ph})
         for fname, lo, hi, counts in func_refs(tree, table):
             if hi and adds and not any(lo <= n <= hi for n in adds):
                 continue  # only functions that the PR actually touched
@@ -192,11 +281,56 @@ def detect(repo, base, head, min_refs, ratio):
     return {
         "summary": {"changed_py_files": len(files),
                     "encapsulation_leaks": len(leaks),
-                    "moves": len(moves), "misplaced": len(misplaced)},
+                    "moves": len(moves), "misplaced": len(misplaced),
+                    "phantom_imports": len(phantom)},
         "encapsulation_leaks": leaks,
         "moves": moves,
         "misplaced": misplaced,
+        "phantom_imports": phantom,
     }
+
+
+def build_mermaid(result, max_nodes=15):
+    """Changed-neighborhood containment view — only the flagged relationships.
+
+    Returns None when nothing is flagged (a star / empty graph does not earn its
+    space, per the skill's rules).
+    """
+    moves, leaks, misp = (result["moves"], result["encapsulation_leaks"],
+                          result["misplaced"])
+    if not (moves or leaks or misp):
+        return None
+    lines, ids, edges, hot = ["graph LR"], {}, [], {}
+
+    def nid(label):
+        if label not in ids:
+            if len(ids) >= max_nodes:
+                return None
+            ids[label] = f"n{len(ids)}"
+            lines.append(f'  {ids[label]}["{label}"]')
+        return ids[label]
+
+    for m in moves:
+        a, b = nid(m["from"]), nid(m["to"])
+        if a and b:
+            edges.append(f'  {a} ==>|moved: {m["symbol"]}| {b}')
+    for leak in leaks:
+        tgt = leak["imports"].rsplit(".", 1)[0]
+        a, b = nid(module_name(leak["file"])), nid(tgt)
+        if a and b:
+            edges.append(f'  {a} -.->|leak: {leak["imports"].rsplit(".", 1)[-1]}| {b}')
+            hot[b] = "leak"
+    for m in misp:
+        a, b = nid(module_name(m["file"])), nid(m["leans_on"])
+        if a and b:
+            edges.append(f'  {a} -->|leans {m["refs"]}: {m["function"]}| {b}')
+            hot.setdefault(b, "misp")
+    lines += edges
+    lines.append("  classDef leak fill:#ffd6d6,stroke:#c62828;")
+    lines.append("  classDef misp fill:#fff3cd,stroke:#b8860b;")
+    for node, kind in hot.items():
+        lines.append(f"  class {node} {kind};")
+    return "\n".join(lines)
 
 
 def main():
@@ -206,8 +340,14 @@ def main():
     ap.add_argument("--repo", default=".")
     ap.add_argument("--min-refs", type=int, default=3)
     ap.add_argument("--ratio", type=float, default=0.6)
+    ap.add_argument("--mermaid", action="store_true",
+                    help="emit a changed-neighborhood containment diagram")
     args = ap.parse_args()
     out = detect(args.repo, args.base, args.head, args.min_refs, args.ratio)
+    if args.mermaid:
+        diagram = build_mermaid(out)
+        if diagram:
+            out["mermaid"] = diagram
     json.dump(out, sys.stdout, indent=1)
     sys.stdout.write("\n")
 
