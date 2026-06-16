@@ -14,13 +14,13 @@ The heartbeat of a loop: a scheduled trigger that surfaces work without you aski
 | Runs when you are away / no live session | **GitHub Actions** scheduled workflow |
 | Recurring PR review, triage, or maintenance on a repo | **GitHub Actions** |
 | A cadence *within* a live working session (e.g. re-check CI every 20 min) | **CronCreate** (in-session) |
-| One-shot reminder later today | **CronCreate** `recurring:false`, or **ScheduleWakeup** |
+| One-shot reminder later today | **CronCreate** `recurring:false` |
 
 **GitHub Actions is the only true unattended heartbeat.** `CronCreate` is session-only: it dies when Claude exits, fires only while the REPL is idle, and recurring jobs auto-expire after 7 days (`durable:true` survives restarts but still needs a live session). Do not use `CronCreate` for automation that must run when you are not at the machine.
 
 ## GitHub Actions loop — model on what is already here
 
-This repo's `.github/workflows/update-flake-lock.yml` is the template: `schedule:` cron + `workflow_dispatch`, least-privilege permissions, do the work, open a PR (never merge). To build a loop:
+This repo's `.github/workflows/update-flake-lock.yml` is the closest template: `schedule:` cron + `workflow_dispatch`, least-privilege permissions, do the work, open a PR (never merge). It schedules on `0 0 * * *`; for new loops prefer an off-peak minute (see step 1) so runs do not pile onto the top of the hour. To build a loop:
 
 1. `on:` a `schedule:` cron (off-peak minute, not `0 0`) **and** `workflow_dispatch` (manual run + kill switch).
 2. Minimal `permissions:` — `contents: write`, `pull-requests: write`, nothing more.

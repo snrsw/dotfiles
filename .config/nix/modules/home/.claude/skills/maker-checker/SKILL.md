@@ -41,7 +41,7 @@ Skip it for trivial, obviously-correct changes (a rename, a doc typo) — the ov
 
 Run the checker as a separate agent, not a second pass in the same thread:
 
-- **Subagent** via the `Agent` tool — purpose-built reviewers exist: `pr-review-toolkit:code-reviewer`, `silent-failure-hunter`, `pr-test-analyzer`, `type-design-analyzer`, or `general-purpose` with a fresh review prompt. Pass it the spec + diff and instruct: "verify against this spec; do not assume the author was right."
+- **Subagent** via the `Agent` tool — purpose-built reviewers exist: `pr-review-toolkit:code-reviewer`, `pr-review-toolkit:silent-failure-hunter`, `pr-review-toolkit:pr-test-analyzer`, `pr-review-toolkit:type-design-analyzer`, or `general-purpose` with a fresh review prompt. Pass it the spec + diff and instruct: "verify against this spec; do not assume the author was right."
 - **codex** (`codex review` / `codex exec review`) as an independent second engine — useful when the maker was Claude, so the checker is a different model entirely.
 
 Never let the agent that wrote the code be the one that signs off on it.
