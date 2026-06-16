@@ -41,3 +41,12 @@ against the package registry (a hallucinated name often resembles a real one).
 
 ## Unnecessary abstraction / dead edges
 New module with fan-in of exactly 1; unused imports; dead edges introduced.
+
+## Comprehension debt (loop-generated code)
+The most dangerous failure of an automated loop is code that merges without
+anyone understanding it. Before approving a loop- or agent-generated PR, require
+that a human can state, in one plain sentence per changed behavior, what changed
+and why. If the diff cannot be summarized that way — if the only justification is
+"the agent did it and tests pass" — that is comprehension debt: do not merge; ask
+for a smaller or explained PR. A green pipeline proves the code runs, not that
+anyone understands it.

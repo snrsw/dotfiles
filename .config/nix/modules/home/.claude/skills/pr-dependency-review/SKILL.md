@@ -172,8 +172,9 @@ Changed symbols and their callers; note untested callers. Skip if it duplicates 
 See `references/ai-pr-checks.md`. In brief: scope wider than the task (5+
 unrelated files / no one-sentence purpose), CI weakened (tests removed or
 skipped, coverage or workflow gating), reinvented utilities, phantom imports
-(not in the manifest), unnecessary fan-in-1 abstraction, and changed public
-behavior with no test that fails on the old code.
+(not in the manifest), unnecessary fan-in-1 abstraction, changed public
+behavior with no test that fails on the old code, and comprehension debt (no
+plain-language explanation of each changed behavior).
 ```
 
 Post it with `gh pr comment $PR_NUMBER --body-file /tmp/review.md` when
