@@ -1,31 +1,46 @@
 ---
 name: loop-automation
-description: Stand up a recurring trigger (heartbeat) that surfaces — and optionally acts on — work on a schedule, safely. Use when setting up automated triage, a scheduled PR-review or maintenance job, a "run until done" cadence, or any recurring AI task. Covers when to use GitHub Actions (the real unattended heartbeat) versus in-session CronCreate, and the safety rails an unattended loop needs. Unattended loops make unattended mistakes — this skill is about bounding that.
+description: Stand up a recurring trigger (heartbeat) that surfaces — and optionally acts on — work on a schedule, safely. Use when setting up automated triage, a scheduled PR-review or maintenance job, a "run until done" cadence, or any recurring AI task. Covers the two real unattended heartbeats — Claude Code Routines (agentic, cloud) and GitHub Actions (deterministic gate) — versus in-session CronCreate, plus the safety rails an unattended loop needs. Unattended loops make unattended mistakes — this skill is about bounding that.
 ---
 
 # loop-automation
 
 The heartbeat of a loop: a scheduled trigger that surfaces work without you asking. The hard part is not the scheduling — it is bounding what an unattended run is allowed to do.
 
-## Pick the mechanism (they differ a lot in strength)
+## Pick the mechanism
 
 | Need | Use |
 |---|---|
-| Runs when you are away / no live session | **GitHub Actions** scheduled workflow |
-| Recurring PR review, triage, or maintenance on a repo | **GitHub Actions** |
+| Unattended *agentic* work when you are away (triage, review, fix, refactor) | **Claude Code Routines** (cloud) |
+| Deterministic gate: run tests / lint, block PRs on red, scripted maintenance | **GitHub Actions** |
 | A cadence *within* a live working session (e.g. re-check CI every 20 min) | **CronCreate** (in-session) |
 | One-shot reminder later today | **CronCreate** `recurring:false` |
 
-**GitHub Actions is the only true unattended heartbeat.** `CronCreate` is session-only: it dies when Claude exits, fires only while the REPL is idle, and recurring jobs auto-expire after 7 days (`durable:true` survives restarts but still needs a live session). Do not use `CronCreate` for automation that must run when you are not at the machine.
+There are **two true unattended heartbeats**: Routines (the smart worker — Claude runs natively) and GitHub Actions (the dumb-but-reliable gate). `CronCreate` is *not* a heartbeat — it is session-only.
 
-## GitHub Actions loop — model on what is already here
+## Claude Code Routines — the agentic heartbeat (primary)
 
-This repo's `.github/workflows/update-flake-lock.yml` is the closest template: `schedule:` cron + `workflow_dispatch`, least-privilege permissions, do the work, open a PR (never merge). It schedules on `0 0 * * *`; for new loops prefer an off-peak minute (see step 1) so runs do not pile onto the top of the hour. To build a loop:
+Routines run unattended on Anthropic's cloud, with no live session or laptop needed. Create one via `/schedule` (CLI) or at `claude.ai/code/routines`.
+
+- **Triggers**: cron schedule, HTTP API, or GitHub events (PR / release webhooks). Minimum interval is **1 hour**.
+- **Each run** clones the repo into a fresh cloud environment, reads your `CLAUDE.md` and skills, runs the configured prompt, pushes to a new branch, then **destroys the environment**.
+- **Best for** the agentic part — the run reads your skills (`loop-state`, `maker-checker`, `pr-dependency-review`) natively, so there is no API to wire up.
+- **Critical property — runs are ephemeral; no state persists between them.** Each run starts cold. This is exactly why `loop-state`'s `plan.md` is **committed in the repo**: the cloud box is wiped, but the next run reads the file. The repo *is* the cross-run memory.
+
+## GitHub Actions — the deterministic gate (secondary)
+
+Use Actions for the reliable, non-agentic part: run tests / lint, block a PR on red, simple scheduled maintenance. This repo's `.github/workflows/update-flake-lock.yml` is the closest template (it schedules on `0 0 * * *`; for new loops prefer an off-peak minute so runs do not pile onto the top of the hour). To build one:
 
 1. `on:` a `schedule:` cron (off-peak minute, not `0 0`) **and** `workflow_dispatch` (manual run + kill switch).
 2. Minimal `permissions:` — `contents: write`, `pull-requests: write`, nothing more.
-3. Run the task: a triage script, or an agent step.
+3. Run the task: a script, or an agent step via the official `anthropics/claude-code-action`.
 4. Open a PR via `peter-evans/create-pull-request` on an `automation/*` branch. **Never auto-merge.**
+
+If the work is genuinely agentic, prefer a Routine over wiring an agent into Actions.
+
+## CronCreate — in-session only (not a heartbeat)
+
+`CronCreate` dies when Claude exits, fires only while the REPL is idle, and recurring jobs auto-expire after 7 days (`durable:true` survives restarts but still needs a live session). Use it for a cadence *within* a working session, never for automation that must run when you are away.
 
 ## Safety rails (the skill's real content)
 
@@ -33,18 +48,19 @@ Unattended loops make unattended mistakes. Every loop must:
 
 - **Open PRs, never merge.** A human reviews and merges — verification stays on you.
 - **Verify between iterations.** Pair with `maker-checker`: a separate agent checks the loop's output before it surfaces.
-- **Keep state outside the run.** Progress lives in `loop-state`'s `plan.md`, an issue, or a board — not in the ephemeral run.
-- **Bound cost.** Cap iterations and use a cheap model for triage; loops accumulate tokens fast across runs and sub-agents.
-- **Least privilege + a kill switch.** Minimal token scope; `workflow_dispatch` plus the ability to disable the workflow.
+- **Keep state outside the run.** Progress lives in `loop-state`'s `plan.md`, an issue, or a board — never in the ephemeral run (Routines wipe theirs every time).
+- **Bound cost — parallelism is the trap.** Each parallel sub-agent multiplies token burn; unbounded fan-out has produced four-to-five-figure bills. Cap parallel agents explicitly and use a cheap model for triage.
+- **Respect Routines limits.** 1-hour minimum interval; a capped number of routines per day that varies by plan — check current limits in-app rather than assuming.
+- **Least privilege + a kill switch.** Minimal token scope; `workflow_dispatch` (Actions) or disabling the routine, so you can always stop it.
 - **Guard the three risks.** Comprehension debt (review what the loop shipped — see `pr-dependency-review`), cognitive surrender (the loop assists, it does not replace your judgment), false confidence (a smooth loop is not a correct one).
 
 ## The loop's shape
 
-heartbeat (schedule) → triage (read CI failures / issues / commits) → isolate (`git-wt` worktree or branch) → maker drafts (`maker-checker`) → checker verifies → open PR + update `plan.md` (`loop-state`) → human reviews and merges.
+heartbeat (Routine schedule, or Action) → triage (read CI failures / issues / commits) → isolate (`git-wt` worktree or branch) → maker drafts (`maker-checker`) → checker verifies → open PR + update `plan.md` (`loop-state`) → human reviews and merges.
 
 ## Integration
 
 - **maker-checker** — the verification gate between iterations.
-- **loop-state** — where the loop records progress between runs.
+- **loop-state** — `plan.md` is the cross-run memory a fresh (ephemeral) Routine reads to resume.
 - **git-wt** — isolate each automated task in its own worktree/branch.
-- **pr-dependency-review** — the review job a PR-triage loop runs (it already supports the `GITHUB_ACTIONS` env var).
+- **pr-dependency-review** — the lowest-risk first heartbeat is a scheduled, read-only run of this review on open PRs (it only comments; supports the `GITHUB_ACTIONS` env var).
