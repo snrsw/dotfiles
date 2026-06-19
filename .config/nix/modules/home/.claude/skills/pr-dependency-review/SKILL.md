@@ -77,12 +77,26 @@ This branch decides which of the steps below you run:
   Step 6 (complexity) only if it adds signal, and go to Step 7. Lead with the matching diagram and state what it cannot
   certify; demote the dependency graph to one line or drop it if it degenerates.
 
-Then, for the structural path, choose analysis granularity:
+  **Exception — new or substantial module (any archetype):** "skip Steps 3–5"
+  means skip the *cross-module coupling diff* (Steps 3–4), NOT the *function-level
+  call graph* (Step 5). When the PR adds a new module/file or a large unit
+  (rule of thumb: >10 functions or >200 lines in one file), still run Step 5 on
+  its **internal** call graph. For new code that graph is a comprehension map and
+  overlays directly onto the complexity/coverage risk — it is not a coupling
+  measurement, so the "skip" rationale does not apply. Degeneracy is **per-scope**:
+  a new leaf module is degenerate at the module-to-module scope (fan-in 0, no
+  cycles) yet rich at the intra-module function scope. Judge each scope on its own
+  and never carry "no graph worth drawing" from one scope to the other.
+
+Then choose analysis granularity. The structural path always reaches this table;
+non-structural archetypes use only the "new/substantial module" row (per the
+exception above):
 
 | Change shape | Granularity |
 |---|---|
 | Many files across packages/dirs (>~10 files or >3 dirs) | Module-level only |
 | Few files, localized change | Module + function-level (call graph slice) |
+| New or substantial module/file (new code, not a modification) | Function-level **internal** call graph — regardless of archetype |
 | Refactoring claim in PR title/description ("reduce coupling", "simplify") | Module + complexity before/after — verify the claim |
 | Changes to a file with high fan-in | Always add function-level slice for that file |
 
@@ -178,11 +192,14 @@ behavioral → sequence; state → state diagram; data-flow → source→sink). 
 line on what it shows and one on what it *cannot* certify. Structural: N added,
 M removed edges; cycles: ...
 
-### Blast radius (structural, function-level only)
+### Blast radius (function-level: structural PRs, and new/substantial modules of any archetype)
 ```mermaid
 <slice from call_graph_slice.py>
 ```
-Changed symbols and their callers; note untested callers. Skip if it duplicates the dependency graph's node set.
+Changed symbols and their callers; note untested callers. For a new module, this
+is the **internal** call graph (a comprehension map) — surface shared helpers
+(high intra-module fan-in) and how deep the high-complexity/under-tested functions
+sit from the public entry point. Skip only if it duplicates the dependency graph's node set.
 
 ### Complexity
 | Function | Before | After |
@@ -210,6 +227,11 @@ markdown to the user.
 - One primary diagram per PR; a secondary archetype gets prose unless it earns
   its space (reference thresholds). Replace a degenerate graph — a star or a
   one-edge state diagram — with a sentence; never duplicate a node set.
+- "Degenerate" is **per-scope**. Before you drop a dependency graph, name the
+  scope you actually judged — module-to-module vs intra-module function-level. A
+  new leaf module is degenerate at the module scope (fan-in 0, no cycles) but its
+  internal call graph can be rich (shared helpers, deep call chains). A conclusion
+  at one scope never licenses skipping the other.
 - Match the diagram to the change: a call graph for a race is false reassurance.
   Draw the dimension that holds the risk, not the one the template defaults to.
 - Static call graphs miss dynamic dispatch / DI. Say so when relevant —

@@ -17,6 +17,11 @@ Rules:
 - For behavioral / state / data-flow the dependency graph is necessary-but-
   insufficient or misleading. Lead with the matching diagram below; demote the
   dependency graph to a one-line note, or drop it if it degenerates.
+- **New/substantial module is the exception** (any archetype): "drop the
+  dependency graph" applies to the *module-to-module* scope only. For new code,
+  still draw the **internal** function-level call graph — degeneracy is per-scope
+  (a new leaf module has fan-in 0 across modules yet a rich intra-module call
+  graph). See SKILL Step 2's exception.
 - Always state what the chosen view *cannot* certify and route that to a human
   (e.g. "a sequence diagram shows the race window; it cannot prove the fix is
   atomic — that needs a concurrency review").
