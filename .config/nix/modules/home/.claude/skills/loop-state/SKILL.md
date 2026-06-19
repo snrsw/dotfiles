@@ -71,6 +71,7 @@ This deliberately replaces any "wait for a go after every step" behavior, matchi
 - Mark `[x]` only after the item's tests pass **and** its commit has landed.
 - If you discover new work mid-task, **add it to `## Next`** rather than doing it silently — this keeps scope visible and guards against comprehension debt.
 - Record every dead end as a `Do NOT:` line in `## Notes`.
+- Record intentional deferrals — decisions that are "correct as-is, do not action yet" — distinctly from dead ends (e.g. a `Deferred:` line in `## Notes`, or keep the item in `## Blocked / DR` with the reason it is *intentionally* not next). This stops a resumed session from mistaking a deliberate non-action for unfinished work and redoing or "fixing" it.
 
 ## Integration with other skills
 
