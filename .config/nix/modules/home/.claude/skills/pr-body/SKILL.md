@@ -47,6 +47,7 @@ The section *names* are also fixed: even if recent merged PRs use different sect
 - **Changes**: one bullet per logical unit of change, referencing package/file names where helpful
 - **Test plan**: checked boxes `[x]` mark items where you actually verified the property — either by executing the check (build, test, manual interaction) or by direct static observation (e.g., grep, diff inspection) where the annotation makes the method explicit, e.g., `(verified by grep)`. Items needing execution that you did not run stay `[ ]`.
 - **Footer**: always include `🤖 Generated with [Claude Code](https://claude.com/claude-code)`
+- **No planning jargon**: never carry internal planning tokens into the PR body — task IDs (`T1`, `T2`), phase labels (`Phase 1.2`, `Step 3`), sprint names, story references from plan.md or similar files. Reviewers have no context for these. Replace them with plain descriptions of what changed and why.
 
 ### Example
 
