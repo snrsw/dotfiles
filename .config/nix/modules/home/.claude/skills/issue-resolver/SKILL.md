@@ -73,11 +73,14 @@ Start from these and **add** axes the issue obviously needs (e.g. "migration saf
 "backwards compat", "i18n"). Each axis maps to a purpose-built reviewer where one exists.
 
 - **Plan phase** — *spec-fit* (does the plan actually solve the issue?), *feasibility*
-  (can it be built as described? often the one that needs a spike), *simplicity /
-  Tidy-First* (smallest change that works; structural vs behavioral separated), *risk &
-  blast-radius*, *testability* (can each step be verified test-first?).
+  (can it be built as described? often the one that needs a spike), *architecture* (does
+  the design fit the system's existing boundaries, layering and dependency direction?),
+  *simplicity / Tidy-First* (smallest change that works; structural vs behavioral
+  separated), *risk & blast-radius*, *testability* (can each step be verified test-first?).
 - **Impl phase** — *correctness*, *spec-fit*, *test coverage* (`tdd`; a test must fail
   on pre-change behavior), *security* (the protected domains in `decision-required`),
+  *performance* (hot paths, complexity, allocations, N+1 / unnecessary work),
+  *architecture* (fits existing boundaries and dependency direction; no leaky coupling),
   *simplicity*, *AI-PR failure modes* (delegate to `pr-dependency-review`'s
   `references/ai-pr-checks.md`: hallucinated correctness, reinvented utilities, phantom
   imports, scope creep, weakened CI, comprehension debt).
@@ -191,6 +194,7 @@ let plan = await agent(
 const PLAN_AXES = [
   { key: 'spec-fit',     prompt: 'Does the plan actually resolve the issue, with nothing missing or extra?' },
   { key: 'feasibility',  prompt: 'Can this be built as described against the real codebase/APIs?' },
+  { key: 'architecture', prompt: 'Does the design fit existing module boundaries, layering and dependency direction?' },
   { key: 'simplicity',   prompt: 'Is this the smallest change that works? Structural vs behavioral separated?' },
   { key: 'risk',         prompt: 'Blast radius, protected domains (auth/payments/data/infra), rollback.' },
   { key: 'testability',  prompt: 'Can each step be verified test-first?' },
@@ -230,6 +234,9 @@ const IMPL_AXES = [
     agentType: 'pr-review-toolkit:pr-test-analyzer' },
   { key: 'security',     prompt: 'Protected domains (auth/payments/data/infra), unsafe handling?',
     agentType: 'pr-review-toolkit:silent-failure-hunter' },
+  { key: 'performance',  prompt: 'Hot paths, algorithmic complexity, allocations, N+1 / unnecessary work?' },
+  { key: 'architecture', prompt: 'Fits existing boundaries and dependency direction; no leaky coupling?',
+    agentType: 'pr-review-toolkit:type-design-analyzer' },
   { key: 'simplicity',   prompt: 'Smallest clear implementation; no needless abstraction?' },
   { key: 'ai-pr-checks', prompt: 'Run pr-dependency-review references/ai-pr-checks.md failure modes.' },
 ]
