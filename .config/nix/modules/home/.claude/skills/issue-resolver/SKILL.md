@@ -314,7 +314,10 @@ Why it is shaped this way:
 - **`while` bounded by `MAX_ROUNDS`** — the loop re-reviews until every axis is ≥ 80, but
   a stuck axis cannot loop forever: it exits `blocked` and surfaces as a DR.
 - **Fresh reviewers and verifiers** — every reviewer/refuter is a separate agent that
-  sees the artifact + spec only, never the maker's reasoning (`maker-checker`).
+  sees the artifact + spec only, never the maker's reasoning (`maker-checker`). An axis
+  with no `agentType` still spawns the **generic workflow subagent** (fresh context) — it
+  is not run in the main session; `agentType` only swaps a purpose-built reviewer in for
+  the generic one. So the `maker-checker` guarantee holds for every axis, specialized or not.
 - **Verify before fix** — only confirmed findings drive a change, so hallucinated issues
   neither cause churn nor block termination.
 
