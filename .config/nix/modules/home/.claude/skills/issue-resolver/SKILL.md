@@ -61,11 +61,38 @@ critical/high finding remains:
 
 ```
 { axis, score: 0-100, confidence: 0-1,
-  findings: [{ issue, severity: 'critical'|'high'|'medium'|'low', fixingPlan, fileLine? }] }
+  kpi?: { name, value, target },   // the measurement that justifies the score
+  findings: [{ issue, severity: 'critical'|'high'|'medium'|'low', fixingPlan, fileLine?, metric? }] }
 ```
 
 `confidence` is the reviewer's own certainty; it is advisory. The real gate against
 false findings is step 4.2/6.2 — an *independent* refuter, not the reviewer's self-report.
+
+## Anchor scores on KPIs (don't score on vibes)
+
+A 0–100 score means little unless it is anchored on something measurable. Where an axis
+has a real metric, the reviewer should **measure it, report it as `kpi`, and let the
+distance from target drive the score** — the same discipline `pr-dependency-review` uses
+(findings carry a measured value, not an adjective). Where no hard metric fits (e.g.
+spec-fit on a fuzzy issue), score on judgment and say so (`kpi.name = 'judgement'`) —
+don't fabricate a number. Default KPI per axis (target in parentheses):
+
+| Axis | KPI (target) |
+|---|---|
+| correctness | test pass rate (100%, 0 failing) |
+| coverage | diff coverage % (≥ 80); new uncovered branches (0) |
+| security | security / secret / unsafe-sink findings (0); protected-domain change → DR |
+| performance | benchmark/latency delta vs baseline (no regression beyond budget); added N+1 queries (0) |
+| architecture | new circular deps (0); fan-in/out vs threshold (reuse `pr-dependency-review`) |
+| simplicity | cyclomatic complexity per changed fn (≤ 10); max nesting depth |
+| testability (plan) | plan steps with a defined test (100%) |
+| feasibility (plan) | unresolved feasibility unknowns (0 — spike to resolve) |
+| risk (plan) | modules in blast radius; protected domains touched (any → DR) |
+| spec-fit | acceptance criteria addressed (100%) — judgement if criteria are fuzzy |
+| ai-pr-checks | AI-PR failure-mode hits (0) |
+
+These are the *defaults*; a reviewer may report a better axis-specific metric for the
+issue at hand. The point is that the number is earned, not asserted.
 
 ## Default axes (hybrid: these + any issue-specific ones)
 
@@ -192,12 +219,12 @@ let plan = await agent(
 
 // 4. refine the plan until every plan axis >= 80 (with spikes when feasibility/risk lags)
 const PLAN_AXES = [
-  { key: 'spec-fit',     prompt: 'Does the plan actually resolve the issue, with nothing missing or extra?' },
-  { key: 'feasibility',  prompt: 'Can this be built as described against the real codebase/APIs?' },
-  { key: 'architecture', prompt: 'Does the design fit existing module boundaries, layering and dependency direction?' },
-  { key: 'simplicity',   prompt: 'Is this the smallest change that works? Structural vs behavioral separated?' },
-  { key: 'risk',         prompt: 'Blast radius, protected domains (auth/payments/data/infra), rollback.' },
-  { key: 'testability',  prompt: 'Can each step be verified test-first?' },
+  { key: 'spec-fit',     prompt: 'Does the plan resolve the issue, nothing missing or extra? KPI: acceptance criteria addressed (target 100%; judgement if fuzzy).' },
+  { key: 'feasibility',  prompt: 'Can this be built as described against the real codebase/APIs? KPI: unresolved feasibility unknowns (target 0 — spike to resolve).' },
+  { key: 'architecture', prompt: 'Fits existing boundaries, layering, dependency direction? KPI: planned circular deps / direction violations (target 0).' },
+  { key: 'simplicity',   prompt: 'Smallest change that works? Structural vs behavioral separated? KPI: net new abstractions/modules beyond need (target: none speculative).' },
+  { key: 'risk',         prompt: 'Blast radius, protected domains, rollback. KPI: modules in blast radius + protected domains touched (any → DR).' },
+  { key: 'testability',  prompt: 'Can each step be verified test-first? KPI: plan steps with a defined test (target 100%).' },
 ]
 const planResult = await refineUntilScored('plan', PLAN_AXES,
   (a) => `Review this PLAN on the "${a.key}" axis. ${a.prompt}\nPlan:\n${plan}\n` +
@@ -227,18 +254,18 @@ await agent(`In worktree ${wt.worktree} on branch ${wt.branch}, implement this p
 
 // 6. review + fix the implementation until every impl axis >= 80
 const IMPL_AXES = [
-  { key: 'correctness',  prompt: 'Does it do what the spec promises, including edge cases?',
+  { key: 'correctness',  prompt: 'Does it do what the spec promises, including edge cases? KPI: test pass rate (target 100%, 0 failing).',
     agentType: 'pr-review-toolkit:code-reviewer' },
-  { key: 'spec-fit',     prompt: 'Anything missing or out of scope vs the issue?' },
-  { key: 'coverage',     prompt: 'Adequate tests; a test fails on pre-change behavior?',
+  { key: 'spec-fit',     prompt: 'Anything missing or out of scope vs the issue? KPI: acceptance-criteria coverage (target 100%).' },
+  { key: 'coverage',     prompt: 'Tests adequate; a test fails on pre-change behavior? KPI: diff coverage % (target >= 80) and new uncovered branches (target 0).',
     agentType: 'pr-review-toolkit:pr-test-analyzer' },
-  { key: 'security',     prompt: 'Protected domains (auth/payments/data/infra), unsafe handling?',
+  { key: 'security',     prompt: 'Protected domains, unsafe handling? KPI: security/secret/unsafe-sink findings (target 0); protected-domain change → DR.',
     agentType: 'pr-review-toolkit:silent-failure-hunter' },
-  { key: 'performance',  prompt: 'Hot paths, algorithmic complexity, allocations, N+1 / unnecessary work?' },
-  { key: 'architecture', prompt: 'Fits existing boundaries and dependency direction; no leaky coupling?',
+  { key: 'performance',  prompt: 'Hot paths, complexity, allocations, N+1? KPI: benchmark/latency delta vs baseline (no regression beyond budget); added N+1 queries (target 0).' },
+  { key: 'architecture', prompt: 'Fits boundaries and dependency direction; no leaky coupling? KPI: new circular deps (target 0), fan-in/out vs threshold (reuse pr-dependency-review).',
     agentType: 'pr-review-toolkit:type-design-analyzer' },
-  { key: 'simplicity',   prompt: 'Smallest clear implementation; no needless abstraction?' },
-  { key: 'ai-pr-checks', prompt: 'Run pr-dependency-review references/ai-pr-checks.md failure modes.' },
+  { key: 'simplicity',   prompt: 'Smallest clear implementation; no needless abstraction? KPI: cyclomatic complexity per changed fn (target <= 10), max nesting depth.' },
+  { key: 'ai-pr-checks', prompt: 'Run pr-dependency-review references/ai-pr-checks.md failure modes. KPI: failure-mode hits (target 0).' },
 ]
 const implResult = await refineUntilScored('impl', IMPL_AXES,
   (a) => `Review the diff in worktree ${wt.worktree} against spec "${issue.spec}" on the ` +
