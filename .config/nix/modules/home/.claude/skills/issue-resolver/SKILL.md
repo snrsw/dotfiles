@@ -6,9 +6,10 @@ description: >
   user hands over a single issue (a GitHub issue URL/number, or a written spec) and
   wants it "done properly", "resolved end to end", "taken to a PR with quality
   gates", or "reviewed until it's actually good" — not a quick patch. Each review
-  subagent owns one axis and returns {issue, confidence, fixingPlan, score}; the
-  loop refines until every axis scores >= 80, at both the plan and the
-  implementation stage, and verifies each finding before acting on it. This is the
+  subagent owns one axis and returns a scored verdict (axis score, confidence, and
+  findings each with a fix plan); the loop refines until every axis scores >= 80, at
+  both the plan and the implementation stage, and verifies each finding before acting
+  on it. This is the
   deep, single-issue sibling of `issue-loop` (a batch loop with one severity axis) —
   prefer this skill for one issue done thoroughly, and `issue-loop` for a batch.
 ---
@@ -101,6 +102,13 @@ parentheses; ⛔ = gate):
 | spec-fit | acceptance criteria addressed (100%); out-of-scope changes (0) — judgement if criteria fuzzy |
 | ai-pr-checks | ⛔ AI-PR failure-mode hits (0) |
 
+**When a KPI needs an environment you may not have.** Some KPIs require a runtime the repo
+may lack — a browser engine (Safari/WebKit), a specific OS, a populated DB, a mutation
+runner. If the metric cannot be measured, do **not** fabricate a pass: fall back to the
+named evidence (a test that exercises the exact path), and if even that is impossible, score
+on judgement and file the axis **blocked → DR** rather than green. An unverifiable gate is
+not a passed gate.
+
 These are the *defaults*; a reviewer may report a better axis-specific metric for the
 issue at hand. The point is that the number is earned, not asserted.
 
@@ -108,6 +116,10 @@ issue at hand. The point is that the number is earned, not asserted.
 
 Start from these and **add** axes the issue obviously needs (e.g. "migration safety",
 "backwards compat", "i18n"). Each axis maps to a purpose-built reviewer where one exists.
+Add a dedicated axis only when the concern has its **own measurable gate KPI that no default
+axis already gates** — otherwise fold it into the nearest default (`risk`, `correctness`, …)
+rather than duplicating. An added plan-phase axis that needs evidence to score honestly can
+set `spikes: true` to drive a spike, the same way `feasibility` and `risk` do.
 
 - **Plan phase** — *spec-fit* (does the plan actually solve the issue?), *feasibility*
   (can it be built as described? often the one that needs a spike), *architecture* (macro:
@@ -144,11 +156,15 @@ evidence ("will this approach be fast enough / fit the existing API?"), spawn 1�
 agents, each in a **throwaway** worktree, to build the smallest prototype that answers the
 question and measure it against a stated metric. Compare the spikes, fold the winning
 **conclusion** into the plan, and discard the spike code — only the conclusion survives.
-Cap the number of spikes (`MAX_SPIKES`) so this does not balloon.
+Cap the number of spikes (`MAX_SPIKES`) so this does not balloon. Which axes may trigger a
+spike is data-driven: an axis drives one when it carries `spikes: true` (defaults:
+*feasibility*, *risk*) — so an issue-specific axis opts in by setting the same flag.
 
 ## Workflow script template
 
-Adapt this — change schemas, axes, models, `MIN_SCORE`, `MAX_ROUNDS`, `MAX_SPIKES`.
+Adapt this — change schemas, axes, models, `MIN_SCORE`, `MAX_ROUNDS`, `MAX_SPIKES`. Two
+rules that prose alone would lose are wired in: `GATE_RULE` (appended to every reviewer
+prompt) and a `PROTECTED` protected-domain DR hook — fill `PROTECTED` from the issue.
 
 ```js
 export const meta = {
@@ -178,6 +194,15 @@ const REVIEW_SCHEMA = {
 }
 const VERDICT_SCHEMA = { type: 'object', required: ['confirmed', 'why'],
   properties: { confirmed: { type: 'boolean' }, why: { type: 'string' } } }
+
+// Appended to EVERY reviewer prompt so the gate-vs-grade rule lives in the dispatched
+// artifact, not only in this skill's prose: a gate-KPI breach must be filed as `critical`
+// so it blocks the axis regardless of the numeric score.
+const GATE_RULE = 'Gate-vs-grade: anchor the score on the measured KPI and state your mapping. ' +
+  'File any GATE breach (failing test, new uncovered branch, SAST/secret/vuln hit, new circular ' +
+  'dep, unintended public-API change, added N+1, protected-domain change, or any per-axis gate) ' +
+  'as a `critical` finding even if the score is otherwise high — a high score never buys back a ' +
+  "gate breach. If no hard metric fits, set kpi.name='judgement' and say so."
 
 // ---- shared scored-refinement loop (plan-phase and impl-phase use the same engine) ----
 // axes: [{ key, prompt, agentType? }]; makeReviewPrompt(axis, round) -> string;
@@ -220,6 +245,21 @@ const wt = await agent(
   { label: 'context', phase: 'Context',
     schema: { type: 'object', required: ['worktree', 'branch', 'context'],
       properties: { worktree: { type: 'string' }, branch: { type: 'string' }, context: { type: 'string' } } } })
+
+// Protected-domain gate (decision-required): if the issue touches auth, payments, data
+// migration, security config, infra, or a breaking API change, raise a DR up front and
+// fold it into the plan + PR — never decide autonomously. Fill PROTECTED from the issue.
+const PROTECTED = []  // e.g. ['data-migration', 'auth']; [] when none apply
+let dr = ''
+if (PROTECTED.length) {
+  dr = await agent(
+    `This issue touches protected domains ${JSON.stringify(PROTECTED)}. Per decision-required, ` +
+    `produce a DR writeup of the human-owned choices required BEFORE any irreversible step; ` +
+    `do not decide autonomously. Spec: ${issue.spec}. Context: ${wt.context}. Return the DR text.`,
+    { label: 'protected-domain-DR', phase: 'Context' })
+  log(`DR raised for protected domains: ${PROTECTED.join(', ')}`)
+}
+
 const ANGLES = ['root cause & affected components', 'constraints & protected domains',
                 'existing utilities to reuse', 'edge cases & failure modes']
 const analysis = (await parallel(ANGLES.map(a => () =>
@@ -231,24 +271,28 @@ const analysis = (await parallel(ANGLES.map(a => () =>
 phase('Plan')
 let plan = await agent(
   `Write a short, testable implementation plan for issue "${issue.title}". ` +
-  `Spec: ${issue.spec}. Analysis:\n${analysis}\nFavor the smallest change that works (Tidy-First).`,
+  `Spec: ${issue.spec}. Analysis:\n${analysis}\n` +
+  `${dr ? 'Honor this Decision-Required: ' + dr + '\n' : ''}` +
+  `Favor the smallest change that works (Tidy-First).`,
   { label: 'plan', phase: 'Plan' })
 
 // 4. refine the plan until every plan axis >= 80 (with spikes when feasibility/risk lags)
 const PLAN_AXES = [
   { key: 'spec-fit',     prompt: 'Does the plan resolve the issue, nothing missing or extra? KPI: acceptance criteria addressed (target 100%; judgement if fuzzy).' },
-  { key: 'feasibility',  prompt: 'Can this be built as described against the real codebase/APIs? KPI: unresolved feasibility unknowns (target 0 — spike to resolve).' },
+  { key: 'feasibility',  prompt: 'Can this be built as described against the real codebase/APIs? KPI: unresolved feasibility unknowns (target 0 — spike to resolve).', spikes: true },
   { key: 'architecture', prompt: 'Macro: fits existing boundaries, layering, dependency direction? KPI (judgement, pre-code): planned circular deps / direction violations (target 0).' },
   { key: 'design',       prompt: 'Micro: do the intended interfaces/types/APIs make sense (encapsulation, invariants, cohesion)? KPI (judgement, pre-code): unsound interface/type choices (target 0).' },
   { key: 'simplicity',   prompt: 'Smallest change that works? Structural vs behavioral separated? KPI (judgement): net new abstractions/modules beyond need (target: none speculative).' },
-  { key: 'risk',         prompt: 'Blast radius, protected domains, rollback. KPI: blast-radius modules; reversibility (irreversible op / data migration → DR); protected domains → DR.' },
+  { key: 'risk',         prompt: 'Blast radius, protected domains, rollback. KPI: blast-radius modules; reversibility (irreversible op / data migration → DR); protected domains → DR.', spikes: true },
   { key: 'testability',  prompt: 'Can each step be verified test-first? KPI: plan steps with a defined test (target 100%).' },
+  // To add an issue-specific axis, push it here; set `spikes: true` if a lagging score on it
+  // should be allowed to drive a plan-phase spike (the defaults are feasibility + risk).
 ]
 const planResult = await refineUntilScored('plan', PLAN_AXES,
-  (a) => `Review this PLAN on the "${a.key}" axis. ${a.prompt}\nPlan:\n${plan}\n` +
+  (a) => `Review this PLAN on the "${a.key}" axis. ${a.prompt}\n${GATE_RULE}\nPlan:\n${plan}\n` +
          `Return {axis:'${a.key}', score, confidence, findings}.`,
   async (confirmed, lagging, round) => {
-    const needsSpike = lagging.some(r => r.axis === 'feasibility' || r.axis === 'risk')
+    const needsSpike = lagging.some(r => PLAN_AXES.find(a => a.key === r.axis)?.spikes)
     if (needsSpike) {
       const spikes = (await parallel(Array.from({ length: MAX_SPIKES }, (_, i) => () =>
         agent(`Spike approach #${i} for: ${issue.spec}. In a THROWAWAY git worktree (git-wt), ` +
@@ -288,7 +332,7 @@ const IMPL_AXES = [
 ]
 const implResult = await refineUntilScored('impl', IMPL_AXES,
   (a) => `Review the diff in worktree ${wt.worktree} against spec "${issue.spec}" on the ` +
-         `"${a.key}" axis. ${a.prompt} Do not assume the author was right. ` +
+         `"${a.key}" axis. ${a.prompt} ${GATE_RULE} Do not assume the author was right. ` +
          `Return {axis:'${a.key}', score, confidence, findings:[{issue,severity,fixingPlan,fileLine}]}.`,
   async (confirmed) => {
     await agent(`In worktree ${wt.worktree}, address these VERIFIED findings, keeping the spec ` +
@@ -300,7 +344,8 @@ phase('PR')
 const blocked = !planResult.passed || !implResult.passed
 const pr = await agent(`In worktree ${wt.worktree} on branch ${wt.branch}, push and open a ` +
   `DRAFT PR (gh pr create --draft) with a body following the pr-body skill. ` +
-  `${blocked ? 'List the axes that did not reach the threshold in the PR body.' : ''} ` +
+  `${blocked ? 'List the axes that did not reach the threshold in the PR body. ' : ''}` +
+  `${dr ? 'Surface this Decision-Required and state that a human owns the merge: ' + dr : ''} ` +
   `Return {url}.`, { label: 'pr', phase: 'PR' })
 
 return { pr, planScores: planResult.scores, implScores: implResult.scores, blocked }
