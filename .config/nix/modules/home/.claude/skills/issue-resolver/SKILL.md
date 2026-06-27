@@ -93,6 +93,7 @@ parentheses; ⛔ = gate):
 | security | ⛔ SAST + secret-scan + dependency-vuln findings (0); protected-domain change → DR |
 | performance | benchmark present → latency/throughput delta (≤ budget); else complexity of changed hot paths + query count; ⛔ added N+1 (0) |
 | architecture | ⛔ new circular deps (0); ⛔ dependency-direction / layering violations (0); fan-in/out vs threshold (reuse `pr-dependency-review`) |
+| design | encapsulation / invariant-expression / enforcement ratings (`type-design-analyzer`); ⛔ unintended public-API surface change (0) |
 | simplicity | cyclomatic complexity per changed fn (≤ 10); max nesting depth; duplication |
 | testability (plan) | plan steps with a defined test (100%) |
 | feasibility (plan) | unresolved feasibility unknowns (0 — spike to resolve) |
@@ -109,18 +110,24 @@ Start from these and **add** axes the issue obviously needs (e.g. "migration saf
 "backwards compat", "i18n"). Each axis maps to a purpose-built reviewer where one exists.
 
 - **Plan phase** — *spec-fit* (does the plan actually solve the issue?), *feasibility*
-  (can it be built as described? often the one that needs a spike), *architecture* (does
-  the design fit the system's existing boundaries, layering and dependency direction?),
-  *simplicity / Tidy-First* (smallest change that works; structural vs behavioral
-  separated), *risk & blast-radius*, *testability* (can each step be verified test-first?).
+  (can it be built as described? often the one that needs a spike), *architecture* (macro:
+  fits existing module boundaries, layering and dependency direction), *design* (micro: do
+  the intended interfaces/types/APIs make sense?), *simplicity / Tidy-First* (smallest
+  change that works; structural vs behavioral separated), *risk & blast-radius*,
+  *testability* (can each step be verified test-first?).
 - **Impl phase** — *correctness* (mutation-tested, not just green), *spec-fit* (incl. no
   scope creep), *test coverage* (`tdd`; a test must fail on pre-change behavior),
   *security* (the protected domains in `decision-required`),
   *performance* (hot paths, complexity, allocations, N+1 / unnecessary work),
-  *architecture* (fits existing boundaries and dependency direction; no leaky coupling),
+  *architecture* (macro: boundaries, dependency direction, coupling; no cycles), *design*
+  (micro: type/API design, encapsulation, invariants — the unit, not the wiring),
   *simplicity*, *AI-PR failure modes* (delegate to `pr-dependency-review`'s
   `references/ai-pr-checks.md`: hallucinated correctness, reinvented utilities, phantom
   imports, scope creep, weakened CI, comprehension debt).
+
+  *Architecture vs design*: architecture is how the pieces are wired (boundaries, dep
+  direction, cycles, coupling); design is whether each piece is built right (interfaces,
+  types, encapsulation, invariants). They fail independently and get fixed differently.
 
 ## Verify-each-review (why the refute step matters)
 
@@ -231,7 +238,8 @@ let plan = await agent(
 const PLAN_AXES = [
   { key: 'spec-fit',     prompt: 'Does the plan resolve the issue, nothing missing or extra? KPI: acceptance criteria addressed (target 100%; judgement if fuzzy).' },
   { key: 'feasibility',  prompt: 'Can this be built as described against the real codebase/APIs? KPI: unresolved feasibility unknowns (target 0 — spike to resolve).' },
-  { key: 'architecture', prompt: 'Fits existing boundaries, layering, dependency direction? KPI (judgement, pre-code): planned circular deps / direction violations (target 0).' },
+  { key: 'architecture', prompt: 'Macro: fits existing boundaries, layering, dependency direction? KPI (judgement, pre-code): planned circular deps / direction violations (target 0).' },
+  { key: 'design',       prompt: 'Micro: do the intended interfaces/types/APIs make sense (encapsulation, invariants, cohesion)? KPI (judgement, pre-code): unsound interface/type choices (target 0).' },
   { key: 'simplicity',   prompt: 'Smallest change that works? Structural vs behavioral separated? KPI (judgement): net new abstractions/modules beyond need (target: none speculative).' },
   { key: 'risk',         prompt: 'Blast radius, protected domains, rollback. KPI: blast-radius modules; reversibility (irreversible op / data migration → DR); protected domains → DR.' },
   { key: 'testability',  prompt: 'Can each step be verified test-first? KPI: plan steps with a defined test (target 100%).' },
@@ -272,7 +280,8 @@ const IMPL_AXES = [
   { key: 'security',     prompt: 'Protected domains, unsafe handling? KPI: SAST + secret-scan + dependency-vuln findings (gate, target 0); protected-domain change → DR.',
     agentType: 'pr-review-toolkit:silent-failure-hunter' },
   { key: 'performance',  prompt: 'Hot paths, complexity, allocations, N+1? KPI: if a benchmark exists, latency/throughput delta vs baseline (<= budget); else complexity of changed hot paths + DB query count; added N+1 (gate, target 0).' },
-  { key: 'architecture', prompt: 'Fits boundaries and dependency direction; no leaky coupling? KPI: new circular deps (gate, 0), dependency-direction/layering violations (gate, 0), fan-in/out vs threshold (reuse pr-dependency-review).',
+  { key: 'architecture', prompt: 'Macro: fits boundaries and dependency direction; no leaky coupling? KPI: new circular deps (gate, 0), dependency-direction/layering violations (gate, 0), fan-in/out vs threshold (reuse pr-dependency-review).' },
+  { key: 'design',       prompt: 'Micro: interface/type/API quality, encapsulation, invariants, cohesion? KPI: encapsulation/invariant/enforcement ratings; unintended public-API surface change (gate, 0).',
     agentType: 'pr-review-toolkit:type-design-analyzer' },
   { key: 'simplicity',   prompt: 'Smallest clear implementation; no needless abstraction? KPI: cyclomatic complexity per changed fn (target <= 10), max nesting depth, duplication.' },
   { key: 'ai-pr-checks', prompt: 'Run pr-dependency-review references/ai-pr-checks.md failure modes. KPI: failure-mode hits (target 0).' },
