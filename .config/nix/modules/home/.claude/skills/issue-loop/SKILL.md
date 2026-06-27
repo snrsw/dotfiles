@@ -7,154 +7,141 @@ description: >
   own worktree, ending in a draft PR — then summarized. Triggers on "run my loop",
   "work through these issues", "dispatch a workflow for each of these", or any batch
   of tasks meant to each reach a draft PR. Builds the loop dynamically via the
-  Workflow tool, with /goal as the outer until-done loop.
+  Workflow tool, with /goal as the outer until-done loop. Each issue is driven by the
+  `issue-resolver` skill (scored multi-axis review loops); use `issue-resolver`
+  directly for a single issue done deeply.
 ---
 
 # issue-loop
 
 Take a batch of issues — given free-form in the prompt — and drive each one to a
-draft PR through the same per-issue loop, in parallel, in isolated worktrees. The
-skill does not freeze a script; it builds one at runtime from whatever issues you
-paste, then runs it.
+draft PR, in parallel, in isolated worktrees. The per-issue body is the
+**`issue-resolver`** skill: it analyzes, plans, then refines both the plan and the
+implementation through scored multi-axis review loops (every axis ≥ 80, each finding
+verified before it drives a fix), and opens the draft PR. `issue-loop` is the batch
+wrapper around it. The skill does not freeze a script; it builds one at runtime from
+whatever issues you paste, then runs it.
 
 ## The loop's shape
 
 ```
 /goal until no actionable item
 1. collect issues (parsed from the prompt)
-2. for each issue (fan-out, one worktree each):
-   2.1 until no critical/high problem:
-       analyze → plan → implement → review → address review comments
-   2.2 open a draft PR
-3. summarize the work
+2. for each issue (fan-out): run issue-resolver — analyze → scored plan-refine →
+   implement (test-first) → scored impl-review → draft PR, in its own worktree
+3. summarize the work (final scores + any blocked issue/axis)
 ```
+
+For large or triage-grade batches where the full scored loop is too costly, a
+**lightweight mode** keeps the old single-axis "review until no critical/high" body
+inline instead of delegating (see *Lightweight alternative* below).
 
 ## Mechanism mapping (read this first)
 
-`/goal` is a built-in **session-level** loop — *one goal per session*, and
-subagents do not carry it. So the two nested loops above use two mechanisms:
+`/goal` is a built-in **session-level** loop — *one goal per session*, and subagents
+do not carry it. So the loops use two mechanisms:
 
 | Loop | Mechanism | Why |
 |---|---|---|
 | Outer "until no actionable item" | a real `/goal` on this session | session-level fits "keep going until every issue is handled" |
-| Per-issue fan-out + inner "until no critical/high" | the **`Workflow`** tool | deterministic fan-out, per-item pipeline, and a bounded `while` loop for the inner review cycle |
+| Per-issue fan-out | the **`Workflow`** tool | deterministic fan-out; each issue is delegated to **issue-resolver** via the `workflow()` hook (one level of nesting — allowed) |
+| Inner scored plan/impl loops | **inside issue-resolver** | bounded `while` loops live in the child, not here |
 
-`/goal` **cannot nest**. The inner "until no critical/high" loop is therefore a
-bounded `while` loop inside the Workflow script, not a second `/goal`.
+`/goal` **cannot nest**, and `workflow()` nests **only one level** — which is exactly
+why the inner scored loops live inside `issue-resolver` (it never calls `workflow()`
+itself, so the single nesting level is spent here, on the delegation).
 
 ## Procedure
 
-1. **Parse** the free-form issues in the prompt into a concrete work-list:
-   `[{ id, title, spec }]`. `id` is a short slug (used for the branch). If the list
-   or any spec is ambiguous, confirm it with the user before dispatching.
-2. **Set the outer goal** (optional but recommended):
+1. **Parse** the free-form issues into a concrete work-list:
+   `[{ id, title, spec, issueRef }]`. `id` is a short slug (used for the branch). If
+   the list or any spec is ambiguous, confirm it with the user before dispatching.
+2. **Materialize the resolver** (deep mode): copy the Workflow script template from the
+   `issue-resolver` skill's SKILL.md into a file (e.g. `<session-dir>/issue-resolver.mjs`)
+   and note its path as `resolver`. This is the script `workflow()` will run per issue.
+3. **Set the outer goal** (optional but recommended):
    `/goal every issue in the work-list has a draft PR or is logged as blocked`.
-3. **Dispatch** the `Workflow` tool with a script adapted from the template below,
-   passing the work-list as `args` (a real JSON array, not a stringified one).
-4. **Relay** the returned summary. Call out every blocked issue and any DR raised.
+4. **Dispatch** the `Workflow` tool with the template below, passing
+   `{ issues, resolver }` as `args` (real JSON, not stringified).
+5. **Relay** the returned summary. Call out every blocked issue/axis and any DR raised.
 
-Invoking this skill is the opt-in to call `Workflow` — you do not need a separate
-"ultracode" trigger.
+Invoking this skill is the opt-in to call `Workflow` — no separate "ultracode" trigger.
 
-## Workflow script template
-
-Adapt this — change schemas, models, and `MAX_REVIEW_ROUNDS` to fit the batch.
+## Workflow script template (deep — delegates to issue-resolver)
 
 ```js
 export const meta = {
   name: 'issue-loop',
-  description: 'Per-issue: worktree → analyze/plan → implement → review-until-clean → draft PR',
-  phases: [{ title: 'Plan' }, { title: 'Implement' }, { title: 'Review' }, { title: 'PR' }],
+  description: 'Batch: each issue → issue-resolver (scored plan + impl loops) → draft PR',
+  phases: [{ title: 'Resolve' }],
 }
-// args = [{ id, title, spec }, ...]  — the parsed work-list
-const MAX_REVIEW_ROUNDS = 3
+// args = { issues: [{ id, title, spec, issueRef }], resolver: '<scriptPath to issue-resolver>' }
+// Each issue is delegated to issue-resolver via workflow(); that child runs the scored
+// plan/impl loops and opens the draft PR. One level of nesting — allowed.
+const results = (await parallel(args.issues.map(issue => () =>
+  workflow({ scriptPath: args.resolver }, issue)
+    .then(r => ({ id: issue.id, url: r && r.pr, blocked: !!(r && r.blocked) }))
+    .catch(e => ({ id: issue.id, blocked: true, error: String(e) }))))).filter(Boolean)
 
-const results = await pipeline(
-  args,
-  // Stage 1: isolate + analyze + plan. One worktree per issue — distinct
-  // branch/path per id, so concurrent `git worktree add` does not conflict.
-  (issue) => agent(
-    `Create a git worktree for issue ${issue.id} on branch issue/${issue.id} ` +
-    `(use the git-wt skill). Analyze and write a short plan for: ${issue.spec}. ` +
-    `Return {worktree, branch, plan}.`,
-    { label: `plan:${issue.id}`, phase: 'Plan', schema: PLAN_SCHEMA }),
-
-  // Stage 2: implement in that worktree, test-first.
-  (p, issue) => agent(
-    `In worktree ${p.worktree}, implement this plan test-first (tdd skill): ${p.plan}. ` +
-    `Return {worktree: '${p.worktree}', branch: '${p.branch}', changedFiles}.`,
-    { label: `impl:${issue.id}`, phase: 'Implement', schema: IMPL_SCHEMA }),
-
-  // Stage 3: inner loop — review until no critical/high, bounded. The reviewer
-  // is a fresh agent that never sees the maker's justification (maker-checker).
-  async (impl, issue) => {
-    let round = 0, findings = []
-    while (round < MAX_REVIEW_ROUNDS) {
-      const review = await agent(
-        `Review the diff in worktree ${impl.worktree} against this spec: ${issue.spec}. ` +
-        `Do not assume the author was right. Report only critical/high findings, ` +
-        `each with file:line.`,
-        { label: `review:${issue.id}:r${round}`, phase: 'Review',
-          schema: REVIEW_SCHEMA, agentType: 'pr-review-toolkit:code-reviewer' })
-      findings = review.findings.filter(f => f.severity === 'critical' || f.severity === 'high')
-      if (findings.length === 0) break
-      await agent(
-        `In worktree ${impl.worktree}, address these review findings, keeping the ` +
-        `spec fixed: ${JSON.stringify(findings)}.`,
-        { label: `fix:${issue.id}:r${round}`, phase: 'Review' })
-      round++
-    }
-    return { ...impl, residualFindings: findings }
-  },
-
-  // Stage 4: open a DRAFT PR (pr-body skill for the description). Never merge.
-  (r, issue) => agent(
-    `In worktree ${r.worktree} on branch ${r.branch}, push and open a DRAFT PR ` +
-    `(gh pr create --draft) with a body following the pr-body skill. ` +
-    `${r.residualFindings.length ? 'List the unresolved findings in the PR body.' : ''} ` +
-    `Return {url, blocked: ${r.residualFindings.length > 0}}.`,
-    { label: `pr:${issue.id}`, phase: 'PR', schema: PR_SCHEMA }),
-)
-
-return {
-  issues: results.filter(Boolean),
-  blocked: results.filter(Boolean).filter(r => r.blocked),
-}
+return { issues: results, blocked: results.filter(r => r.blocked) }
 ```
 
 Why it is shaped this way:
 
-- **`pipeline`, not `parallel`** — issues flow through stages independently; a slow
-  reviewer on one issue does not stall another. No barrier unless you need one.
-- **`while`, not a fixed pass** — the inner loop re-reviews until clean, but
-  `MAX_REVIEW_ROUNDS` caps it. Residual findings mark the PR `blocked` instead of
-  looping forever.
-- **One worktree per issue** — distinct branch/path per `id`, so parallel edits
-  never collide. The whole per-issue chain shares that one worktree.
-- **Fresh reviewer** — Stage 3's reviewer gets the spec + diff only, never the
-  maker's reasoning (`maker-checker`).
+- **`parallel` over issues** — each issue is one self-contained `workflow()` call, so
+  there are no per-item stages to pipeline; the fan-out is the whole job. Concurrency is
+  capped by the Workflow runtime and **shared with the children**, so a big batch
+  self-throttles rather than spawning unboundedly.
+- **Delegation, not duplication** — the scored plan/impl loops, the verify-each-finding
+  step, spikes, and the draft PR all live in `issue-resolver`. `issue-loop` only batches.
+- **`.catch` per issue** — one issue dying does not abort the batch; it is logged blocked.
+
+## Lightweight alternative (single-axis, for large/triage batches)
+
+When the full scored loop is too costly, skip delegation and inline the original body:
+`pipeline` each issue through plan → implement → a bounded `while` loop that re-reviews
+with a **fresh** reviewer (`maker-checker`) until no critical/high finding remains
+(`MAX_REVIEW_ROUNDS`), then a draft PR. This is cheaper but reviews on one axis
+(severity) with a boolean pass/fail — use it for triage, and deep mode when correctness
+matters. The key inner loop:
+
+```js
+let round = 0, findings = []
+while (round < MAX_REVIEW_ROUNDS) {
+  const review = await agent(`Review the diff in ${wt} against this spec: ${spec}. ` +
+    `Do not assume the author was right. Report only critical/high findings (file:line).`,
+    { schema: REVIEW_SCHEMA, agentType: 'pr-review-toolkit:code-reviewer' })
+  findings = review.findings.filter(f => f.severity === 'critical' || f.severity === 'high')
+  if (findings.length === 0) break
+  await agent(`In ${wt}, address these findings, spec fixed: ${JSON.stringify(findings)}.`)
+  round++
+}
+```
 
 ## Safety rails
 
 Reuses `loop-automation`'s rails — an unattended fan-out makes unattended mistakes:
 
 - **Draft PRs only — never merge.** A human owns every merge.
-- **Bound the inner loop.** Stop at `MAX_REVIEW_ROUNDS`; log the rest as blocked.
-- **Cap parallelism.** Workflow caps concurrent agents, but a huge work-list still
-  burns tokens — split very large batches across runs.
-- **Verify, don't self-grade.** The reviewer is a separate agent (`maker-checker`).
-- **Escalate, don't guess.** A protected-domain conflict (auth, payments, data
-  migration, infra…) surfaces as a DR (`decision-required`), not an autonomous fix.
+- **Bound every loop.** The inner scored/severity loops are bounded; a stuck issue/axis
+  is logged blocked, not retried forever.
+- **Cap cost.** Deep mode is a fan-out of fan-outs (each issue runs issue-resolver's
+  axis × verify × rounds × spikes). Split very large batches across runs, or use the
+  lightweight mode. The shared concurrency cap throttles agents but not total tokens.
+- **Verify, don't self-grade.** Reviewers/refuters are separate agents (`maker-checker`),
+  inside issue-resolver.
+- **Escalate, don't guess.** A protected-domain conflict, or an axis that cannot reach
+  the threshold, surfaces as a DR (`decision-required`), not an autonomous fix.
 
 ## Integration
 
-- **git-wt** — one worktree per issue (Stage 1).
-- **tdd** — implement test-first (Stage 2).
-- **maker-checker** + **pr-review-toolkit:code-reviewer** / **silent-failure-hunter** —
-  the review-until-clean loop (Stage 3).
-- **pr-body** — the draft PR description (Stage 4).
-- **loop-state** — record progress in `plan.md` if the batch spans sessions; the
-  outer `/goal` can resume from it.
-- **loop-automation** — if this loop should run unattended on a schedule, that skill
-  is the heartbeat; this skill is the per-issue body it runs.
+- **issue-resolver** — the per-issue body in deep mode: scored plan + impl review loops,
+  one worktree per issue, ending in a draft PR. `issue-loop` is its batch wrapper.
+- **git-wt** — one worktree per issue (created inside issue-resolver).
+- **tdd**, **maker-checker**, **pr-review-toolkit**, **pr-body** — all used *inside*
+  issue-resolver; in lightweight mode, the review loop here uses maker-checker directly.
+- **loop-state** — record progress in `plan.md` if the batch spans sessions; the outer
+  `/goal` can resume from it.
+- **loop-automation** — if this loop should run unattended on a schedule, that skill is
+  the heartbeat; this skill is the per-issue body it runs.
 - **decision-required** — escalation path for ambiguous or protected-domain calls.

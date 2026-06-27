@@ -286,5 +286,8 @@ Reuses `loop-automation`'s rails — a scored loop still makes unattended mistak
 - **pr-dependency-review** — its `references/ai-pr-checks.md` is the *ai-pr-checks* axis.
 - **pr-body** — the draft PR description (step 7).
 - **loop-state** — persist axis scores per round in `plan.md` if the run spans sessions.
-- **issue-loop** — the batch sibling; use it for many issues, this skill for one done deeply.
+- **issue-loop** — the batch sibling; it delegates each issue to this skill via the
+  Workflow `workflow()` hook (this script takes one issue via `args` and never calls
+  `workflow()` itself, so it nests cleanly). Use `issue-loop` for many issues, this skill
+  for one done deeply.
 - **decision-required** — escalation path for protected domains and stuck axes.
