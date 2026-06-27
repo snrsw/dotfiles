@@ -160,6 +160,12 @@ Cap the number of spikes (`MAX_SPIKES`) so this does not balloon. Which axes may
 spike is data-driven: an axis drives one when it carries `spikes: true` (defaults:
 *feasibility*, *risk*) — so an issue-specific axis opts in by setting the same flag.
 
+Spikes are **plan-phase only** — they settle *pre-code* unknowns. A KPI that is only
+measurable once code exists (perf delta, mutation score, coverage) is measured by the
+impl-phase reviewer itself — it runs the tests/benchmark as part of its review — not by a
+spike. So a perf axis spikes in the plan phase to set a baseline/target, then the impl-phase
+performance reviewer measures the real change against that target.
+
 ## Workflow script template
 
 Adapt this — change schemas, axes, models, `MIN_SCORE`, `MAX_ROUNDS`, `MAX_SPIKES`. Two
@@ -184,11 +190,13 @@ const REVIEW_SCHEMA = {
   properties: {
     axis: { type: 'string' },
     score: { type: 'number' }, confidence: { type: 'number' },
+    kpi: { type: 'object', properties: {  // see "Anchor scores on KPIs"; matches the contract
+      name: { type: 'string' }, value: { type: 'string' }, target: { type: 'string' } } },
     findings: { type: 'array', items: {
       type: 'object', required: ['issue', 'severity', 'fixingPlan'],
       properties: {
         issue: { type: 'string' }, severity: { enum: ['critical', 'high', 'medium', 'low'] },
-        fixingPlan: { type: 'string' }, fileLine: { type: 'string' },
+        fixingPlan: { type: 'string' }, fileLine: { type: 'string' }, metric: { type: 'string' },
       } } },
   },
 }
