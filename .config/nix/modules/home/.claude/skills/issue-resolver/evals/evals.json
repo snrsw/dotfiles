@@ -1,0 +1,23 @@
+{
+  "skill_name": "issue-resolver",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Please resolve this issue end to end with quality gates: https://github.com/acme/web/issues/482 — the date picker crashes on Safari when you clear the field. Take it all the way to a draft PR, don't just patch it.",
+      "expected_output": "Claude invokes issue-resolver: gathers context, analyzes, drafts a plan, refines the plan through scored multi-axis review (each axis >= 80, findings verified before acting), implements test-first in a worktree, re-reviews the implementation on scored axes until >= 80, and opens a DRAFT PR (never merges).",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "I want issue #91 done properly — review it hard until it's actually good, multiple review angles, and fix whatever the reviews find. Spike the approach first if you're unsure it'll perform.",
+      "expected_output": "Claude invokes issue-resolver and runs the two scored review loops; in the plan phase it runs a spike in a throwaway worktree to settle the feasibility/performance question before committing to the plan.",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "Here are five issues — #12, #15, #20, #33, #41 — work through all of them and open a draft PR for each.",
+      "expected_output": "Claude prefers issue-loop (a batch of issues each to a draft PR), NOT issue-resolver. This near-miss guards issue-resolver from stealing batch prompts.",
+      "files": []
+    }
+  ]
+}
