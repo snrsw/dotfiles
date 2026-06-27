@@ -29,10 +29,10 @@ Routines run unattended on Anthropic's cloud, with no live session or laptop nee
 
 ## GitHub Actions — the deterministic gate (secondary)
 
-Use Actions for the reliable, non-agentic part: run tests / lint, block a PR on red, simple scheduled maintenance. This repo's `.github/workflows/update-flake-lock.yml` is the closest template (it schedules on `0 0 * * *`; for new loops prefer an off-peak minute so runs do not pile onto the top of the hour). To build one:
+Use Actions for the reliable, non-agentic part: run tests / lint, block a PR on red (the workflow only reports the status; the actual block comes from a branch-protection **required status check**), simple scheduled maintenance. This repo's `.github/workflows/update-flake-lock.yml` is the closest template (it schedules on `0 0 * * *`; for new loops prefer an off-peak minute so runs do not pile onto the top of the hour). To build one:
 
 1. `on:` a `schedule:` cron (off-peak minute, not `0 0`) **and** `workflow_dispatch` (manual run + kill switch).
-2. Minimal `permissions:` — `contents: write`, `pull-requests: write`, nothing more.
+2. Minimal `permissions:` — least privilege for what the job actually does, not a fixed set: a PR-opening job needs `contents: write` + `pull-requests: write`; a read-only gate that only flags PRs needs `contents: read` (+ `checks: write`). Nothing beyond that.
 3. Run the task: a script, or an agent step via the official `anthropics/claude-code-action`.
 4. Open a PR via `peter-evans/create-pull-request` on an `automation/*` branch. **Never auto-merge.**
 
@@ -44,23 +44,25 @@ If the work is genuinely agentic, prefer a Routine over wiring an agent into Act
 
 ## Safety rails (the skill's real content)
 
-Unattended loops make unattended mistakes. Every loop must:
+Unattended loops make unattended mistakes. Every loop must (the parallelism and worktree rails apply only when a run dispatches parallel subagents):
 
 - **Open PRs, never merge.** A human reviews and merges — verification stays on you.
 - **Verify between iterations.** Pair with `maker-checker`: a separate agent checks the loop's output before it surfaces.
 - **Keep state outside the run.** Progress lives in `loop-state`'s `plan.md`, an issue, or a board — never in the ephemeral run (Routines wipe theirs every time).
 - **Bound cost — parallelism is the trap.** Each parallel sub-agent multiplies token burn; unbounded fan-out has produced four-to-five-figure bills. Cap parallel agents explicitly and use a cheap model for triage.
+- **Isolate every subagent in its own worktree.** When the heartbeat fans out one subagent per issue, each works in a dedicated `git-wt` worktree on a distinct branch/path (`issue/<id>`) — so concurrent `git worktree add` never collides and one task's edits never touch another's tree. The whole per-issue chain (analyze → implement → review → PR) shares that one worktree; reclaim merged ones with `git wt -d`.
 - **Respect Routines limits.** 1-hour minimum interval; a capped number of routines per day that varies by plan — check current limits in-app rather than assuming.
 - **Least privilege + a kill switch.** Minimal token scope; `workflow_dispatch` (Actions) or disabling the routine, so you can always stop it.
 - **Guard the three risks.** Comprehension debt (review what the loop shipped — see `pr-dependency-review`), cognitive surrender (the loop assists, it does not replace your judgment), false confidence (a smooth loop is not a correct one).
 
 ## The loop's shape
 
-heartbeat (Routine schedule, or Action) → triage (read CI failures / issues / commits) → isolate (`git-wt` worktree or branch) → maker drafts (`maker-checker`) → checker verifies → open PR + update `plan.md` (`loop-state`) → human reviews and merges.
+heartbeat (Routine schedule, or Action) → triage (read CI failures / issues / commits) → isolate (`git-wt`: one worktree per fanned-out subagent, distinct branch/path) → maker drafts (`maker-checker`) → checker verifies → open PR + update `plan.md` (`loop-state`) → human reviews and merges.
 
 ## Integration
 
 - **maker-checker** — the verification gate between iterations.
 - **loop-state** — `plan.md` is the cross-run memory a fresh (ephemeral) Routine reads to resume.
-- **git-wt** — isolate each automated task in its own worktree/branch.
+- **git-wt** — one worktree per fanned-out subagent, on a distinct branch/path per task so parallel `git worktree add` cannot collide.
+- **issue-loop** — the concrete per-issue body this heartbeat runs: it already implements the worktree-per-subagent fan-out (one worktree per issue → draft PR), so schedule it rather than re-deriving the script.
 - **pr-dependency-review** — the lowest-risk first heartbeat is a scheduled, read-only run of this review on open PRs (it only comments; supports the `GITHUB_ACTIONS` env var).
