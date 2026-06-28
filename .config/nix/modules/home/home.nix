@@ -1,4 +1,4 @@
-{ config, pkgs, lib, username, ... }:
+{ config, pkgs, lib, username, critPluginSrc, critRev, ... }:
 
 let
   claudePluginsOfficial = pkgs.fetchFromGitHub {
@@ -171,6 +171,38 @@ in
           --arg k "$_pluginKey" \
           --arg p "$_cacheDir" \
           '.plugins[$k] = [{"scope":"user","installPath":$p,"version":"1.0.0","installedAt":"2026-01-01T00:00:00.000Z","lastUpdated":"2026-01-01T00:00:00.000Z","gitCommitSha":"205b6e0b30366a969412d9aab7b99bea99d58db1"}]' \
+          "$_pluginsFile" > "$_pluginsFile.tmp" && mv "$_pluginsFile.tmp" "$_pluginsFile"
+      fi
+    fi
+  '';
+
+  # crit's Claude Code plugin provides the `/crit` slash command. Seed it into
+  # the plugin cache and register it, mirroring installClaudeCodeSetupPlugin.
+  # Version is read from plugin.json so a `nix flake update crit` bump is picked
+  # up (new cache dir + re-registration when the recorded version changes).
+  home.activation.installCritPlugin = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    _src="${critPluginSrc}"
+    _version="$(${pkgs.jq}/bin/jq -r '.version' "$_src/.claude-plugin/plugin.json")"
+    _cacheDir="$HOME/.claude/plugins/cache/crit/crit/$_version"
+    _pluginsFile="$HOME/.claude/plugins/installed_plugins.json"
+    _pluginKey="crit@crit"
+
+    if [ ! -d "$_cacheDir" ]; then
+      $DRY_RUN_CMD mkdir -p "$_cacheDir"
+      $DRY_RUN_CMD cp -r "$_src/." "$_cacheDir/"
+      $DRY_RUN_CMD chmod -R u+w "$_cacheDir"
+    fi
+
+    if [ -z "$DRY_RUN_CMD" ]; then
+      [ -f "$_pluginsFile" ] || echo '{"plugins":{}}' > "$_pluginsFile"
+      _recorded="$(${pkgs.jq}/bin/jq -r --arg k "$_pluginKey" '.plugins[$k][0].version // ""' "$_pluginsFile")"
+      if [ "$_recorded" != "$_version" ]; then
+        ${pkgs.jq}/bin/jq \
+          --arg k "$_pluginKey" \
+          --arg p "$_cacheDir" \
+          --arg v "$_version" \
+          --arg sha "${critRev}" \
+          '.plugins[$k] = [{"scope":"user","installPath":$p,"version":$v,"installedAt":"2026-01-01T00:00:00.000Z","lastUpdated":"2026-01-01T00:00:00.000Z","gitCommitSha":$sha}]' \
           "$_pluginsFile" > "$_pluginsFile.tmp" && mv "$_pluginsFile.tmp" "$_pluginsFile"
       fi
     fi

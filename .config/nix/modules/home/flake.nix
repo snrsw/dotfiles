@@ -134,6 +134,10 @@
         ];
         extraSpecialArgs = {
           inherit username;
+          # crit's Claude Code plugin lives in the same repo as the CLI; reuse
+          # the flake input's source so it stays in sync with `nix flake update crit`.
+          critPluginSrc = "${crit}/integrations/claude-code";
+          critRev = crit.rev or "";
         };
       };
 
