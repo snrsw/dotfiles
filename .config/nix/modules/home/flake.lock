@@ -28,11 +28,11 @@
     "brew-api": {
       "flake": false,
       "locked": {
-        "lastModified": 1781795050,
-        "narHash": "sha256-Y3FAVWlll+HkyeHjQ7ZJtXN/bAjsJ+AlvTQ9CUbRtY4=",
+        "lastModified": 1782556762,
+        "narHash": "sha256-A4vsFRvXL+RLM52TsLYY29cVU3xRvpstCgN6kEXW5Zc=",
         "owner": "BatteredBunny",
         "repo": "brew-api",
-        "rev": "df9f3d0ea1f841bd037614d77b82c8565b5a76a0",
+        "rev": "3d19ce471de9ed73b522aabdb4a3d5a78c49ddc5",
         "type": "github"
       },
       "original": {
@@ -43,7 +43,9 @@
     },
     "brew-nix": {
       "inputs": {
-        "brew-api": "brew-api",
+        "brew-api": [
+          "brew-api"
+        ],
         "nix-darwin": "nix-darwin",
         "nixpkgs": [
           "nixpkgs"
@@ -93,6 +95,26 @@
       "original": {
         "owner": "nix-community",
         "repo": "bun2nix",
+        "type": "github"
+      }
+    },
+    "crit": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1782564976,
+        "narHash": "sha256-5leyC1MBV22/qLnhKgpYQkOezWQ4SzcS3s+NzIto1Xg=",
+        "owner": "tomasz-tomczyk",
+        "repo": "crit",
+        "rev": "063b968daa398865d08aae3c8c62fe1adfe21f95",
+        "type": "github"
+      },
+      "original": {
+        "owner": "tomasz-tomczyk",
+        "repo": "crit",
         "type": "github"
       }
     },
@@ -269,7 +291,9 @@
     },
     "root": {
       "inputs": {
+        "brew-api": "brew-api",
         "brew-nix": "brew-nix",
+        "crit": "crit",
         "home-manager": "home-manager",
         "llm-agents": "llm-agents",
         "nix-claude-code": "nix-claude-code",

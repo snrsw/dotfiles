@@ -8,8 +8,21 @@
       url = "github:nix-community/home-manager";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    # brew-api carries the Homebrew cask data; track it directly so
+    # `nix flake update brew-api` keeps casks (e.g. cotypist) current.
+    brew-api = {
+      url = "github:BatteredBunny/brew-api";
+      flake = false;
+    };
     brew-nix = {
       url = "github:BatteredBunny/brew-nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+      inputs.brew-api.follows = "brew-api";
+    };
+    # crit: browser-based markdown/diff review tool (Go CLI). Upstream ships a
+    # flake; follow our nixpkgs and expose its package via an overlay below.
+    crit = {
+      url = "github:tomasz-tomczyk/crit";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     llm-agents.url = "github:numtide/llm-agents.nix";
@@ -23,6 +36,7 @@
       nixpkgs,
       home-manager,
       brew-nix,
+      crit,
       llm-agents,
       nix-claude-code,
       nix-index-database,
@@ -38,6 +52,8 @@
         nix-claude-code.overlays.default
 
         (final: prev: {
+          crit = crit.packages.${final.system}.default;
+
           direnv = prev.direnv.overrideAttrs (_: { doCheck = false; });
 
           mo = final.stdenv.mkDerivation rec {

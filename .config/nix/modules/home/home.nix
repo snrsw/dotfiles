@@ -45,6 +45,7 @@ in
       '';
     }))
     pkgs.brewCasks.codex-app
+    pkgs.brewCasks.cotypist
     raycast
     # VCS
     ghq
@@ -52,6 +53,7 @@ in
     git-wt
     roots
     mo
+    crit
     # Altenatives
     bat
     eza
