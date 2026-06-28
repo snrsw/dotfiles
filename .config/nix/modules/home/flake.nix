@@ -25,6 +25,9 @@
       url = "github:tomasz-tomczyk/crit";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    # prv: private "Pull-Request like View" CLI. Fetch over SSH (private repo);
+    # keep its own nixpkgs pin so the node_modules FOD hash stays valid.
+    prv.url = "git+ssh://git@github.com/snrsw/prv";
     llm-agents.url = "github:numtide/llm-agents.nix";
     nix-claude-code.url = "github:ryoppippi/nix-claude-code";
     nix-index-database.url = "github:nix-community/nix-index-database";
@@ -37,6 +40,7 @@
       home-manager,
       brew-nix,
       crit,
+      prv,
       llm-agents,
       nix-claude-code,
       nix-index-database,
@@ -53,6 +57,7 @@
 
         (final: prev: {
           crit = crit.packages.${final.system}.default;
+          prv = prv.packages.${final.system}.default;
 
           direnv = prev.direnv.overrideAttrs (_: { doCheck = false; });
 

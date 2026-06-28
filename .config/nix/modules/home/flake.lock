@@ -289,6 +289,38 @@
         "type": "github"
       }
     },
+    "nixpkgs_4": {
+      "locked": {
+        "lastModified": 1781577229,
+        "narHash": "sha256-lrp67w8AulE9Ks53n27I45ADSzbOCn4H+CNW1Ck8B+8=",
+        "rev": "567a49d1913ce81ac6e9582e3553dd90a955875f",
+        "revCount": 1017464,
+        "type": "tarball",
+        "url": "https://api.flakehub.com/f/pinned/NixOS/nixpkgs/0.1.1017464%2Brev-567a49d1913ce81ac6e9582e3553dd90a955875f/019ed27e-44b2-7462-b1ef-3564aa6c28ee/source.tar.gz"
+      },
+      "original": {
+        "type": "tarball",
+        "url": "https://flakehub.com/f/NixOS/nixpkgs/0.1"
+      }
+    },
+    "prv": {
+      "inputs": {
+        "nixpkgs": "nixpkgs_4"
+      },
+      "locked": {
+        "lastModified": 1782654147,
+        "narHash": "sha256-hD+0zqmDQamsoVpwZzATBSznwd8fBnIvOG09nAnphck=",
+        "ref": "refs/heads/main",
+        "rev": "7e6771dc8290c98d854d45a578acc5a962cf9d8b",
+        "revCount": 15,
+        "type": "git",
+        "url": "ssh://git@github.com/snrsw/prv"
+      },
+      "original": {
+        "type": "git",
+        "url": "ssh://git@github.com/snrsw/prv"
+      }
+    },
     "root": {
       "inputs": {
         "brew-api": "brew-api",
@@ -298,7 +330,8 @@
         "llm-agents": "llm-agents",
         "nix-claude-code": "nix-claude-code",
         "nix-index-database": "nix-index-database",
-        "nixpkgs": "nixpkgs_3"
+        "nixpkgs": "nixpkgs_3",
+        "prv": "prv"
       }
     },
     "systems": {

@@ -54,6 +54,7 @@ in
     roots
     mo
     crit
+    prv
     # Altenatives
     bat
     eza
