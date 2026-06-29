@@ -210,9 +210,11 @@ in
         > "$_mktDir/.claude-plugin/marketplace.json"
 
       # Register the local marketplace so the crit@crit key resolves as "known".
+      # The source discriminator must be "directory" (Claude Code rejects any
+      # other value for a local path with "source.source: Invalid input").
       [ -f "$_knownFile" ] || echo '{}' > "$_knownFile"
       ${pkgs.jq}/bin/jq --arg dir "$_mktDir" --arg ts "$_ts" \
-        '.crit = {source:{source:"local",path:$dir},installLocation:$dir,lastUpdated:$ts}' \
+        '.crit = {source:{source:"directory",path:$dir},installLocation:$dir,lastUpdated:$ts}' \
         "$_knownFile" > "$_knownFile.tmp" && mv "$_knownFile.tmp" "$_knownFile"
 
       # Mark the plugin installed, pointing installPath at the seeded copy.
