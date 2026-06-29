@@ -177,33 +177,55 @@ in
     fi
   '';
 
-  # crit's Claude Code plugin provides the `/crit` slash command. Seed it into
-  # the plugin cache and register it, mirroring installClaudeCodeSetupPlugin.
-  # Version is read from plugin.json so a `nix flake update crit` bump is picked
-  # up (new cache dir + re-registration when the recorded version changes).
+  # crit ships a Claude Code plugin (the `crit` / `crit-cli` skills plus a hook),
+  # but no marketplace. Loading a non-official plugin needs three things to agree:
+  # a known marketplace, an installed-plugins entry, and an enabledPlugins flag.
+  # The flag lives declaratively in .claude/settings.json; this activation seeds
+  # the other two by building a self-contained LOCAL marketplace under
+  # ~/.claude/plugins/marketplaces/crit (offline, no network fetch). The plugin
+  # version is read from plugin.json so a `nix flake update crit` bump re-seeds.
   home.activation.installCritPlugin = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
     _src="${critPluginSrc}"
     _version="$(${pkgs.jq}/bin/jq -r '.version' "$_src/.claude-plugin/plugin.json")"
-    _cacheDir="$HOME/.claude/plugins/cache/crit/crit/$_version"
+    _mktDir="$HOME/.claude/plugins/marketplaces/crit"
+    _pluginDir="$_mktDir/plugins/crit"
     _pluginsFile="$HOME/.claude/plugins/installed_plugins.json"
+    _knownFile="$HOME/.claude/plugins/known_marketplaces.json"
     _pluginKey="crit@crit"
+    _ts="2026-01-01T00:00:00.000Z"
 
-    if [ ! -d "$_cacheDir" ]; then
-      $DRY_RUN_CMD mkdir -p "$_cacheDir"
-      $DRY_RUN_CMD cp -r "$_src/." "$_cacheDir/"
-      $DRY_RUN_CMD chmod -R u+w "$_cacheDir"
+    # (Re)seed the plugin files into the marketplace whenever the version drifts.
+    _seeded="$(${pkgs.jq}/bin/jq -r '.version // ""' "$_pluginDir/.claude-plugin/plugin.json" 2>/dev/null || true)"
+    if [ "$_seeded" != "$_version" ]; then
+      $DRY_RUN_CMD rm -rf "$_pluginDir"
+      $DRY_RUN_CMD mkdir -p "$_pluginDir" "$_mktDir/.claude-plugin"
+      $DRY_RUN_CMD cp -r "$_src/." "$_pluginDir/"
+      $DRY_RUN_CMD chmod -R u+w "$_mktDir"
     fi
 
     if [ -z "$DRY_RUN_CMD" ]; then
+      # Marketplace catalog: a single local plugin resolved relative to the root.
+      ${pkgs.jq}/bin/jq -n --arg v "$_version" \
+        '{name:"crit",owner:{name:"Tomasz Tomczyk"},plugins:[{name:"crit",source:"./plugins/crit",description:"Review plans and code changes with GitHub-style inline comments",version:$v}]}' \
+        > "$_mktDir/.claude-plugin/marketplace.json"
+
+      # Register the local marketplace so the crit@crit key resolves as "known".
+      [ -f "$_knownFile" ] || echo '{}' > "$_knownFile"
+      ${pkgs.jq}/bin/jq --arg dir "$_mktDir" --arg ts "$_ts" \
+        '.crit = {source:{source:"local",path:$dir},installLocation:$dir,lastUpdated:$ts}' \
+        "$_knownFile" > "$_knownFile.tmp" && mv "$_knownFile.tmp" "$_knownFile"
+
+      # Mark the plugin installed, pointing installPath at the seeded copy.
       [ -f "$_pluginsFile" ] || echo '{"plugins":{}}' > "$_pluginsFile"
       _recorded="$(${pkgs.jq}/bin/jq -r --arg k "$_pluginKey" '.plugins[$k][0].version // ""' "$_pluginsFile")"
-      if [ "$_recorded" != "$_version" ]; then
+      if [ "$_recorded" != "$_version" ] || [ "$_seeded" != "$_version" ]; then
         ${pkgs.jq}/bin/jq \
           --arg k "$_pluginKey" \
-          --arg p "$_cacheDir" \
+          --arg p "$_pluginDir" \
           --arg v "$_version" \
           --arg sha "${critRev}" \
-          '.plugins[$k] = [{"scope":"user","installPath":$p,"version":$v,"installedAt":"2026-01-01T00:00:00.000Z","lastUpdated":"2026-01-01T00:00:00.000Z","gitCommitSha":$sha}]' \
+          --arg ts "$_ts" \
+          '.plugins[$k] = [{"scope":"user","installPath":$p,"version":$v,"installedAt":$ts,"lastUpdated":$ts,"gitCommitSha":$sha}]' \
           "$_pluginsFile" > "$_pluginsFile.tmp" && mv "$_pluginsFile.tmp" "$_pluginsFile"
       fi
     fi
