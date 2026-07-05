@@ -394,7 +394,7 @@ Reuses `loop-automation`'s rails — a scored loop still makes unattended mistak
   `type-design-analyzer`) — per-axis reviewers in the impl loop.
 - **pr-dependency-review** — its `references/ai-pr-checks.md` is the *ai-pr-checks* axis.
 - **pr-body** — the draft PR description (step 7).
-- **loop-state** — persist axis scores per round in `plan.md` if the run spans sessions.
+- **plan-state** — persist axis scores per round in `plan.md` if the run spans sessions.
 - **issue-loop** — the batch sibling; it delegates each issue to this skill via the
   Workflow `workflow()` hook (this script takes one issue via `args` and never calls
   `workflow()` itself, so it nests cleanly). Use `issue-loop` for many issues, this skill

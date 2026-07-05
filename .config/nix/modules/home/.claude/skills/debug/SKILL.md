@@ -75,7 +75,7 @@ Use the `commit-message` skill format:
 
 - **tdd**: Phase 3 delegates to the Defect Fixing workflow (write failing test first, then minimal fix)
 - **tidy-first**: If structural changes are needed to make buggy code testable, separate them into their own commits before the fix
-- **loop-state**: If a bug is discovered during plan execution, pause the plan, debug using this skill, add the regression test as a `## Next` item in plan.md, then resume
+- **plan-state**: If a bug is discovered during plan execution, pause the plan, debug using this skill, add the regression test as a `## Next` item in plan.md, then resume
 - **git-wt**: For complex investigations, consider creating a worktree to isolate debugging work from in-progress feature development
 - **DR pattern**: Trigger a DR when the fix touches a protected domain, multiple valid fixes exist with meaningful trade-offs, or the bug reveals a design flaw requiring architectural discussion
 

@@ -51,6 +51,6 @@ Never let the agent that wrote the code be the one that signs off on it.
 - **tdd** — the maker writes failing tests first; the checker confirms a test fails on the pre-change behavior (catches hallucinated correctness).
 - **pr-dependency-review** — supplies the checker's structural/complexity analysis and AI-PR checks.
 - **loop-automation** — maker-checker is the verification gate between a loop's iterations.
-- **loop-state** — record each check's verdict in `## Notes`; a failed check becomes a `## Next` item.
+- **plan-state** — record each check's verdict in `## Notes`; a failed check becomes a `## Next` item.
 - **debug** — when the checker finds a real defect, switch to `debug` to fix it.
 - **DR pattern** — maker/checker disagreement on a protected domain escalates as a DR.

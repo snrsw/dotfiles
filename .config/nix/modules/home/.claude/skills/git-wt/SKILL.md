@@ -76,11 +76,11 @@ When working in a worktree, use absolute paths or `cd` into the worktree directo
 
 Worktrees pair naturally with the existing development workflow:
 
-### With loop-state
+### With plan-state
 When starting a multi-step feature that needs durable progress tracking:
 1. Create a worktree: `git wt feature-name origin/main`
 2. Create `plan.md` inside the worktree
-3. Follow the loop-state skill from there
+3. Follow the plan-state skill from there
 
 ### With tdd
 Each worktree is a self-contained workspace. Run the Red → Green → Refactor cycle inside the worktree directory. All test commands should target the worktree path.

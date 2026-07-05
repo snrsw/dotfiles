@@ -38,7 +38,7 @@ Produce three candidates that differ in *framing*, not in *facts*. Each carries 
 
 - **Minimal**: only must-have requirements + dead ends; trust the new session to derive the rest
 - **Comprehensive**: every harvested fact made explicit; lowest ambiguity, highest verbosity
-- **Workflow-led**: explicitly invokes existing skills (`tdd`, `tidy-first`, `loop-state`, `commit-message`, etc.) where applicable, leveraging convention over restating it
+- **Workflow-led**: explicitly invokes existing skills (`tdd`, `tidy-first`, `plan-state`, `commit-message`, etc.) where applicable, leveraging convention over restating it
 
 Each variant fills this template:
 
@@ -105,7 +105,7 @@ Run this twice — in Phase 3 on each variant before subagent eval, and in Phase
 - **`clarification-required`**: every CR resolution from the source session becomes a baked-in requirement; the new session does not re-ask
 - **`decision-required`**: chosen options become requirements; rejected options become "Do NOT" entries when they explain why
 - **`documentation-layers`**: the distilled prompt sits at the *Why* and *What* layer — keep it about contract and constraints, not implementation steps the new session should derive
-- **`loop-state`**: if the source session built a `plan.md`, reference it by path in Context rather than inlining it
+- **`plan-state`**: if the source session built a `plan.md`, reference it by path in Context rather than inlining it
 
 ### Golden Rules
 

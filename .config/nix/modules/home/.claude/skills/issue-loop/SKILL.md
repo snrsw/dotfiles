@@ -140,7 +140,7 @@ Reuses `loop-automation`'s rails — an unattended fan-out makes unattended mist
 - **git-wt** — one worktree per issue (created inside issue-resolver).
 - **tdd**, **maker-checker**, **pr-review-toolkit**, **pr-body** — all used *inside*
   issue-resolver; in lightweight mode, the review loop here uses maker-checker directly.
-- **loop-state** — record progress in `plan.md` if the batch spans sessions; the outer
+- **plan-state** — record progress in `plan.md` if the batch spans sessions; the outer
   `/goal` can resume from it.
 - **loop-automation** — if this loop should run unattended on a schedule, that skill is
   the heartbeat; this skill is the per-issue body it runs.

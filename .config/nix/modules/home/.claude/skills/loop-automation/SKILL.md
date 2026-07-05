@@ -24,8 +24,8 @@ Routines run unattended on Anthropic's cloud, with no live session or laptop nee
 
 - **Triggers**: cron schedule, HTTP API, or GitHub events (PR / release webhooks). Minimum interval is **1 hour**.
 - **Each run** clones the repo into a fresh cloud environment, reads your `CLAUDE.md` and skills, runs the configured prompt, pushes to a new branch, then **destroys the environment**.
-- **Best for** the agentic part — the run reads your skills (`loop-state`, `maker-checker`, `pr-dependency-review`) natively, so there is no API to wire up.
-- **Critical property — runs are ephemeral; no state persists between them.** Each run starts cold. This is exactly why `loop-state`'s `plan.md` is **committed in the repo**: the cloud box is wiped, but the next run reads the file. The repo *is* the cross-run memory.
+- **Best for** the agentic part — the run reads your skills (`plan-state`, `maker-checker`, `pr-dependency-review`) natively, so there is no API to wire up.
+- **Critical property — runs are ephemeral; no state persists between them.** Each run starts cold. This is exactly why `plan-state`'s `plan.md` is **committed in the repo**: the cloud box is wiped, but the next run reads the file. The repo *is* the cross-run memory.
 
 ## GitHub Actions — the deterministic gate (secondary)
 
@@ -48,7 +48,7 @@ Unattended loops make unattended mistakes. Every loop must (the parallelism and 
 
 - **Open PRs, never merge.** A human reviews and merges — verification stays on you.
 - **Verify between iterations.** Pair with `maker-checker`: a separate agent checks the loop's output before it surfaces.
-- **Keep state outside the run.** Progress lives in `loop-state`'s `plan.md`, an issue, or a board — never in the ephemeral run (Routines wipe theirs every time).
+- **Keep state outside the run.** Progress lives in `plan-state`'s `plan.md`, an issue, or a board — never in the ephemeral run (Routines wipe theirs every time).
 - **Bound cost — parallelism is the trap.** Each parallel sub-agent multiplies token burn; unbounded fan-out has produced four-to-five-figure bills. Cap parallel agents explicitly and use a cheap model for triage.
 - **Isolate every subagent in its own worktree.** When the heartbeat fans out one subagent per issue, each works in a dedicated `git-wt` worktree on a distinct branch/path (`issue/<id>`) — so concurrent `git worktree add` never collides and one task's edits never touch another's tree. The whole per-issue chain (analyze → implement → review → PR) shares that one worktree; reclaim merged ones with `git wt -d`.
 - **Respect Routines limits.** 1-hour minimum interval; a capped number of routines per day that varies by plan — check current limits in-app rather than assuming.
@@ -57,12 +57,12 @@ Unattended loops make unattended mistakes. Every loop must (the parallelism and 
 
 ## The loop's shape
 
-heartbeat (Routine schedule, or Action) → triage (read CI failures / issues / commits) → isolate (`git-wt`: one worktree per fanned-out subagent, distinct branch/path) → maker drafts (`maker-checker`) → checker verifies → open PR + update `plan.md` (`loop-state`) → human reviews and merges.
+heartbeat (Routine schedule, or Action) → triage (read CI failures / issues / commits) → isolate (`git-wt`: one worktree per fanned-out subagent, distinct branch/path) → maker drafts (`maker-checker`) → checker verifies → open PR + update `plan.md` (`plan-state`) → human reviews and merges.
 
 ## Integration
 
 - **maker-checker** — the verification gate between iterations.
-- **loop-state** — `plan.md` is the cross-run memory a fresh (ephemeral) Routine reads to resume.
+- **plan-state** — `plan.md` is the cross-run memory a fresh (ephemeral) Routine reads to resume.
 - **git-wt** — one worktree per fanned-out subagent, on a distinct branch/path per task so parallel `git worktree add` cannot collide.
 - **issue-loop** — the concrete per-issue body this heartbeat runs: it already implements the worktree-per-subagent fan-out (one worktree per issue → draft PR), so schedule it rather than re-deriving the script.
 - **pr-dependency-review** — the lowest-risk first heartbeat is a scheduled, read-only run of this review on open PRs (it only comments; supports the `GITHUB_ACTIONS` env var).
