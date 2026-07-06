@@ -15,8 +15,10 @@ The heartbeat of a loop: a scheduled trigger that surfaces work without you aski
 | Deterministic gate: run tests / lint, block PRs on red, scripted maintenance | **GitHub Actions** |
 | A cadence *within* a live working session (e.g. re-check CI every 20 min) | **CronCreate** (in-session) |
 | One-shot reminder later today | **CronCreate** `recurring:false` |
+| An in-session "until done" loop on one task (iterate until a completion condition holds) | **ralph-loop** plugin |
+| A self-paced in-session loop where the agent picks each next wake-up | **/loop** (ScheduleWakeup) |
 
-There are **two true unattended heartbeats**: Routines (the smart worker — Claude runs natively) and GitHub Actions (the dumb-but-reliable gate). `CronCreate` is *not* a heartbeat — it is session-only.
+There are **two true unattended heartbeats**: Routines (the smart worker — Claude runs natively) and GitHub Actions (the dumb-but-reliable gate). `CronCreate`, `ralph-loop`, and `/loop` are *not* heartbeats — they are session-scoped. There is no `Workflow` orchestration tool and no `/goal` built-in; in-session until-done looping comes from `ralph-loop` or `/loop`.
 
 ## Claude Code Routines — the agentic heartbeat (primary)
 
@@ -42,6 +44,15 @@ If the work is genuinely agentic, prefer a Routine over wiring an agent into Act
 
 `CronCreate` dies when Claude exits, fires only while the REPL is idle, and recurring jobs auto-expire after 7 days (`durable:true` survives restarts but still needs a live session). Use it for a cadence *within* a working session, never for automation that must run when you are away.
 
+## ralph-loop and /loop — in-session "until done" (not heartbeats)
+
+Two more session-scoped mechanisms, for *until-done* rather than *time-based* looping:
+
+- **ralph-loop** (plugin) re-feeds one task to the session until its completion condition holds. Use it as the outer loop of a batch — e.g. `issue-loop`'s stop predicate ("every issue has a draft PR or a Blocked entry in plan.md").
+- **/loop** (ScheduleWakeup) lets the agent schedule its own next turn, so the cadence adapts to whatever the loop is waiting on.
+
+Both die with the session. Any state they need across sessions belongs in `plan-state`'s `plan.md` — same rule as Routines.
+
 ## Safety rails (the skill's real content)
 
 Unattended loops make unattended mistakes. Every loop must (the parallelism and worktree rails apply only when a run dispatches parallel subagents):
@@ -64,5 +75,5 @@ heartbeat (Routine schedule, or Action) → triage (read CI failures / issues / 
 - **maker-checker** — the verification gate between iterations.
 - **plan-state** — `plan.md` is the cross-run memory a fresh (ephemeral) Routine reads to resume.
 - **git-wt** — one worktree per fanned-out subagent, on a distinct branch/path per task so parallel `git worktree add` cannot collide.
-- **issue-loop** — the concrete per-issue body this heartbeat runs: it already implements the worktree-per-subagent fan-out (one worktree per issue → draft PR), so schedule it rather than re-deriving the script.
+- **issue-loop** — the concrete per-issue body this heartbeat runs: it already implements the worktree-per-issue isolation (one worktree per issue → draft PR), so schedule it rather than re-deriving the procedure.
 - **pr-dependency-review** — the lowest-risk first heartbeat is a scheduled, read-only run of this review on open PRs (it only comments; supports the `GITHUB_ACTIONS` env var).
