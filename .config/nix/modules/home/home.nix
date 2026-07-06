@@ -55,6 +55,7 @@ in
     mo
     crit
     prv
+    ccstatusline
     # Altenatives
     bat
     eza

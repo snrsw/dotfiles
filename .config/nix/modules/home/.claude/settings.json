@@ -19,5 +19,10 @@
   },
   "language": "English",
   "fastMode": true,
-  "theme": "light"
+  "theme": "light",
+  "statusLine": {
+    "type": "command",
+    "command": "ccstatusline",
+    "padding": 0
+  }
 }
