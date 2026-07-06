@@ -26,7 +26,7 @@ The literal opening prompt is rarely the real task. The real task is what the co
 
 Extract everything a fresh session would otherwise have to rediscover:
 
-- **Constraints and preferences** surfaced via `clarification-required` rounds, corrections ("no, do it this way"), or stated defaults
+- **Constraints and preferences** surfaced via clarifying questions the user answered, corrections ("no, do it this way"), or stated defaults
 - **Decisions** from `decision-required` — fold the chosen option in; drop alternatives unless they explain a "Do NOT"
 - **Environment and state** — repo paths, branch, language, framework versions, file paths actually touched, conventions discovered in the codebase
 - **Dead ends** — approaches that were tried and failed; convert each into an explicit "Do NOT" line
@@ -76,7 +76,7 @@ Select the variant with the highest aggregate score and fewest clarifying questi
 Return three things in chat:
 
 1. **The winning prompt** in a single fenced ```` ```text ```` block so the user can copy verbatim
-2. **Distilled from** — 3–6 bullets listing what was folded in (which CR/DR resolutions, course corrections, dead ends)
+2. **Distilled from** — 3–6 bullets listing what was folded in (which clarification/DR resolutions, course corrections, dead ends)
 3. **Eval summary** — one line per variant with scores and the winner, so the user can request a different variant if desired
 
 Do not write the prompt to a file unless the user asks.
@@ -86,7 +86,7 @@ Do not write the prompt to a file unless the user asks.
 Run this twice — in Phase 3 on each variant before subagent eval, and in Phase 5 on the winner before delivery. Any "no" triggers a revision pass.
 
 1. **Goal fidelity** — Does the task statement match the *converged* intent, not the literal opening prompt?
-2. **Constraint completeness** — Every CR resolution, DR decision, mid-session correction, and environment fact captured?
+2. **Constraint completeness** — Every clarification answer, DR decision, mid-session correction, and environment fact captured?
 3. **Anti-pattern coverage** — Dead ends explicit as "Do NOT" lines?
 4. **Self-contained executability** — Actionable with zero prior context? No dangling "the file we were working on" references?
 5. **No hallucination / no bloat** — Only facts the session actually established? Every line earns its place?
@@ -100,11 +100,11 @@ Run this twice — in Phase 3 on each variant before subagent eval, and in Phase
 - **Smooth session, nothing to distill** — say so explicitly and return the original prompt with at most a one-line tightening. Skip Phases 3–4 entirely; no variant generation, no subagent eval
 - **Protected-domain work** — include a one-line note in the generated prompt that the new session must trigger `decision-required` before acting, even if the original session had resolved the DR
 
-### Integration with Other Skills
+### Integration
 
-- **`clarification-required`**: every CR resolution from the source session becomes a baked-in requirement; the new session does not re-ask
+- **Clarifying questions**: every clarification the user answered in the source session becomes a baked-in requirement; the new session does not re-ask
 - **`decision-required`**: chosen options become requirements; rejected options become "Do NOT" entries when they explain why
-- **`documentation-layers`**: the distilled prompt sits at the *Why* and *What* layer — keep it about contract and constraints, not implementation steps the new session should derive
+- **Layering**: the distilled prompt sits at the *why* and *what* layer — keep it about contract and constraints, not implementation steps the new session should derive
 - **`plan-state`**: if the source session built a `plan.md`, reference it by path in Context rather than inlining it
 
 ### Golden Rules
@@ -150,7 +150,7 @@ Done when:
 - Two commits on the branch (tidy + test), no behavioral change in the tidy commit
 ```
 
-Distilled from: CR rounds 1–2 (scope + JWT/jose), DR (Result over throw), dead-end refactor (rolled back), commit-split correction.
+Distilled from: clarification rounds 1–2 (scope + JWT/jose), DR (Result over throw), dead-end refactor (rolled back), commit-split correction.
 
 Eval summary: Minimal 17/25, Comprehensive 22/25, Workflow-led 24/25 (winner).
 
