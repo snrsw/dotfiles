@@ -6,38 +6,36 @@ description: >
   user hands over a single issue (a GitHub issue URL/number, or a written spec) and
   wants it "done properly", "resolved end to end", "taken to a PR with quality
   gates", or "reviewed until it's actually good" — not a quick patch. Each review
-  subagent owns one axis and returns a scored verdict (axis score, confidence, and
-  findings each with a fix plan); the loop refines until every axis scores >= 80, at
-  both the plan and the implementation stage, and verifies each finding before acting
-  on it. This is the
-  deep, single-issue sibling of `issue-loop` (a batch loop with one severity axis) —
+  runs as a fresh subagent that owns one axis and returns a scored verdict (axis
+  score, confidence, and findings each with a fix plan); the loop refines until
+  every axis scores >= 80, at both the plan and the implementation stage, and
+  verifies each finding before acting on it. This is the deep, single-issue
+  sibling of `issue-loop` (the batch wrapper that delegates each issue here) —
   prefer this skill for one issue done thoroughly, and `issue-loop` for a batch.
 ---
 
 # issue-resolver
 
 Take a single issue and drive it to a draft PR through two **scored review loops** —
-one over the plan, one over the implementation. Where `issue-loop` reviews a batch on
-one axis (severity) until findings clear, this skill reviews **one** issue on many
-axes, each scored 0–100, and keeps refining until **every axis is ≥ 80**. Findings are
-independently **verified before** they are acted on, and the plan stage can run
-**spikes** to resolve unknowns with evidence instead of guesswork. Like `issue-loop`,
-it builds the loop at runtime from the issue you paste — it does not freeze a script.
+one over the plan, one over the implementation. The skill reviews **one** issue on
+many axes, each scored 0–100, and keeps refining until **every axis is ≥ 80**.
+Findings are independently **verified before** they are acted on, and the plan
+stage can run **spikes** to resolve unknowns with evidence instead of guesswork.
 
 ## The loop's shape
 
 ```
-1. get context        (read the issue, the repo, the related code)
+1. get context        (issue worktree; read the issue, the repo, the related code)
 2. analyze            (fan-out subagents, one per angle)
-3. plan               (subagent drafts the plan)
+3. plan               (draft a short, testable plan)
 4. refine plan  — scored loop until every plan axis >= 80:
-     4.1 review: one subagent per axis -> {axis, score, confidence, findings}
-     4.2 verify: a fresh agent tries to REFUTE each finding -> keep only confirmed
+     4.1 review: one fresh subagent per axis -> {axis, score, confidence, findings}
+     4.2 verify: a fresh subagent tries to REFUTE each finding -> keep only confirmed
      4.3 fix the plan; if an axis needs evidence, spike it in a throwaway worktree,
          compare spikes, fold the conclusion back into the plan
 5. implement          (subagent, test-first, in the issue worktree)
 6. review+fix  — same scored loop until every impl axis >= 80:
-     6.1 review: one subagent per axis -> {axis, score, confidence, findings}
+     6.1 review: one fresh subagent per axis
      6.2 verify: refute each finding -> keep only confirmed
      6.3 fix the confirmed findings
 7. open a DRAFT PR (never merge); report final scores and any blocked axis
@@ -45,29 +43,68 @@ it builds the loop at runtime from the issue you paste — it does not freeze a 
 
 ## Mechanism mapping (read this first)
 
-One issue, so there is no batch fan-out and no outer `/goal` — the whole thing is a
-single **`Workflow`** script with two bounded scored `while` loops. The fan-out is
-*inside* each loop: one reviewer per axis runs in `parallel`, then one verifier per
-finding runs in `parallel`. Invoking this skill is the opt-in to call `Workflow`; you
-do not need a separate "ultracode" trigger.
+There is no workflow-script engine and no `/goal` built-in. The loop runs in the
+**main session** — the session that triggered this skill — which owns the gates,
+the state file, and every dispatch. Fresh context comes from **`Agent`-tool
+subagents**, one per role:
 
-The two loops are the same shape, so they share one helper, `refineUntilScored` — only
-the axis set and the "fix" action differ between plan-phase and impl-phase.
+| Role | Dispatch |
+|---|---|
+| Orchestrator (the loop, the gates, `plan.md`) | the main session itself — never a subagent, so reviewer fan-out is always available |
+| Axis reviewers | one fresh subagent per axis, in parallel (one message, multiple Agent calls) |
+| Finding refuters | one fresh subagent per finding, in parallel |
+| Implementer | one subagent, test-first, in the issue worktree (background when the session has other work) |
+| Spikes | subagents with `isolation: "worktree"` — throwaway trees |
 
-## The scored review contract
+Wired-in constants — state them in the dispatches, change them only deliberately:
 
-Every axis reviewer returns this. The loop treats `score` and verified findings as the
-two gates — an axis passes only when its `score >= MIN_SCORE` **and** no confirmed
-critical/high finding remains:
+- **MAX_PARALLEL = 10.** Never more than 10 concurrent subagents, shared across
+  the whole loop (reviewers + refuters + background implementers). Batch the
+  dispatches to stay under it.
+- **MAX_ROUNDS = 3** per scored loop, **MAX_SPIKES = 2.** A stuck axis exits
+  `blocked` and raises a DR — it never loops forever.
+- **`plan.md` is the loop's state — mandatory, not optional.** After every round,
+  record the round number, per-axis scores, and confirmed findings under
+  `## Notes` (`plan-state`). A fresh session must be able to resume mid-loop from
+  the file alone.
+- Reviewers and refuters receive only the spec + the artifact — never the maker's
+  reasoning (`maker-checker`).
+
+## The scored review contract (prompt + parse)
+
+Subagent output cannot be schema-constrained, so the contract is enforced by
+prompt and parsed from the reply. Append this block verbatim to EVERY reviewer
+dispatch:
 
 ```
-{ axis, score: 0-100, confidence: 0-1,
-  kpi?: { name, value, target },   // the measurement that justifies the score
-  findings: [{ issue, severity: 'critical'|'high'|'medium'|'low', fixingPlan, fileLine?, metric? }] }
+End your reply with exactly one fenced json block:
+{"axis":"<axis>","score":<0-100>,"confidence":<0-1>,
+ "kpi":{"name":"...","value":"...","target":"..."},
+ "findings":[{"issue":"...","severity":"critical|high|medium|low",
+              "fixingPlan":"...","fileLine":"..."}]}
+Gate-vs-grade: anchor the score on the measured KPI and state your mapping.
+File any GATE breach (failing test, new uncovered branch, SAST/secret/vuln hit,
+new circular dep, unintended public-API surface change, added N+1,
+protected-domain change, or any per-axis gate) as a `critical` finding even if
+the score is otherwise high — a high score never buys back a gate breach.
+If no hard metric fits, set kpi.name="judgement" and say so.
 ```
 
-`confidence` is the reviewer's own certainty; it is advisory. The real gate against
-false findings is step 4.2/6.2 — an *independent* refuter, not the reviewer's self-report.
+Parse the final fenced json block of the reply. If it fails to parse, re-ask that
+reviewer once ("return only the json block"); on a second failure, mark the axis
+blocked for this round. An axis passes only when its `score >= 80` **and** no
+confirmed critical/high finding remains. `confidence` is the reviewer's
+self-report and advisory only — the refute step is the real gate against false
+findings.
+
+Refuter dispatch, one finding per subagent:
+
+```
+Try to REFUTE this review finding — assume it may be wrong; default to not
+confirmed if unsure. Finding: <finding json>.
+End your reply with exactly one fenced json block:
+{"confirmed":true|false,"why":"..."}
+```
 
 ## Anchor scores on KPIs (don't score on vibes)
 
@@ -115,18 +152,19 @@ issue at hand. The point is that the number is earned, not asserted.
 ## Default axes (hybrid: these + any issue-specific ones)
 
 Start from these and **add** axes the issue obviously needs (e.g. "migration safety",
-"backwards compat", "i18n"). Each axis maps to a purpose-built reviewer where one exists.
-Add a dedicated axis only when the concern has its **own measurable gate KPI that no default
-axis already gates** — otherwise fold it into the nearest default (`risk`, `correctness`, …)
-rather than duplicating. An added plan-phase axis that needs evidence to score honestly can
-set `spikes: true` to drive a spike, the same way `feasibility` and `risk` do.
+"backwards compat", "i18n"). Add a dedicated axis only when the concern has its **own
+measurable gate KPI that no default axis already gates** — otherwise fold it into the
+nearest default (`risk`, `correctness`, …) rather than duplicating. An added plan-phase
+axis that needs evidence to score honestly can be marked `spikes: true` to drive a
+spike, the same way `feasibility` and `risk` do.
 
 - **Plan phase** — *spec-fit* (does the plan actually solve the issue?), *feasibility*
-  (can it be built as described? often the one that needs a spike), *architecture* (macro:
-  fits existing module boundaries, layering and dependency direction), *design* (micro: do
-  the intended interfaces/types/APIs make sense?), *simplicity / Tidy-First* (smallest
-  change that works; structural vs behavioral separated), *risk & blast-radius*,
-  *testability* (can each step be verified test-first?).
+  (can it be built as described? often the one that needs a spike; `spikes: true`),
+  *architecture* (macro: fits existing module boundaries, layering and dependency
+  direction), *design* (micro: do the intended interfaces/types/APIs make sense?),
+  *simplicity / Tidy-First* (smallest change that works; structural vs behavioral
+  separated), *risk & blast-radius* (`spikes: true`), *testability* (can each step be
+  verified test-first?).
 - **Impl phase** — *correctness* (mutation-tested, not just green), *spec-fit* (incl. no
   scope creep), *test coverage* (`tdd`; a test must fail on pre-change behavior),
   *security* (the protected domains in `decision-required`),
@@ -141,6 +179,14 @@ set `spikes: true` to drive a spike, the same way `feasibility` and `risk` do.
   direction, cycles, coupling); design is whether each piece is built right (interfaces,
   types, encapsulation, invariants). They fail independently and get fixed differently.
 
+Where a purpose-built reviewer exists, dispatch it for the axis:
+`pr-review-toolkit:code-reviewer` (correctness),
+`pr-review-toolkit:pr-test-analyzer` (coverage),
+`pr-review-toolkit:silent-failure-hunter` (security),
+`pr-review-toolkit:type-design-analyzer` (design). Every other axis gets a fresh
+`general-purpose` subagent. Either way the reviewer is a separate fresh-context
+agent — the `maker-checker` guarantee holds for every axis.
+
 ## Verify-each-review (why the refute step matters)
 
 A reviewer that both finds and confirms its own issue is biased toward "I was right" —
@@ -153,12 +199,13 @@ and from being gamed into never terminating by a reviewer that keeps inventing p
 
 When a lagging axis — usually *feasibility* or *risk* — cannot be scored honestly without
 evidence ("will this approach be fast enough / fit the existing API?"), spawn 1–N spike
-agents, each in a **throwaway** worktree, to build the smallest prototype that answers the
-question and measure it against a stated metric. Compare the spikes, fold the winning
-**conclusion** into the plan, and discard the spike code — only the conclusion survives.
-Cap the number of spikes (`MAX_SPIKES`) so this does not balloon. Which axes may trigger a
-spike is data-driven: an axis drives one when it carries `spikes: true` (defaults:
-*feasibility*, *risk*) — so an issue-specific axis opts in by setting the same flag.
+subagents (`Agent` with `isolation: "worktree"`), each in a **throwaway** worktree, to
+build the smallest prototype that answers the question and measure it against a stated
+metric. Compare the spikes, fold the winning **conclusion** into the plan, and discard the
+spike code — only the conclusion survives. Cap the number of spikes (`MAX_SPIKES`) so this
+does not balloon. Which axes may trigger a spike is explicit: an axis drives one when it
+is marked `spikes: true` (defaults: *feasibility*, *risk*) — an issue-specific axis opts
+in the same way.
 
 Spikes are **plan-phase only** — they settle *pre-code* unknowns. A KPI that is only
 measurable once code exists (perf delta, mutation score, coverage) is measured by the
@@ -166,237 +213,69 @@ impl-phase reviewer itself — it runs the tests/benchmark as part of its review
 spike. So a perf axis spikes in the plan phase to set a baseline/target, then the impl-phase
 performance reviewer measures the real change against that target.
 
-## Workflow script template
+## Procedure
 
-Adapt this — change schemas, axes, models, `MIN_SCORE`, `MAX_ROUNDS`, `MAX_SPIKES`. Two
-rules that prose alone would lose are wired in: `GATE_RULE` (appended to every reviewer
-prompt) and a `PROTECTED` protected-domain DR hook — fill `PROTECTED` from the issue.
-
-```js
-export const meta = {
-  name: 'issue-resolver',
-  description: 'One issue: context → analyze → plan → scored refine → implement → scored review → draft PR',
-  phases: [
-    { title: 'Context' }, { title: 'Plan' }, { title: 'RefinePlan' },
-    { title: 'Implement' }, { title: 'ReviewImpl' }, { title: 'PR' },
-  ],
-}
-// args = { id, title, spec, issueRef }  — ONE issue (id is a slug used for the branch)
-const issue = args
-const MIN_SCORE = 80, MAX_ROUNDS = 3, MAX_SPIKES = 2
-
-const REVIEW_SCHEMA = {
-  type: 'object', required: ['axis', 'score', 'confidence', 'findings'],
-  properties: {
-    axis: { type: 'string' },
-    score: { type: 'number' }, confidence: { type: 'number' },
-    kpi: { type: 'object', properties: {  // see "Anchor scores on KPIs"; matches the contract
-      name: { type: 'string' }, value: { type: 'string' }, target: { type: 'string' } } },
-    findings: { type: 'array', items: {
-      type: 'object', required: ['issue', 'severity', 'fixingPlan'],
-      properties: {
-        issue: { type: 'string' }, severity: { enum: ['critical', 'high', 'medium', 'low'] },
-        fixingPlan: { type: 'string' }, fileLine: { type: 'string' }, metric: { type: 'string' },
-      } } },
-  },
-}
-const VERDICT_SCHEMA = { type: 'object', required: ['confirmed', 'why'],
-  properties: { confirmed: { type: 'boolean' }, why: { type: 'string' } } }
-
-// Appended to EVERY reviewer prompt so the gate-vs-grade rule lives in the dispatched
-// artifact, not only in this skill's prose: a gate-KPI breach must be filed as `critical`
-// so it blocks the axis regardless of the numeric score.
-const GATE_RULE = 'Gate-vs-grade: anchor the score on the measured KPI and state your mapping. ' +
-  'File any GATE breach (failing test, new uncovered branch, SAST/secret/vuln hit, new circular ' +
-  'dep, unintended public-API change, added N+1, protected-domain change, or any per-axis gate) ' +
-  'as a `critical` finding even if the score is otherwise high — a high score never buys back a ' +
-  "gate breach. If no hard metric fits, set kpi.name='judgement' and say so."
-
-// ---- shared scored-refinement loop (plan-phase and impl-phase use the same engine) ----
-// axes: [{ key, prompt, agentType? }]; makeReviewPrompt(axis, round) -> string;
-// fixWith(confirmedFindings, laggingAxes, round) -> Promise (applies the fix)
-async function refineUntilScored(label, axes, makeReviewPrompt, fixWith, phaseName) {
-  let round = 0
-  while (round < MAX_ROUNDS) {
-    // review: one fresh reviewer per axis, in parallel (never sees the maker's reasoning)
-    const reviews = (await parallel(axes.map(a => () =>
-      agent(makeReviewPrompt(a, round),
-        { label: `${label}:review:${a.key}:r${round}`, phase: phaseName,
-          schema: REVIEW_SCHEMA, agentType: a.agentType })))).filter(Boolean)
-
-    // verify: refute each finding with a fresh agent; keep only confirmed ones
-    const flat = reviews.flatMap(r => r.findings.map(f => ({ ...f, axis: r.axis })))
-    const verified = (await parallel(flat.map(f => () =>
-      agent(`Try to REFUTE this review finding — assume it may be wrong, default to ` +
-            `confirmed=false if unsure. Finding: ${JSON.stringify(f)}.`,
-        { label: `${label}:verify:${f.axis}:r${round}`, phase: phaseName, schema: VERDICT_SCHEMA })
-        .then(v => ({ ...f, confirmed: !!(v && v.confirmed) }))))).filter(Boolean)
-    const confirmed = verified.filter(f => f.confirmed)
-
-    const lagging = reviews.filter(r => r.score < MIN_SCORE)
-    const blocking = confirmed.filter(f => f.severity === 'critical' || f.severity === 'high')
-    const min = Math.min(...reviews.map(r => r.score))
-    log(`${label} r${round}: min=${min} lagging=[${lagging.map(r => r.axis)}] confirmed=${confirmed.length}`)
-    if (lagging.length === 0 && blocking.length === 0) return { passed: true, scores: reviews, round }
-
-    await fixWith(confirmed, lagging, round)
-    round++
-  }
-  return { passed: false, blocked: true, round }  // bounded exit → mark blocked + raise a DR
-}
-
-// 1. context  +  2. analyze (fan-out by angle)
-phase('Context')
-const wt = await agent(
-  `Create a git worktree for issue ${issue.id} on branch issue/${issue.id} (git-wt skill). ` +
-  `Read the issue (${issue.issueRef}) and the related code. Return {worktree, branch, context}.`,
-  { label: 'context', phase: 'Context',
-    schema: { type: 'object', required: ['worktree', 'branch', 'context'],
-      properties: { worktree: { type: 'string' }, branch: { type: 'string' }, context: { type: 'string' } } } })
-
-// Protected-domain gate (decision-required): if the issue touches auth, payments, data
-// migration, security config, infra, or a breaking API change, raise a DR up front and
-// fold it into the plan + PR — never decide autonomously. Fill PROTECTED from the issue.
-const PROTECTED = []  // e.g. ['data-migration', 'auth']; [] when none apply
-let dr = ''
-if (PROTECTED.length) {
-  dr = await agent(
-    `This issue touches protected domains ${JSON.stringify(PROTECTED)}. Per decision-required, ` +
-    `produce a DR writeup of the human-owned choices required BEFORE any irreversible step; ` +
-    `do not decide autonomously. Spec: ${issue.spec}. Context: ${wt.context}. Return the DR text.`,
-    { label: 'protected-domain-DR', phase: 'Context' })
-  log(`DR raised for protected domains: ${PROTECTED.join(', ')}`)
-}
-
-const ANGLES = ['root cause & affected components', 'constraints & protected domains',
-                'existing utilities to reuse', 'edge cases & failure modes']
-const analysis = (await parallel(ANGLES.map(a => () =>
-  agent(`Analyze issue "${issue.title}" from this angle: ${a}. ` +
-    `Spec: ${issue.spec}. Context: ${wt.context}. Return concise findings.`,
-    { label: `analyze:${a}`, phase: 'Context' })))).filter(Boolean).join('\n\n')
-
-// 3. plan
-phase('Plan')
-let plan = await agent(
-  `Write a short, testable implementation plan for issue "${issue.title}". ` +
-  `Spec: ${issue.spec}. Analysis:\n${analysis}\n` +
-  `${dr ? 'Honor this Decision-Required: ' + dr + '\n' : ''}` +
-  `Favor the smallest change that works (Tidy-First).`,
-  { label: 'plan', phase: 'Plan' })
-
-// 4. refine the plan until every plan axis >= 80 (with spikes when feasibility/risk lags)
-const PLAN_AXES = [
-  { key: 'spec-fit',     prompt: 'Does the plan resolve the issue, nothing missing or extra? KPI: acceptance criteria addressed (target 100%; judgement if fuzzy).' },
-  { key: 'feasibility',  prompt: 'Can this be built as described against the real codebase/APIs? KPI: unresolved feasibility unknowns (target 0 — spike to resolve).', spikes: true },
-  { key: 'architecture', prompt: 'Macro: fits existing boundaries, layering, dependency direction? KPI (judgement, pre-code): planned circular deps / direction violations (target 0).' },
-  { key: 'design',       prompt: 'Micro: do the intended interfaces/types/APIs make sense (encapsulation, invariants, cohesion)? KPI (judgement, pre-code): unsound interface/type choices (target 0).' },
-  { key: 'simplicity',   prompt: 'Smallest change that works? Structural vs behavioral separated? KPI (judgement): net new abstractions/modules beyond need (target: none speculative).' },
-  { key: 'risk',         prompt: 'Blast radius, protected domains, rollback. KPI: blast-radius modules; reversibility (irreversible op / data migration → DR); protected domains → DR.', spikes: true },
-  { key: 'testability',  prompt: 'Can each step be verified test-first? KPI: plan steps with a defined test (target 100%).' },
-  // To add an issue-specific axis, push it here; set `spikes: true` if a lagging score on it
-  // should be allowed to drive a plan-phase spike (the defaults are feasibility + risk).
-]
-const planResult = await refineUntilScored('plan', PLAN_AXES,
-  (a) => `Review this PLAN on the "${a.key}" axis. ${a.prompt}\n${GATE_RULE}\nPlan:\n${plan}\n` +
-         `Return {axis:'${a.key}', score, confidence, findings}.`,
-  async (confirmed, lagging, round) => {
-    const needsSpike = lagging.some(r => PLAN_AXES.find(a => a.key === r.axis)?.spikes)
-    if (needsSpike) {
-      const spikes = (await parallel(Array.from({ length: MAX_SPIKES }, (_, i) => () =>
-        agent(`Spike approach #${i} for: ${issue.spec}. In a THROWAWAY git worktree (git-wt), ` +
-          `build the smallest prototype that answers the open feasibility/risk question and ` +
-          `measure it. Return {approach, evidence}.`,
-          { label: `plan:spike:${i}:r${round}`, phase: 'RefinePlan' })))).filter(Boolean)
-      plan = await agent(`Compare these spikes, pick the best by evidence, and fold the ` +
-        `conclusion into the plan while addressing ${JSON.stringify(confirmed)}. ` +
-        `Discard the spike code — keep only the conclusion. Spikes: ${JSON.stringify(spikes)}\n` +
-        `Old plan:\n${plan}\nReturn the revised plan.`, { label: `plan:fix:r${round}`, phase: 'RefinePlan' })
-    } else {
-      plan = await agent(`Revise the plan to address these findings: ${JSON.stringify(confirmed)}\n` +
-        `Old plan:\n${plan}\nReturn the revised plan.`, { label: `plan:fix:r${round}`, phase: 'RefinePlan' })
-    }
-  }, 'RefinePlan')
-
-// 5. implement test-first in the issue worktree
-phase('Implement')
-await agent(`In worktree ${wt.worktree} on branch ${wt.branch}, implement this plan ` +
-  `test-first (tdd skill): ${plan}. Return when tests pass.`, { label: 'impl', phase: 'Implement' })
-
-// 6. review + fix the implementation until every impl axis >= 80
-const IMPL_AXES = [
-  { key: 'correctness',  prompt: 'Does it do what the spec promises, including edge cases? KPI: tests green AND a test fails on pre-change behavior (gates); mutation score (target >= 70%).',
-    agentType: 'pr-review-toolkit:code-reviewer' },
-  { key: 'spec-fit',     prompt: 'Anything missing or out of scope vs the issue? KPI: acceptance-criteria coverage (target 100%) and out-of-scope changes (target 0).' },
-  { key: 'coverage',     prompt: 'Tests adequate; a test fails on pre-change behavior? KPI: diff coverage % (target >= 80) and new uncovered branches (gate, target 0).',
-    agentType: 'pr-review-toolkit:pr-test-analyzer' },
-  { key: 'security',     prompt: 'Protected domains, unsafe handling? KPI: SAST + secret-scan + dependency-vuln findings (gate, target 0); protected-domain change → DR.',
-    agentType: 'pr-review-toolkit:silent-failure-hunter' },
-  { key: 'performance',  prompt: 'Hot paths, complexity, allocations, N+1? KPI: if a benchmark exists, latency/throughput delta vs baseline (<= budget); else complexity of changed hot paths + DB query count; added N+1 (gate, target 0).' },
-  { key: 'architecture', prompt: 'Macro: fits boundaries and dependency direction; no leaky coupling? KPI: new circular deps (gate, 0), dependency-direction/layering violations (gate, 0), fan-in/out vs threshold (reuse pr-dependency-review).' },
-  { key: 'design',       prompt: 'Micro: interface/type/API quality, encapsulation, invariants, cohesion? KPI: encapsulation/invariant/enforcement ratings; unintended public-API surface change (gate, 0).',
-    agentType: 'pr-review-toolkit:type-design-analyzer' },
-  { key: 'simplicity',   prompt: 'Smallest clear implementation; no needless abstraction? KPI: cyclomatic complexity per changed fn (target <= 10), max nesting depth, duplication.' },
-  { key: 'ai-pr-checks', prompt: 'Run pr-dependency-review references/ai-pr-checks.md failure modes. KPI: failure-mode hits (target 0).' },
-]
-const implResult = await refineUntilScored('impl', IMPL_AXES,
-  (a) => `Review the diff in worktree ${wt.worktree} against spec "${issue.spec}" on the ` +
-         `"${a.key}" axis. ${a.prompt} ${GATE_RULE} Do not assume the author was right. ` +
-         `Return {axis:'${a.key}', score, confidence, findings:[{issue,severity,fixingPlan,fileLine}]}.`,
-  async (confirmed) => {
-    await agent(`In worktree ${wt.worktree}, address these VERIFIED findings, keeping the spec ` +
-      `fixed: ${JSON.stringify(confirmed)}.`, { label: 'impl:fix', phase: 'ReviewImpl' })
-  }, 'ReviewImpl')
-
-// 7. open a DRAFT PR (never merge)
-phase('PR')
-const blocked = !planResult.passed || !implResult.passed
-const pr = await agent(`In worktree ${wt.worktree} on branch ${wt.branch}, push and open a ` +
-  `DRAFT PR (gh pr create --draft) with a body following the pr-body skill. ` +
-  `${blocked ? 'List the axes that did not reach the threshold in the PR body. ' : ''}` +
-  `${dr ? 'Surface this Decision-Required and state that a human owns the merge: ' + dr : ''} ` +
-  `Return {url}.`, { label: 'pr', phase: 'PR' })
-
-return { pr, planScores: planResult.scores, implScores: implResult.scores, blocked }
-```
-
-Why it is shaped this way:
-
-- **One script, sequential stages** — there is one issue, so no `pipeline`/`/goal`. The
-  concurrency is *within* a round: axis reviewers in `parallel`, then finding verifiers in
-  `parallel`.
-- **`while` bounded by `MAX_ROUNDS`** — the loop re-reviews until every axis is ≥ 80, but
-  a stuck axis cannot loop forever: it exits `blocked` and surfaces as a DR.
-- **Fresh reviewers and verifiers** — every reviewer/refuter is a separate agent that
-  sees the artifact + spec only, never the maker's reasoning (`maker-checker`). An axis
-  with no `agentType` still spawns the **generic workflow subagent** (fresh context) — it
-  is not run in the main session; `agentType` only swaps a purpose-built reviewer in for
-  the generic one. So the `maker-checker` guarantee holds for every axis, specialized or not.
-- **Verify before fix** — only confirmed findings drive a change, so hallucinated issues
-  neither cause churn nor block termination.
+1. **Context.** Create a worktree for the issue (`git-wt`, branch `issue/<id>`,
+   `id` = short slug). Read the issue and the related code. Start `plan.md` in the
+   worktree root with the issue's acceptance criteria.
+2. **Protected-domain gate.** If the issue touches auth, payments, data deletion
+   or migration, security config, infra/deployment, or a breaking API change,
+   raise a DR up front (`decision-required`) and fold the resolution into the plan
+   and the PR — never decide autonomously.
+3. **Analyze.** Fan out one subagent per angle, in parallel: root cause & affected
+   components; constraints & protected domains; existing utilities to reuse; edge
+   cases & failure modes.
+4. **Plan.** Draft a short, testable plan — the smallest change that works
+   (Tidy-First), one verifiable step per item.
+5. **Refine the plan** — scored loop, at most MAX_ROUNDS:
+   1. Dispatch one reviewer per plan axis, in parallel, each with the contract
+      block and its axis prompt.
+   2. Dispatch one refuter per finding, in parallel; keep only confirmed findings.
+   3. Every axis ≥ 80 and no confirmed critical/high left → exit the loop.
+      Otherwise revise the plan against the confirmed findings. If a lagging axis
+      is marked `spikes: true`, run up to MAX_SPIKES spike subagents in throwaway
+      worktrees, compare their evidence, fold the winning conclusion into the
+      plan, and discard the spike code.
+   4. Record the round's scores and confirmed findings in `plan.md`. If the round
+      limit is hit with an axis still failing, mark it blocked and raise a DR.
+6. **Implement** the refined plan test-first (`tdd`) in the issue worktree — a
+   subagent; run it in the background when the session has other work.
+7. **Review the implementation** — the same scored loop over the impl axes; the
+   fix action applies confirmed findings in the worktree, keeping the spec fixed.
+8. **Draft PR.** Push the branch and open a draft PR (`pr-body`). Never merge.
+   List every blocked axis and any DR in the PR body. Report the final scores.
 
 ## Safety rails
 
 Reuses `loop-automation`'s rails — a scored loop still makes unattended mistakes:
 
 - **Draft PR only — never merge.** A human owns the merge.
-- **Bound every loop.** `MAX_ROUNDS` per scored loop; a stuck axis is logged blocked, not retried forever.
-- **Cap spikes.** `MAX_SPIKES` and throwaway worktrees, so exploration cannot balloon.
-- **Verify, don't self-grade.** Reviewers and refuters are separate agents (`maker-checker`).
-- **Escalate, don't guess.** A protected-domain conflict, or an axis that cannot reach the
-  threshold, surfaces as a DR (`decision-required`) — not an autonomous decision.
+- **Bound every loop.** MAX_ROUNDS per scored loop; a stuck axis is logged blocked
+  and raised as a DR, not retried forever.
+- **Cap cost.** MAX_PARALLEL = 10 shared across all concurrent subagents;
+  MAX_SPIKES caps exploration; spikes always run in throwaway worktrees.
+- **Verify, don't self-grade.** Reviewers and refuters are separate fresh-context
+  agents (`maker-checker`); the orchestrator never scores its own artifact.
+- **Escalate, don't guess.** A protected-domain conflict, or an axis that cannot
+  reach the threshold, surfaces as a DR (`decision-required`) — not an autonomous
+  decision.
 
 ## Integration
 
-- **git-wt** — one worktree for the issue (step 1); throwaway worktrees for spikes (step 4.3).
-- **tdd** — implement test-first (step 5); the coverage axis checks a test fails pre-change.
-- **maker-checker** — the engine behind every review and the refute step (4.2 / 6.2).
-- **pr-review-toolkit** (`code-reviewer`, `pr-test-analyzer`, `silent-failure-hunter`,
-  `type-design-analyzer`) — per-axis reviewers in the impl loop.
-- **pr-dependency-review** — its `references/ai-pr-checks.md` is the *ai-pr-checks* axis.
-- **pr-body** — the draft PR description (step 7).
-- **plan-state** — persist axis scores per round in `plan.md` if the run spans sessions.
-- **issue-loop** — the batch sibling; it delegates each issue to this skill via the
-  Workflow `workflow()` hook (this script takes one issue via `args` and never calls
-  `workflow()` itself, so it nests cleanly). Use `issue-loop` for many issues, this skill
-  for one done deeply.
+- **git-wt** — one worktree for the issue (step 1); throwaway worktrees for spikes.
+- **tdd** — implement test-first (step 6); the coverage axis checks a test fails
+  on pre-change behavior.
+- **maker-checker** — the discipline behind every review and the refute step.
+- **pr-review-toolkit** (`code-reviewer`, `pr-test-analyzer`,
+  `silent-failure-hunter`, `type-design-analyzer`) — purpose-built per-axis
+  reviewers in the impl loop.
+- **pr-dependency-review** — its `references/ai-pr-checks.md` is the
+  *ai-pr-checks* axis.
+- **pr-body** — the draft PR description (step 8).
+- **plan-state** — `plan.md` in the issue worktree is the loop's mandatory state:
+  per-round axis scores, confirmed findings, blocked items.
+- **issue-loop** — the batch wrapper: it delegates each issue to this skill and
+  adds the outer until-done loop; its lightweight triage mode reviews on a single
+  severity axis instead of the full scored set. Use `issue-loop` for many issues,
+  this skill for one done deeply.
 - **decision-required** — escalation path for protected domains and stuck axes.
