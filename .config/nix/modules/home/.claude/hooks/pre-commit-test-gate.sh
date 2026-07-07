@@ -8,13 +8,18 @@ command -v jq >/dev/null 2>&1 || exit 0
 input=$(cat)
 cmd=$(printf '%s' "$input" | jq -r '.tool_input.command // empty')
 
-case "$cmd" in
+# Only unquoted tokens count: text inside -m "..." or echo '...' must
+# neither trigger the gate nor bypass it via --no-verify in a message.
+cmd_unquoted=$(printf '%s' "$cmd" | sed -E "s/'[^']*'//g; s/\"[^\"]*\"//g")
+
+case "$cmd_unquoted" in
   *"git commit"*) ;;
   *) exit 0 ;;
 esac
-case "$cmd" in
-  *--no-verify*) exit 0 ;; # same escape hatch as native git hooks
-esac
+# Escape hatch (same as native git hooks), honored only on a line that invokes git.
+if printf '%s\n' "$cmd_unquoted" | grep 'git' | grep -q -- '--no-verify'; then
+  exit 0
+fi
 
 cwd=$(printf '%s' "$input" | jq -r '.cwd // empty')
 [ -n "$cwd" ] && cd "$cwd" 2>/dev/null
