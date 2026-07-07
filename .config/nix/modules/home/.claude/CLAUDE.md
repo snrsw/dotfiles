@@ -38,3 +38,4 @@ Which mechanism to reach for, by situation:
 - Non-trivial change looks finished → maker-checker review and verify before calling it done.
 - Design or architecture decision with no objective ground truth → design-panel workflow (independent candidates, judged).
 - Judgment call mid-task → DR pattern (decision-required rule).
+- Tiebreaker when both could apply: a call the user must own (protected domain, irreversible fork) → DR; a solution space to generate and judge → design-panel; if both, run design-panel first and present its winner as the DR recommendation.

@@ -31,6 +31,7 @@ const proposals = await parallel(ANGLES.map((angle, i) => () =>
   agent(
     `Design question:\n${question}\n\n` +
     `Propose ONE concrete design from this angle: ${angle}.\n` +
+    `The panel needs genuinely different candidates: if the question explicitly lists candidate options, build your proposal around option ${i + 1} of that list, steelmanned from your angle (if fewer than ${i + 1} options are listed, choose freely by your angle instead).\n` +
     'If a repository is relevant, explore it first and ground the design in what exists.\n' +
     'Return: the design (concrete, with tradeoffs), key assumptions, and what would make it fail.',
     { label: `propose:${i + 1}`, phase: 'Propose' },

@@ -21,3 +21,9 @@ This overrides the question-first ordering of any imported design/brainstorming 
 - After exploring context, present your best-guess interpretation as a concrete draft spec with assumptions marked — BEFORE asking further questions.
 - Then ask at most one batch of questions, only for decisions the draft cannot settle, each with options and a recommended default.
 - Never return a bare list of questions.
+
+## How the steps compose
+
+- When the purpose is missing, your FIRST response contains both: the draft spec (built on your recommended purpose) and the single batched question. The purpose question IS that batch — fold any decisions the draft cannot settle into it as options. Do not split the spec and the questions across turns.
+- Mark assumptions inline, one per line: `[ASSUMPTION] The reader is an operator at a terminal, not a log pipeline.`
+- If an unknown would change the architecture (deployment topology, data volume, tenancy), surface it as a question with a conservative default — do not bury it as an assumption.
