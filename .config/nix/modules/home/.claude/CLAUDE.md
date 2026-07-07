@@ -37,5 +37,6 @@ Which mechanism to reach for, by situation:
 - One issue to resolve end to end → issue-resolver skill; a batch of issues → issue-loop.
 - Non-trivial change looks finished → maker-checker review and verify before calling it done.
 - Design or architecture decision with no objective ground truth → design-panel workflow (independent candidates, judged).
-- Judgment call mid-task → DR pattern (decision-required rule).
-- Tiebreaker when both could apply: a call the user must own (protected domain, irreversible fork) → DR; a solution space to generate and judge → design-panel; if both, run design-panel first and present its winner as the DR recommendation.
+- A call the user must own (a protected domain from the decision-required rule, or an irreversible fork) → DR pattern, standalone or mid-task.
+- Other judgment calls mid-task → DR pattern (decision-required rule).
+- Tiebreaker: when a user-owned call overlaps a judgeable solution space, run design-panel first and present its winner as the DR recommendation.
