@@ -132,6 +132,10 @@ in
       source = ./.claude/agents;
       recursive = true;
     };
+    ".claude/hooks" = {
+      source = ./.claude/hooks;
+      recursive = true;
+    };
     ".claude/skills/empirical-prompt-tuning" = {
       source = "${pkgs.fetchFromGitHub {
         owner = "mizchi";

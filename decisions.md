@@ -31,3 +31,9 @@ DR log for the skills loop-engineering refactor (see plan.md).
 - **Context**: W11's deterministic gate only closes the loop if it fires without anyone remembering. A workflow file is an infrastructure change (protected domain).
 - **Decision**: Yes — read-only Action (`permissions: contents: read`) on pull requests plus a weekly off-peak cron, with `workflow_dispatch` as the kill switch. Lands with W11.
 - **Rationale**: A gate that depends on being remembered is not a gate.
+
+## DR: Hook enforcement level for the quality gates
+- **Date**: 2026-07-07
+- **Context**: Wiring the automation layer (spec-first rule, routing, design-panel, checker agent) needed a call on the two settings.json hooks: does the PreToolUse test gate block `git commit` on failure, and does the Stop-hook verification nudge block the turn.
+- **Decision**: Commit gate blocks (exit 2 on test failure, fail-open on unknown project shape / missing runner, `--no-verify` escape). Stop hook reminds once (exit 2 with `stop_hook_active` loop guard, fires only when the transcript shows edits but no test/verify activity).
+- **Rationale**: User call ("block on commits"). A commit with failing tests is exactly what the gate exists to stop, and the block is deterministic; blocking every turn-end would nag on Q&A sessions, so the stop side stays a one-shot nudge.

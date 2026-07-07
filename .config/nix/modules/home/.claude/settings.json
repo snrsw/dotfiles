@@ -20,6 +20,32 @@
   "language": "English",
   "fastMode": true,
   "theme": "light",
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$HOME/.claude/hooks/pre-commit-test-gate.sh",
+            "timeout": 300,
+            "statusMessage": "Test gate: running project tests before commit"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$HOME/.claude/hooks/stop-verify-reminder.sh",
+            "timeout": 15
+          }
+        ]
+      }
+    ]
+  },
   "statusLine": {
     "type": "command",
     "command": "ccstatusline",
