@@ -38,6 +38,12 @@ DR log for the skills loop-engineering refactor (see plan.md).
 - **Decision**: maker-checker's checker adopts the full fenced-json + one-re-ask contract (it is a pass/fail gate). replay-prompt's Phase-4 stays lightweight: scores marked advisory-only with a deterministic pick rule (max total; tie → shorter prompt), never aggregated across contexts.
 - **Rationale**: Contracts belong on gates. Phase-4 only picks among 3 local variants; full ceremony there would cost more overhead than the decision is worth (overhead axis), while the pick rule keeps it reproducible.
 
+## DR: Workflow//goal ban → verified-engines amendment (Option A)
+- **Date**: 2026-07-07
+- **Context**: The official "Getting started with loops" article (2026-07-06) and re-verification showed W0's assumption stale: the `Workflow` tool exists in-session and `/goal` is a documented built-in (`/goal [condition|clear]`, Claude Code 2.1.201). Three skills asserted neither exists. Root cause: W0 verified via ToolSearch only, which cannot see CLI built-ins.
+- **Decision**: Option A — reference Workflow and /goal as verified engines (loop-automation engine table + turn/goal/time/proactive frame; issue-loop /goal outer-loop option; issue-resolver engine note). The default architecture of issue-loop/issue-resolver remains main-session Agent fan-out; no skill may require Workflow (explicit user opt-in per its own contract). Mechanism verification is per class from now on: tools via ToolSearch, CLI built-ins via docs/interactive check.
+- **Rationale**: Fixes actively false negations (LC5/OH2 violations) while keeping the gate-passed design; /goal composes around the existing stop predicates rather than replacing the inner loops.
+
 ## DR: skill-lint as a GitHub Action
 - **Date**: 2026-07-06
 - **Context**: W11's deterministic gate only closes the loop if it fires without anyone remembering. A workflow file is an infrastructure change (protected domain).
