@@ -128,6 +128,10 @@ in
       source = ./.claude/workflows;
       recursive = true;
     };
+    ".claude/agents" = {
+      source = ./.claude/agents;
+      recursive = true;
+    };
     ".claude/skills/empirical-prompt-tuning" = {
       source = "${pkgs.fetchFromGitHub {
         owner = "mizchi";
