@@ -61,39 +61,6 @@
 
           direnv = prev.direnv.overrideAttrs (_: { doCheck = false; });
 
-          # ccstatusline: Claude Code status line formatter. Upstream ships
-          # only a bundled npm package (no nixpkgs entry, no flake), so fetch
-          # the prebuilt dist/ccstatusline.js from the npm tarball directly
-          # and wrap it with nodejs.
-          ccstatusline = final.stdenvNoCC.mkDerivation rec {
-            pname = "ccstatusline";
-            version = "2.2.22";
-
-            src = final.fetchurl {
-              url = "https://registry.npmjs.org/ccstatusline/-/ccstatusline-${version}.tgz";
-              hash = "sha256-FKDBeocIjiP4xXxNycTAJFlr7s+I8zm+gNv9IchcsQA=";
-            };
-
-            nativeBuildInputs = [ final.makeWrapper ];
-
-            unpackPhase = ''
-              tar -xzf $src
-            '';
-
-            installPhase = ''
-              install -Dm755 package/dist/ccstatusline.js $out/lib/ccstatusline/ccstatusline.js
-              makeWrapper ${final.nodejs}/bin/node $out/bin/ccstatusline \
-                --add-flags $out/lib/ccstatusline/ccstatusline.js
-            '';
-
-            meta = {
-              description = "Customizable status line formatter for Claude Code CLI";
-              homepage = "https://github.com/sirmalloc/ccstatusline";
-              license = final.lib.licenses.mit;
-              mainProgram = "ccstatusline";
-            };
-          };
-
           mo = final.stdenv.mkDerivation rec {
             pname = "mo";
             version = "0.20.1";
