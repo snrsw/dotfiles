@@ -10,14 +10,18 @@ cmd=$(printf '%s' "$input" | jq -r '.tool_input.command // empty')
 
 # Only unquoted tokens count: text inside -m "..." or echo '...' must
 # neither trigger the gate nor bypass it via --no-verify in a message.
-cmd_unquoted=$(printf '%s' "$cmd" | sed -E "s/'[^']*'//g; s/\"[^\"]*\"//g")
+# Single-pass alternation consumes whichever quote opens first, so an
+# apostrophe inside a double-quoted string cannot open a bogus span.
+# Known limits (accepted; the gate is fail-open): escaped quotes and
+# heredoc bodies are not lexed.
+cmd_unquoted=$(printf '%s' "$cmd" | sed -E "s/'[^']*'|\"[^\"]*\"//g")
 
-case "$cmd_unquoted" in
-  *"git commit"*) ;;
-  *) exit 0 ;;
-esac
-# Escape hatch (same as native git hooks), honored only on a line that invokes git.
-if printf '%s\n' "$cmd_unquoted" | grep 'git' | grep -q -- '--no-verify'; then
+# Word boundary after "commit" so commit-graph/commit-tree don't match.
+printf '%s\n' "$cmd_unquoted" | grep -qE 'git[[:space:]]+commit([^-[:alnum:]]|$)' || exit 0
+
+# Escape hatch (same as native git hooks) — only when --no-verify sits on
+# the same command segment as the git commit invocation.
+if printf '%s\n' "$cmd_unquoted" | tr ';|&' '\n' | grep -E 'git[[:space:]]+commit([^-[:alnum:]]|$)' | grep -q -- '--no-verify'; then
   exit 0
 fi
 
