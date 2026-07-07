@@ -21,11 +21,11 @@ the batch, runs the outer until-done loop, and summarizes.
 
 ## Mechanism mapping (read this first)
 
-There is no workflow-script engine and no `/goal` built-in. The mechanisms:
+The mechanisms (`/goal` and the `Workflow` tool verified real on Claude Code ≥ 2.1.201 — see `loop-automation`):
 
 | Loop | Mechanism | Why |
 |---|---|---|
-| Outer "until no actionable item" | **ralph-loop**, or **/loop** (ScheduleWakeup) — armed with the stop predicate below. For a small batch, plain sequential grinding in this session is fine | the outer loop must survive many turns without re-prompting |
+| Outer "until no actionable item" | **/goal** — armed with the stop predicate below — or **ralph-loop** / **/loop** (ScheduleWakeup). For a small batch, plain sequential grinding in this session is fine | the outer loop must survive many turns without re-prompting |
 | Per-issue body | the **issue-resolver** procedure, orchestrated from THIS session | reviewer fan-out needs the main session (see issue-resolver's mechanism mapping) |
 | Per-issue isolation | one `git-wt` worktree per issue, branch `issue/<id>` | parallel edits never collide |
 | Batch state | one batch-level `plan.md` (`plan-state`) | the loop's memory across turns and sessions |
@@ -50,7 +50,7 @@ work.
    If the list or any spec is ambiguous, confirm it with the user before starting.
 2. **Write the batch `plan.md`** (`plan-state`): every issue under `## Next`, with
    its acceptance criteria on the spec line.
-3. **Arm the outer loop** (ralph-loop or /loop) with the stop predicate above.
+3. **Arm the outer loop** (`/goal <stop predicate>`, ralph-loop, or /loop) with the stop predicate above.
 4. **Per issue:** run `issue-resolver` end to end — worktree → analyze → scored
    plan loop → implement test-first → scored impl loop → draft PR. Record the PR
    URL (or the blocked reason and DR link) in the batch `plan.md` and move the

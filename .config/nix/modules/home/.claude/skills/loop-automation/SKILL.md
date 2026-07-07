@@ -15,10 +15,14 @@ The heartbeat of a loop: a scheduled trigger that surfaces work without you aski
 | Deterministic gate: run tests / lint, block PRs on red, scripted maintenance | **GitHub Actions** |
 | A cadence *within* a live working session (e.g. re-check CI every 20 min) | **CronCreate** (in-session) |
 | One-shot reminder later today | **CronCreate** `recurring:false` |
+| An in-session goal that persists across turns until a condition is met | **/goal** (built-in) |
 | An in-session "until done" loop on one task (iterate until a completion condition holds) | **ralph-loop** plugin |
 | A self-paced in-session loop where the agent picks each next wake-up | **/loop** (ScheduleWakeup) |
+| Deterministic multi-agent orchestration inside one session (fan-out, pipelines) | **Workflow** tool — explicit user opt-in only |
 
-There are **two true unattended heartbeats**: Routines (the smart worker — Claude runs natively) and GitHub Actions (the dumb-but-reliable gate). `CronCreate`, `ralph-loop`, and `/loop` are *not* heartbeats — they are session-scoped. There is no `Workflow` orchestration tool and no `/goal` built-in; in-session until-done looping comes from `ralph-loop` or `/loop`.
+Anthropic's own frame for these ("Getting started with loops"): turn-based → goal-based (`/goal`) → time-based (`/loop`, `/schedule`) → proactive (Routines). Pick the simplest type that fits.
+
+There are **two true unattended heartbeats**: Routines (the smart worker — Claude runs natively) and GitHub Actions (the dumb-but-reliable gate). `CronCreate`, `/goal`, `ralph-loop`, `/loop`, and the `Workflow` tool are *not* heartbeats — they are session-scoped. In-session until-done looping comes from `/goal`, `ralph-loop`, or `/loop`; `Workflow` orchestrates multi-agent runs only when the user explicitly opts in. (Verified on Claude Code 2.1.201. Verify mechanisms on the right surface: tools via ToolSearch, CLI built-ins via the commands doc or by typing the command — a tool search can never see a built-in.)
 
 ## Claude Code Routines — the agentic heartbeat (primary)
 
@@ -44,14 +48,16 @@ If the work is genuinely agentic, prefer a Routine over wiring an agent into Act
 
 `CronCreate` dies when Claude exits, fires only while the REPL is idle, and recurring jobs auto-expire after 7 days (`durable:true` survives restarts but still needs a live session). Use it for a cadence *within* a working session, never for automation that must run when you are away.
 
-## ralph-loop and /loop — in-session "until done" (not heartbeats)
+## /goal, ralph-loop, /loop, Workflow — in-session "until done" (not heartbeats)
 
-Two more session-scoped mechanisms, for *until-done* rather than *time-based* looping:
+Session-scoped mechanisms for *until-done* rather than *time-based* looping:
 
-- **ralph-loop** (plugin) re-feeds one task to the session until its completion condition holds. Use it as the outer loop of a batch — e.g. `issue-loop`'s stop predicate ("every issue has a draft PR or a Blocked entry in plan.md").
+- **/goal** (built-in) — `/goal <condition>` keeps Claude working across turns until the condition is met; `/goal clear` stops it early. The most direct until-done engine: give it an objective, checkable condition — e.g. `issue-loop`'s stop predicate ("every issue has a draft PR or a Blocked entry in plan.md").
+- **ralph-loop** (plugin) re-feeds one task to the session until its completion condition holds — the same outer-loop role as `/goal`, as a plugin.
 - **/loop** (ScheduleWakeup) lets the agent schedule its own next turn, so the cadence adapts to whatever the loop is waiting on.
+- **Workflow** (tool) — deterministic multi-agent orchestration (fan-out, pipelines, judge panels) within one session. Runs only on explicit user opt-in — a skill may offer it, never require it.
 
-Both die with the session. Any state they need across sessions belongs in `plan-state`'s `plan.md` — same rule as Routines.
+All die with the session. Any state they need across sessions belongs in `plan-state`'s `plan.md` — same rule as Routines.
 
 ## Safety rails (the skill's real content)
 

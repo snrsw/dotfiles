@@ -43,10 +43,11 @@ stage can run **spikes** to resolve unknowns with evidence instead of guesswork.
 
 ## Mechanism mapping (read this first)
 
-There is no workflow-script engine and no `/goal` built-in. The loop runs in the
-**main session** — the session that triggered this skill — which owns the gates,
-the state file, and every dispatch. Fresh context comes from **`Agent`-tool
-subagents**, one per role:
+The loop runs in the **main session** — the session that triggered this skill —
+which owns the gates, the state file, and every dispatch. It deliberately uses
+plain `Agent` fan-out (the `/goal` built-in and opt-in `Workflow` tool exist —
+see `loop-automation` — but this loop requires neither). Fresh context comes
+from **`Agent`-tool subagents**, one per role:
 
 | Role | Dispatch |
 |---|---|
