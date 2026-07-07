@@ -37,3 +37,9 @@ DR log for the skills loop-engineering refactor (see plan.md).
 - **Context**: Wiring the automation layer (spec-first rule, routing, design-panel, checker agent) needed a call on the two settings.json hooks: does the PreToolUse test gate block `git commit` on failure, and does the Stop-hook verification nudge block the turn.
 - **Decision**: Commit gate blocks (exit 2 on test failure, fail-open on unknown project shape / missing runner, `--no-verify` escape). Stop hook reminds once (exit 2 with `stop_hook_active` loop guard, fires only when the transcript shows edits but no test/verify activity).
 - **Rationale**: User call ("block on commits"). A commit with failing tests is exactly what the gate exists to stop, and the block is deterministic; blocking every turn-end would nag on Q&A sessions, so the stop side stays a one-shot nudge.
+
+## DR: Accept residual risks at the eval resource cutoff
+- **Date**: 2026-07-07
+- **Context**: Three-iteration empirical eval of the workflow layer ended when the org spend limit blocked the final routing probe. All criticals had passed two consecutive rounds where re-tested.
+- **Decision**: Ship as-is. Accepted (all low, fail-open): heredoc/escaped-quote lexing in the commit gate, alternate git syntax evasion, the stop reminder's prose-grep suppression. Deferred one-time checks: reminder against a real transcript, design-panel name resolution from ~/.claude/workflows, and the skipped iter3 routing probe.
+- **Rationale**: Severity trended down across iterations (bugs → corner cases → wording); the gate is fail-open by design, so residual misses degrade to "no gate", never a wrong block. The skill's resource-cutoff rule applies.
