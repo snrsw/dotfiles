@@ -293,7 +293,7 @@ in
     enableFishIntegration = true;
     settings = {
       font-family = "UDEV Gothic 35NFLG";
-      font-size = 14;
+      font-size = 12;
       theme = "Github Light Default";
       background-opacity = 0.9;
       link-url = true;
