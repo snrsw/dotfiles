@@ -109,7 +109,9 @@ in
     # '';
 
     ".claude/CLAUDE.md".source = ./.claude/CLAUDE.md;
-    ".claude/settings.json".source = ./.claude/settings.json;
+    # settings.json is intentionally NOT symlinked here — see the
+    # claudeSettingsWritable activation below, which installs a writable copy so
+    # interactive toggles like `/effort` can persist.
     ".codex/AGENTS.md".source = ./.claude/CLAUDE.md;
     ".agents/skills" = {
       source = ./.claude/skills;
@@ -166,6 +168,18 @@ in
   home.sessionVariables = {
     CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS = "1";
   };
+
+  # Claude Code's interactive setting toggles (e.g. `/effort`) persist to
+  # ~/.claude/settings.json. A home.file symlink points into the read-only Nix
+  # store, so those writes fail. Install a writable COPY instead: `/effort` and
+  # friends stick within a session, and every `home-manager switch` re-applies
+  # the declared defaults (effortLevel, plugins, hooks, statusLine, ...).
+  home.activation.claudeSettingsWritable = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    $DRY_RUN_CMD mkdir -p "$HOME/.claude"
+    $DRY_RUN_CMD rm -f "$HOME/.claude/settings.json"
+    $DRY_RUN_CMD cp ${./.claude/settings.json} "$HOME/.claude/settings.json"
+    $DRY_RUN_CMD chmod u+w "$HOME/.claude/settings.json"
+  '';
 
   home.activation.installClaudeCodeSetupPlugin = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
     _cacheDir="$HOME/.claude/plugins/cache/claude-plugins-official/claude-code-setup/1.0.0"
