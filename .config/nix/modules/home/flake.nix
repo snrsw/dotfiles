@@ -52,10 +52,14 @@
 
       overlays = [
         brew-nix.overlays.default
-        llm-agents.overlays.default
         nix-claude-code.overlays.default
 
         (final: prev: {
+          # llm-agents.nix dropped its blueprint-based `overlays` output;
+          # expose its packages under `pkgs.llm-agents.<name>` ourselves to
+          # keep home.nix's `llm-agents.codex` / `llm-agents.gemini-cli` refs working.
+          llm-agents = llm-agents.packages.${final.system} or { };
+
           crit = crit.packages.${final.system}.default;
           prv = prv.packages.${final.system}.default;
 
