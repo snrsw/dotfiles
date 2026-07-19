@@ -1,6 +1,6 @@
 ---
 name: document-style
-description: Document structure and writing standards for any prose document — design docs, READMEs, proposals, articles, reports, explanations, wikis. Use whenever writing or revising a document, even if the user just says "write a doc", "write up X", "explain X", "draft a proposal", or "document this". Covers top-down structure, argument ordering, paragraph and sentence discipline, vocabulary, lists and hierarchy, references, figures, and examples. Language-agnostic — apply to English and Japanese documents alike.
+description: Document structure and writing standards for any prose document — design docs, READMEs, proposals, articles, reports, explanations, wikis. Use whenever writing or revising a document, even if the user just says "write a doc", "write up X", "explain X", "draft a proposal", or "document this". Covers top-down structure, argument ordering, paragraph and sentence discipline, vocabulary, lists and hierarchy, tables, references, figures, and examples. Language-agnostic — apply to English and Japanese documents alike.
 ---
 
 # Document Style
@@ -32,7 +32,7 @@ Present material in this order:
 3. **Problem statement** — formalize the problem using exactly those terms.
 4. **Solution** — address the problem as formalized.
 
-Attach an example to every important definition, problem, and solution. Examples are never optional decoration: a rule the reader cannot instantiate is a rule they have not understood.
+Attach an example to every important definition, problem, and solution. Examples are never optional decoration: a rule the reader cannot instantiate is a rule they have not understood. When you cannot exemplify everything, attach the example to what the reader will use first — an API doc that exemplifies a rarely-used endpoint but not the one every client integrates first has its examples backwards.
 
 Use a figure wherever it explains structure or flow better than prose — architecture, sequences, state transitions, data flow. A reader parses in seconds a diagram that prose would take paragraphs to serialize.
 
@@ -54,7 +54,9 @@ Punctuation sets the reader's rhythm. Reading a passage aloud is a fast test of 
 
 Use plain words. Prefer the everyday term over the impressive one; the reader's energy should go to the content, not the phrasing.
 
-Repeat the same word for the same concept. Do not rotate synonyms for aesthetic variety — every new word forces the reader to check whether it means something new. Once a term is defined, keep using that exact term.
+Repeat the same word for the same concept. Do not rotate synonyms for aesthetic variety — every new word forces the reader to check whether it means something new. Once a term is defined, keep using that exact term. This holds across every representation: prose, tables, figures, headings, and identifiers must all carry the one term — a section named "Appendix" in one place and its translation in another reads as two different things.
+
+Do not coin a name for a concept the document uses only once; state the idea plainly. Introduce a name only when the document will refer back to it.
 
 State things concisely, without decoration. Delete sentences that only build atmosphere.
 
@@ -82,6 +84,18 @@ Link references inline where they are used, not only in a final list. A closing 
 >
 > Good: "This follows the [circuit breaker pattern](https://martinfowler.com/bliki/CircuitBreaker.html), also listed in References."
 
+## Tables
+
+A table is parallel structure in grid form, and each column is a promise: it holds one kind of content for every row. Put reasons only in the reason column and outcomes only in the outcome column — a reason smuggled into the outcome cell breaks the reader's scan. When a column holds statuses or verdicts, draw its values from a small closed set, and use each value with one meaning.
+
+A table that summarizes prose must agree with that prose. Readers skim tables first and trust them over the surrounding text, so a row that contradicts the prose plants the wrong fact even when the prose is correct.
+
+**Example:**
+
+> Bad: a status column containing "sent / declined / future work / done (needs adjustment)" — ad-hoc labels, one of them self-contradictory.
+>
+> Good: a status column limited to "adopted / declined / deferred / out of scope", with the nuance ("adopted; format under discussion") in a notes column.
+
 ## Checklist for Revision
 
 - [ ] The opening states the subject, the motivation, and the key conclusion before any detail
@@ -90,9 +104,11 @@ Link references inline where they are used, not only in a final list. A closing 
 - [ ] Every important definition, problem, and solution has an example
 - [ ] Each paragraph's first sentence announces its topic
 - [ ] Each sentence carries one meaning
-- [ ] The same term is used for the same concept throughout
+- [ ] The same term is used for the same concept throughout — in prose, tables, figures, and headings alike
+- [ ] No coined terms that appear only once
 - [ ] Facts and speculation are explicitly distinguished
 - [ ] Parallel items are bullet lists; hierarchical content is nested structure
+- [ ] Each table column holds one kind of content; status columns use a small closed set of values; tables agree with the prose
 - [ ] No back-jumps: earlier content needed later is restated inline
 - [ ] References are linked inline at the point of use
 - [ ] Figures are used where structure or flow beats prose
