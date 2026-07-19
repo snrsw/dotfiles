@@ -1,0 +1,56 @@
+{
+  "skill_name": "document-style",
+  "evals": [
+    {
+      "id": 0,
+      "name": "design-doc-rate-limiting",
+      "prompt": "Write a design doc for adding rate limiting to our public REST API. Context: we run a Go API gateway behind an ALB, peak traffic is about 2000 req/s, and a few customers hammer us with batch jobs that degrade latency for everyone else. We are leaning toward a token bucket per API key, stored in Redis. The doc is for the backend team to review before implementation starts. Save it as rate-limiting-design.md.",
+      "expected_output": "A design doc that opens with the problem and key decision before details, orders content problem -> definitions -> formalized problem -> solution, includes examples and at least one figure, uses bullet lists for parallel items, links references inline, and separates facts from speculation.",
+      "files": [],
+      "assertions": [
+        "overview-first: the problem and the proposed approach both appear in the opening section, before any implementation detail",
+        "argument-order: content follows problem awareness, then definitions of key terms, then a problem statement using those terms, then the solution",
+        "has-figure: contains at least one diagram (mermaid or ASCII) showing architecture or request flow",
+        "examples-attached: key concepts such as token bucket come with a concrete example",
+        "bullets-for-parallel: parallel items (alternatives, parameters, risks) are bullet lists or tables, not run-on prose",
+        "fact-vs-speculation: estimates and expectations (latency impact, capacity) are explicitly marked as such, distinct from facts",
+        "one-meaning-per-sentence: no run-on sentences chaining 3+ independent claims with 'and'",
+        "inline-references: at least one external source is cited and linked at the point of use, not only in a trailing list"
+      ]
+    },
+    {
+      "id": 1,
+      "name": "japanese-explainer-k8s-probes",
+      "prompt": "Kubernetes の liveness probe と readiness probe の違いと使い分けを解説する社内向け記事を書いてください。対象読者は Kubernetes を触り始めたバックエンドエンジニアです。probe-guide.md として保存してください。",
+      "expected_output": "A Japanese explainer that states the big picture and key takeaway first, defines terms before using them, attaches concrete examples (e.g., manifest snippets) to each important concept, uses plain vocabulary and consistent terminology, and needs no back-references to follow.",
+      "files": [],
+      "assertions": [
+        "overview-first: the opening section states both the difference AND the explicit when-to-use decision rule for each probe, before details",
+        "define-before-use: liveness probe and readiness probe are defined before being used in explanations",
+        "examples-attached: each probe concept comes with a concrete example (YAML manifest snippet or failure scenario)",
+        "consistent-terms: the same Japanese term is used for each concept throughout, no synonym rotation",
+        "no-back-references: no bare back-references like '前述の通り' that force the reader to scroll back",
+        "plain-vocabulary: jargon is defined at first use, wording suits Kubernetes beginners",
+        "bullets-for-parallel: the liveness vs readiness comparison uses a list or table"
+      ]
+    },
+    {
+      "id": 2,
+      "name": "revise-messy-architecture",
+      "prompt": "Revise this Architecture section of our README. Keep all of the technical information, but improve the structure and writing so it is easy to read. Save the result as revised-architecture.md.",
+      "expected_output": "A revision that adds an overview before the low-level details, splits run-on sentences so each carries one meaning, replaces the rotating synonyms (component/module/service/subsystem/engine) with one consistent term per referent, removes decoration and marks speculation as speculation, converts parallel items into bullet lists, resolves back-references by restating inline, and links references at the point of use.",
+      "files": ["files/messy-architecture.md"],
+      "assertions": [
+        "overview-first: an overview of what SyncWorker does precedes the low-level details (poll interval, buffer size, backoff)",
+        "one-meaning-per-sentence: the original run-on sentences are split, no sentence chains 3+ independent facts with 'and'",
+        "consistent-terms: one consistent name per referent instead of rotating component/module/service/subsystem/engine",
+        "no-decoration: 'highly sophisticated', 'undoubtedly', 'excellent'-style decoration is removed",
+        "fact-vs-speculation: 'probably thread-safe' is explicitly marked as unverified or removed, not stated as fact",
+        "bullets-for-parallel: parallel facts (retry policy, checkpointing, metrics, config sources) appear as bullet lists",
+        "no-back-references: 'described earlier' / 'the section above' / 'as previously mentioned' are resolved by restating inline",
+        "inline-references: reference [2] is named or linked inline at the point of use, not only as a trailing numeric citation",
+        "information-preserved: all technical facts survive (250ms poll, 16KB buffer, backoff 500ms to 32s, checkpoints/ dir, StatsD UDP 8125, YAML/env/CLI merge, shared connection pool)"
+      ]
+    }
+  ]
+}
