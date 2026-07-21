@@ -65,6 +65,19 @@
 
           direnv = prev.direnv.overrideAttrs (_: { doCheck = false; });
 
+          # VS Code 1.129 moved the bundled ripgrep (`@vscode/ripgrep-universal`,
+          # introduced in 1.122) into `node_modules.asar.unpacked` on darwin, but
+          # nixpkgs' generic.nix still chmods it under plain `node_modules`, so the
+          # darwin build fails with:
+          #   chmod: cannot access '.../@vscode/ripgrep-universal/bin/darwin-arm64/rg'
+          # Point the chmod at the real path. Drop this override once nixpkgs
+          # chmods the darwin ripgrep binary under node_modules.asar.unpacked.
+          vscode = prev.vscode.overrideAttrs (_: {
+            postPatch = ''
+              chmod +x "Contents/Resources/app/node_modules.asar.unpacked/@vscode/ripgrep-universal/bin/darwin-arm64/rg"
+            '';
+          });
+
           mo = final.stdenv.mkDerivation rec {
             pname = "mo";
             version = "0.20.1";
