@@ -7,13 +7,20 @@
     "rust-analyzer-lsp@claude-plugins-official": true,
     "playwright@claude-plugins-official": true,
     "superpowers@superpowers-marketplace": true,
-    "episodic-memory@superpowers-marketplace": true
+    "episodic-memory@superpowers-marketplace": true,
+    "i-have-adhd@i-have-adhd": true
   },
   "extraKnownMarketplaces": {
     "superpowers-marketplace": {
       "source": {
         "source": "github",
         "repo": "obra/superpowers-marketplace"
+      }
+    },
+    "i-have-adhd": {
+      "source": {
+        "source": "github",
+        "repo": "ayghri/i-have-adhd"
       }
     }
   },
