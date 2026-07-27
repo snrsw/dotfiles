@@ -55,6 +55,7 @@ in
     mo
     crit
     prv
+    herdr
     # Altenatives
     bat
     eza

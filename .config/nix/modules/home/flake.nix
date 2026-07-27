@@ -28,6 +28,12 @@
     # prv: private "Pull-Request like View" CLI. Fetch over SSH (private repo);
     # keep its own nixpkgs pin so the node_modules FOD hash stays valid.
     prv.url = "git+ssh://git@github.com/snrsw/prv";
+    # herdr: terminal multiplexer for running coding agents. Upstream ships a
+    # flake; follow our nixpkgs and expose its package via an overlay below.
+    herdr = {
+      url = "github:ogulcancelik/herdr";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     llm-agents.url = "github:numtide/llm-agents.nix";
     nix-claude-code.url = "github:ryoppippi/nix-claude-code";
     nix-index-database.url = "github:nix-community/nix-index-database";
@@ -41,6 +47,7 @@
       brew-nix,
       crit,
       prv,
+      herdr,
       llm-agents,
       nix-claude-code,
       nix-index-database,
@@ -62,6 +69,7 @@
 
           crit = crit.packages.${final.system}.default;
           prv = prv.packages.${final.system}.default;
+          herdr = herdr.packages.${final.system}.default;
 
           direnv = prev.direnv.overrideAttrs (_: { doCheck = false; });
 
