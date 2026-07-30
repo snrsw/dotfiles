@@ -1,6 +1,6 @@
 ---
 name: extract-skill-from-session
-description: Analyze the current session to find work that can be generalized and extracted as a new skill. Invoke at the end of a session — typically after completing substantial multi-step work — to produce a proposal (name, description, triggers, outline, rationale) for a candidate skill. This skill does NOT create files; it only produces proposals for review. Apply a strict bar: propose only patterns that are clearly multi-step, reusable across projects, not already covered by existing skills, and stable enough that a teammate doing the same task would follow the same procedure. If nothing qualifies, say so plainly rather than force a proposal.
+description: Analyze the current session to find work worth extracting as a new skill. Invoke at session end — typically after substantial multi-step work — to produce a proposal (name, description, triggers, outline, rationale) for review; it never creates files. Applies a strict extraction bar and says plainly when nothing qualifies.
 ---
 
 # extract-skill-from-session

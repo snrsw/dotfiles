@@ -1,14 +1,11 @@
 ---
 name: issue-loop
 description: >
-  Run a batch of issues/tasks through a per-issue dev loop and open a draft PR for
-  each. Use when the user supplies several issues or tasks in the prompt and wants
-  each one analyzed, planned, implemented, reviewed, and fixed until clean, in its
-  own worktree, ending in a draft PR — then summarized. Triggers on "run my loop",
-  "work through these issues", "dispatch a workflow for each of these", or any
-  batch of tasks meant to each reach a draft PR. Each issue is driven by the
-  `issue-resolver` skill (scored multi-axis review loops); use `issue-resolver`
-  directly for a single issue done deeply.
+  Run a batch of issues/tasks through a per-issue dev loop — each analyzed,
+  implemented, and reviewed in its own worktree, ending in a draft PR — then
+  summarized. Triggers on "run my loop", "work through these issues", or any
+  batch of tasks meant to each reach a draft PR. The batch wrapper around
+  `issue-resolver`; use that skill directly for a single issue done deeply.
 ---
 
 # issue-loop

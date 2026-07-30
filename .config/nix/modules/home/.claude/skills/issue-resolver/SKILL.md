@@ -3,15 +3,11 @@ name: issue-resolver
 description: >
   Drive ONE issue from raw context to a reviewed, fixed implementation behind a
   draft PR, with quality enforced by scored multi-axis review loops. Use when the
-  user hands over a single issue (a GitHub issue URL/number, or a written spec) and
-  wants it "done properly", "resolved end to end", "taken to a PR with quality
-  gates", or "reviewed until it's actually good" — not a quick patch. Each review
-  runs as a fresh subagent that owns one axis and returns a scored verdict (axis
-  score, confidence, and findings each with a fix plan); the loop refines until
-  every axis scores >= 80, at both the plan and the implementation stage, and
-  verifies each finding before acting on it. This is the deep, single-issue
-  sibling of `issue-loop` (the batch wrapper that delegates each issue here) —
-  prefer this skill for one issue done thoroughly, and `issue-loop` for a batch.
+  user hands over a single issue (a GitHub issue URL/number, or a written spec)
+  and wants it done properly end to end — not a quick patch. The deep,
+  single-issue sibling of `issue-loop` (the batch wrapper that delegates each
+  issue here): prefer this skill for one issue done thoroughly, `issue-loop` for
+  a batch.
 ---
 
 # issue-resolver

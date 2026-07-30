@@ -2,17 +2,12 @@
 name: pr-dependency-review
 description: >
   Analyze and visualize how a Pull Request changes code complexity and
-  dependencies (module-level, class-level, and function/call-graph level),
-  then produce a reviewer-friendly PR comment with Mermaid diagrams and
-  risk flags. Use this skill whenever reviewing a PR (especially
-  AI-generated PRs), when asked to assess the impact / blast radius of a
-  change, when asked whether a PR reduces or increases complexity or
-  coupling, when checking for new or removed dependencies or circular
-  dependencies, or when running inside a GitHub Actions PR-review job.
-  Trigger even if the user just says "review this PR" or "summarize the
-  impact of these changes" — dependency and complexity analysis is the
-  core of this skill. It selects the visualization type — dependency, sequence,
-  state-machine, or data-flow — to match what the change is about.
+  dependencies (module, class, and function/call-graph level), then produce a
+  reviewer-friendly PR comment with Mermaid diagrams and risk flags. Use for
+  any PR review — "review this PR" alone is enough, especially for
+  AI-generated PRs — and for assessing a change's impact, blast radius,
+  coupling, or circular dependencies, including inside a GitHub Actions
+  PR-review job.
 ---
 
 # PR Dependency & Complexity Review
