@@ -43,3 +43,27 @@ DR log for the skills loop-engineering refactor (see plan.md).
 - **Context**: Three-iteration empirical eval of the workflow layer ended when the org spend limit blocked the final routing probe. All criticals had passed two consecutive rounds where re-tested.
 - **Decision**: Ship as-is. Accepted (all low, fail-open): heredoc/escaped-quote lexing in the commit gate, alternate git syntax evasion, the stop reminder's prose-grep suppression. Deferred one-time checks: reminder against a real transcript, design-panel name resolution from ~/.claude/workflows, and the skipped iter3 routing probe.
 - **Rationale**: Severity trended down across iterations (bugs → corner cases → wording); the gate is fail-open by design, so residual misses degrade to "no gate", never a wrong block. The skill's resource-cutoff rule applies.
+
+## DR: Response-style restatements — delete, keep, or measure first
+- **Date**: 2026-07-30
+- **Context**: C-wave dedup rule says eliminate the ~140 generic restatement lines across 10 skills; commit e86fd32 added them deliberately, on an admittedly unmeasured mechanism ("a foregrounded format spec beats passive background context").
+- **Decision**: Measure first (C0). Delete only if executors without the restatements score comparably against the response-style checklist. Artifact-specific specializations stay either way.
+- **Rationale**: Reversing a merged, reasoned decision needs evidence, not a competing article's general claim.
+
+## DR: Safety rails duplicated in 3 loop skills
+- **Date**: 2026-07-30
+- **Context**: loop-automation, issue-loop, and issue-resolver each carry the five safety rails with drifted wording; plan.md had logged the duplication as deliberate.
+- **Decision**: Keep the rails inline in all three (an unattended issue-resolver run never loads loop-automation), but make the five rails word-for-word identical, with only the constants (MAX_PARALLEL, MAX_ROUNDS) differing.
+- **Rationale**: Rails are genuine safety constraints, exempt from the dedup rule; identical wording makes drift machine-checkable.
+
+## DR: Stale "no workflow engine" claim
+- **Date**: 2026-07-30
+- **Context**: Three skills state "there is no workflow-script engine and no /goal built-in" as fact; the current harness ships a Workflow tool, so the fact is now false while the no-Workflow-orchestration decision stands.
+- **Decision**: Reword from fact to decision — "orchestrate via Agent fan-out; do not use the Workflow tool even where present (user decision)" — stated once in loop-automation; the other two point at it.
+- **Rationale**: A false factual claim erodes trust in the rest of the skill; the underlying user decision is unchanged.
+
+## DR: Superpowers plugin skill overlap
+- **Date**: 2026-07-30
+- **Context**: 9 superpowers skills compete with local skills (tdd, debug, git-wt, maker-checker, plan-state, issue-resolver) for the same triggers — the largest single context cost found in the audit.
+- **Decision**: Out of C-wave scope; handle as a separate follow-up task.
+- **Rationale**: Third-party plugin configuration is a different change surface (settings.json) with its own trade-offs; bundling it would blur the C-wave's verification.
