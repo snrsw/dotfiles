@@ -25,11 +25,13 @@ Language-agnostic — apply to English and Japanese output alike.
 
 ## Where this is restated
 
-This rule is background context, so it loses to a skill's own format spec at the
-moment of writing — satisfying a concrete template feels like finishing the job.
-The skills that produce a concrete artifact therefore restate these rules inline,
-specialized to that artifact. A bare pointer back to this file would be exactly the
-back-jump the Structure section prohibits.
+Skills that hand over a **fixed output template** restate these rules inline,
+specialized to that artifact: a concrete template competes with this background
+rule at the moment of writing, and measurement (2026-07-30, executor A/B runs
+logged in the dotfiles decisions.md) showed compliance drops ~11 points without
+the restatement. Skills whose deliverable is free-form prose (a report, a
+verdict) carry no restatement — the same measurement showed this rule alone
+holds there.
 
 Editing the sentence, vocabulary, or table rules above means checking these for drift:
 
@@ -40,8 +42,6 @@ Editing the sentence, vocabulary, or table rules above means checking these for 
 | `pr-dependency-review` | the review comment, its tables and diagram labels |
 | `issue-resolver` | scored-review strings and the closing report |
 | `issue-loop` | the batch summary table |
-| `maker-checker` | the checker's verdict and findings |
-| `debug` | root-cause explanation and investigation report |
 | `plan-state` | `plan.md` |
 | `extract-skill-from-session` | skill proposals |
 | `replay-prompt` | the distilled prompt |

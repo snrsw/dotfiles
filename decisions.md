@@ -62,6 +62,13 @@ DR log for the skills loop-engineering refactor (see plan.md).
 - **Decision**: Reword from fact to decision — "orchestrate via Agent fan-out; do not use the Workflow tool even where present (user decision)" — stated once in loop-automation; the other two point at it.
 - **Rationale**: A false factual claim erodes trust in the rest of the skill; the underlying user decision is unchanged.
 
+## C0 verdict: response-style restatements are load-bearing only in template skills
+- **Date**: 2026-07-30
+- **Method**: Blind executor A/B runs (skill text with vs without its Response Style section), fixed 6-item checklist graded by fresh blind graders. pr-body: n=4 per variant; debug: n=2 per variant. Checklists and the decision rule (delete only if the without-variant lands within 10 points and its critical-item failures do not exceed the with-variant's) were fixed before any run. One grading round was discarded and redone because the grader's source material omitted a clause the executors had seen.
+- **Scores**: pr-body with 77.3 / without 66.5 — gap 10.8, and the critical "lead with the conclusion" item passed 4/4 with vs 1/4 without (executors without the restatement reproduced the commit message's 60-word causal chain as the opening sentence). debug with 83.0 / without 87.5 — the without-variant scored higher with all critical items passing.
+- **Decision**: Keep restatements in skills that hand over a fixed output template (pr-body, commit-message, pr-dependency-review, issue-loop, issue-resolver, plan-state, extract-skill-from-session, replay-prompt). Delete them in free-form-artifact skills: debug (measured) and maker-checker (same artifact class — a free-form verdict; extended by analogy, not measured).
+- **Rationale**: The e86fd32 hypothesis ("a foregrounded format spec beats passive background context") is confirmed exactly where a format spec exists and refuted where none does. The always-loaded rules/response-style.md carries free-form outputs on its own.
+
 ## DR: Superpowers plugin skill overlap
 - **Date**: 2026-07-30
 - **Context**: 9 superpowers skills compete with local skills (tdd, debug, git-wt, maker-checker, plan-state, issue-resolver) for the same triggers — the largest single context cost found in the audit.
