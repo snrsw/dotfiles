@@ -42,7 +42,7 @@ The section *names* are also fixed: even if recent merged PRs use different sect
 
 ### Body Format Rules
 
-- **Heading**: `## <type emoji> <Title>` — use the same emoji as the commit type (✨ feat, 🐛 fix, ♻️ refactor, 📝 docs, ⚡ perf, 🧹 tidy, ✅ test, 🔧 chore). For commit emojis not in this table (e.g., 🔥 remove), carry the commit emoji through verbatim. When commits mix types, pick the type that delivers the PR's primary user-facing value (a feat with supporting chore/test commits → ✨). When no feat is present and multiple non-feat types coexist, tie-break by largest diff footprint (lines changed). Drop the commit scope `(xxx)` from the title; the title should read as a standalone statement.
+- **Heading**: `## <type emoji> <Title>` — use the same emoji as the commit type (the type table lives in `commit-message`); for a commit emoji outside that table (e.g., 🔥 remove), carry it through verbatim. When commits mix types, pick the type that carries the PR's primary value. Drop the commit scope `(xxx)` from the title; the title should read as a standalone statement.
 - **Why paragraph**: explain motivation, not mechanics
 - **Changes**: one bullet per logical unit of change, referencing package/file names where helpful
 - **Test plan**: checked boxes `[x]` mark items where you actually verified the property — either by executing the check (build, test, manual interaction) or by direct static observation (e.g., grep, diff inspection) where the annotation makes the method explicit, e.g., `(verified by grep)`. Items needing execution that you did not run stay `[ ]`.
@@ -68,25 +68,3 @@ inside the format above. That format governs structure; these govern the prose.
 - **Tables**, if used: one kind of content per column; status columns drawn from a
   small closed set; the table must agree with the surrounding prose.
 
-### Example
-
-```
-## 🐛 Fix duplicate version sections in CHANGELOG
-
-tagpr writes a CHANGELOG section when creating the release PR, then
-appends a new section after merge — leaving the pre-merge entry as an
-orphaned duplicate.
-
-## Changes
-
-- Remove duplicate ## [0.0.8] section
-- Remove duplicate ## [0.0.4] section
-- Remove duplicate ## [0.0.3] section
-
-## Test plan
-
-- [x] No duplicate version headings remain in CHANGELOG.md (verified by grep)
-- [ ] Confirm tagpr's next release does not regress
-
-🤖 Generated with [Claude Code](https://claude.com/claude-code)
-```

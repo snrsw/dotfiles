@@ -32,9 +32,9 @@ Extract everything a fresh session would otherwise have to rediscover:
 - **Dead ends** — approaches that were tried and failed; convert each into an explicit "Do NOT" line
 - **Success criteria** — how the user signaled "done" (tests passing, specific file shape, manual check)
 
-#### Phase 3: Draft three variants
+#### Phase 3: Draft variants
 
-Produce three candidates that differ in *framing*, not in *facts*. Each carries the same harvested content; only the structure varies:
+Produce 2–4 candidates that differ in *framing*, not in *facts* — each carries the same harvested content; only the structure varies. The three framings below are the usual set; skip one that would not differ materially:
 
 - **Minimal**: only must-have requirements + dead ends; trust the new session to derive the rest
 - **Comprehensive**: every harvested fact made explicit; lowest ambiguity, highest verbosity
@@ -63,21 +63,19 @@ Skip a section when the session produced nothing for it — do not pad. Run the 
 
 #### Phase 4: Evaluate variants empirically
 
-Spawn one subagent per variant **in parallel** (single message, multiple `Agent` tool calls). Each subagent receives only its candidate prompt and is instructed:
+Run this eval when the task is non-trivial or the session was messy; for a short, unambiguous prompt, pick the winner by direct judgment and say the eval was skipped. Spawn one subagent per variant **in parallel** (single message, multiple `Agent` tool calls). Each subagent receives only its candidate prompt and is instructed:
 
 > "Imagine you just received this as the opening message of a fresh Claude Code session with no prior context. Evaluate (do NOT execute the task). Score 1–5 on each: (a) goal clarity, (b) constraint sufficiency, (c) ambiguity / would you need to ask clarifying questions, (d) executability, (e) verifiability of 'Done when'. List any clarifying questions you would need to ask. Return ≤200 words in a structured format."
 
-Use `subagent_type: "general-purpose"` with `model: "opus"`. Cap each response at 200 words.
-
 #### Phase 5: Pick winner and deliver
 
-Select the variant with the highest aggregate score and fewest clarifying questions. On ties, prefer the Comprehensive variant. Run the Quality Checklist on the winner one more time.
+Select the variant with the highest aggregate score and fewest clarifying questions — or by direct judgment when the eval was skipped. On ties, prefer the Comprehensive variant. Run the Quality Checklist on the winner one more time.
 
 Return three things in chat:
 
 1. **The winning prompt** in a single fenced ```` ```text ```` block so the user can copy verbatim
 2. **Distilled from** — 3–6 bullets listing what was folded in (which clarification/DR resolutions, course corrections, dead ends)
-3. **Eval summary** — one line per variant with scores and the winner, so the user can request a different variant if desired
+3. **Eval summary** — one line per variant with scores and the winner, so the user can request a different variant if desired (omit when the eval was skipped; say so instead)
 
 Do not write the prompt to a file unless the user asks.
 
