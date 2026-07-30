@@ -10,7 +10,8 @@ The C-wave (2026-07-30) applies the Claude 5 context-engineering rules (trust ju
 - [x] W1+W6 — issue-resolver and issue-loop rebuilt on Agent fan-out (prompt+parse contract, MAX_PARALLEL=10, main-session orchestration, mandatory plan.md state, explicit outer stop predicate); dead Workflow JS deleted — 8e2c579
 - [x] W2 — replay-prompt dangling references fixed — 913c2fc
 - [x] W3 — loop-automation engine table updated (ralph-loop, /loop; stale wording refreshed) — 388260b
-- [x] C0 — measured the response-style restatements (executor A/B, blind graders): load-bearing in template skills (pr-body gap 10.8 pts, critical item 4/4 vs 1/4), dead weight in free-form skills (debug scored higher without). Deleted the sections in debug and maker-checker only; template skills keep theirs; verdict + scores in decisions.md
+- [x] C0 — measured the response-style restatements (executor A/B, blind graders): load-bearing in template skills (pr-body gap 10.8 pts, critical item 4/4 vs 1/4), dead weight in free-form skills (debug scored higher without). Deleted the sections in debug and maker-checker only; template skills keep theirs; verdict + scores in decisions.md — f5fc601
+- [x] C1 — progressive disclosure done: issue-resolver 300→224 (references/ kpis, axes, spikes), pr-dependency-review 305→234 (comment-template), replay-prompt 179→130 (examples; duplicate Golden Rules merged into Quality Checklist), extract-skill-from-session 160→116 (examples; Anti-patterns merged into Negative indicators), debug 130→85 (examples), document-style 148→129 (verification-loop, with a sync note naming issue-resolver's shared protocol constants). All references/ paths verified resolving. Counts sit above the plan's optimistic targets for issue-resolver/pr-dependency-review; C3+C4 cut further
 
 ## Next
 

@@ -118,62 +118,13 @@ figure rules mostly do not.
   constraints gets split, or the new session satisfies half of it.
 - **One term per concept**, matching the names in the target repo. A renamed
   concept forces the new session to guess whether it is something new.
-- **Only established facts** — this is Golden Rule 4 below, and it is
-  `response-style`'s fact-versus-speculation rule applied to a prompt. Where the
-  source session left something genuinely open, say so rather than smoothing it
-  into a requirement.
+- **Only established facts** — `response-style`'s fact-versus-speculation rule
+  applied to a prompt. Where the source session left something genuinely open,
+  say so rather than smoothing it into a requirement.
 - **`Do NOT` lines are a closed set with one meaning**: a path already tried and
   failed. Do not use them for preferences.
 
-### Golden Rules
-
-1. **Distill, do not summarize** — the output is an executable prompt, not a session log
-2. **Bake in the corrections** — every "no, do it this way" turn becomes a requirement or anti-pattern
-3. **Kill the dead ends** — explicit "Do NOT" lines for paths that already failed
-4. **No invented context** — only include facts the session actually established
-5. **One prompt, one task** — split multi-task sessions, never merge
-6. **Empirical eval beats self-grade** — always run subagents on candidate variants; do not skip Phase 4
-
 ## Examples
 
-### Messy session distilled
-
-Original opening prompt:
-
-> "Can you clean up the auth module?"
-
-After 4 CR rounds, 2 course corrections, and one dead-end refactor, the session converged. Winning variant (Workflow-led):
-
-```text
-Refactor src/auth/session.ts to extract token validation into a pure function, on branch refactor/auth-session. Use the tdd and tidy-first skills.
-
-Context:
-- Repo follows Tidy First: structural and behavioral changes go in separate commits
-- Existing tests in src/auth/__tests__/session.test.ts must keep passing
-- Token format is JWT (HS256), validated against env.JWT_SECRET
-
-Requirements:
-- Extract validateToken(raw: string): Result<Claims, AuthError> as a pure function
-- Keep the SessionService API unchanged — callers must not break
-- Add unit tests for validateToken: valid token, expired, malformed, wrong signature
-- Commit as: 🧹 tidy(auth) for the extraction, then ✅ test(auth) for the new tests
-
-Do NOT:
-- Change SessionService method signatures
-- Introduce a new JWT-parsing dependency — the existing jose import is fine
-- Touch refresh-token logic — that is a separate task
-
-Done when:
-- pnpm test passes
-- Two commits on the branch (tidy + test), no behavioral change in the tidy commit
-```
-
-Distilled from: clarification rounds 1–2 (scope + JWT/jose), DR (Result over throw), dead-end refactor (rolled back), commit-split correction.
-
-Eval summary: Minimal 17/25, Comprehensive 22/25, Workflow-led 24/25 (winner).
-
-### Smooth session, no distillation gain
-
-Original opening prompt was already specific (file path, behavior change, success criteria). Phases 3–4 skipped. Return:
-
-> The original prompt was already well-formed. A fresh session would not benefit from distillation. If you want to replay it elsewhere, paste the original prompt as-is.
+See `references/examples.md` — a messy-session distillation and a smooth-session
+no-op.
