@@ -282,3 +282,24 @@ markdown to the user.
   full repo graphs.
 - When the PR is huge (>50 files), do module-level only and say explicitly
   that function-level analysis was skipped due to size.
+
+## Response style
+
+The `response-style` rule names "review comments" explicitly. The comment
+template above fixes the structure; these govern the prose inside it.
+
+- **Verdict leads with the conclusion** — did coupling and complexity go up or
+  down — then the evidence. A reviewer who reads only the Verdict must come away
+  with the right answer.
+- **One term per node, everywhere.** The name in the prose, the node label in the
+  Mermaid diagram, and the row in the Complexity table must be the same string.
+  A module called `auth.service` in one place and `AuthService` in another reads
+  as two modules.
+- **Table columns hold one kind of content.** `Before` and `After` hold
+  measurements only — never a measurement in one row and a judgement in the next.
+  Risk markers stay in the small closed set 🔴/🟡/🟢, one meaning each.
+- **Measured values are fact; the rest is inference.** A fan-in count or CC number
+  is unhedged. A claim about *why* it changed, or what will break, is marked as
+  inference — the same discipline as "static callers found, not ground truth".
+- **The table must agree with the prose.** Reviewers skim the Complexity table and
+  Review Priority list before reading the Verdict, and trust them over it.

@@ -46,6 +46,15 @@ Run the checker as a separate agent, not a second pass in the same thread:
 
 Never let the agent that wrote the code be the one that signs off on it.
 
+## Response style
+
+The checker's verdict is the deliverable, and the `response-style` rule applies to it. A finding the maker cannot act on is a finding wasted.
+
+- **Lead with the verdict.** Pass or fail comes first, before the reasoning that produced it.
+- **One defect per finding**, each with its `file:line`. A finding that bundles two defects gets split — the maker fixes them separately.
+- **Separate fact from speculation, and say which you did.** "I ran the test and it fails on the pre-change code" is verified. "This looks like it could break under concurrency" is inference — mark it, because the maker will spend real effort on whichever you assert. Overstating confidence in a finding is the mirror image of the bias this skill exists to prevent.
+- **Use the terms the diff uses** for identifiers and files, so the maker can locate each finding without translating.
+
 ## Integration
 
 - **tdd** — the maker writes failing tests first; the checker confirms a test fails on the pre-change behavior (catches hallucinated correctness).

@@ -78,6 +78,22 @@ For each candidate, output exactly this structure:
 Run `/skill-creator:skill-creator` and paste this proposal as the starting prompt.
 ```
 
+## Response style
+
+A proposal is a decision aid — the user reads it to decide yes or no. The
+`response-style` rule applies to the prose inside the format above.
+
+- **The one-liner is the conclusion.** A reader who stops there should know what
+  the skill does and be able to decide whether to keep reading.
+- **Separate fact from speculation, per bullet.** "During this session you did X"
+  is an observation — state it unhedged. The generalization ("this will also apply
+  to …") is a prediction — mark it as one. The bar depends on the reader being able
+  to tell these apart.
+- **One meaning per bullet.** A reason that carries both an observation and a
+  prediction gets split into two.
+- **Plain words.** Do not dress a thin candidate in impressive phrasing; the strict
+  bar only works if the proposal reads as plainly as the evidence supports.
+
 ## When 0 candidates is the right answer
 
 Often the session just used existing tools and skills to solve one specific problem. That is fine. Output should be one sentence:

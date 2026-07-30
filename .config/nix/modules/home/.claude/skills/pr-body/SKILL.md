@@ -49,6 +49,25 @@ The section *names* are also fixed: even if recent merged PRs use different sect
 - **Footer**: always include `🤖 Generated with [Claude Code](https://claude.com/claude-code)`
 - **No planning jargon**: never carry internal planning tokens into the PR body — task IDs (`T1`, `T2`), phase labels (`Phase 1.2`, `Step 3`), sprint names, story references from plan.md or similar files. Reviewers have no context for these. Replace them with plain descriptions of what changed and why.
 
+### Response Style
+
+The `response-style` rule names "PR text" explicitly, so it applies to everything
+inside the format above. That format governs structure; these govern the prose.
+
+- **Why paragraph**: lead with the conclusion. One meaning per sentence — split a
+  sentence carrying two claims. Plain words; delete sentences that only build
+  atmosphere.
+- **Same term for the same concept** throughout, matching the terms in the diff
+  itself (identifiers, file names, headings). No synonym rotation.
+- **Separate fact from speculation.** A `Changes` bullet states what changed; mark
+  any causal or performance claim as inference ("we expect", "not profiled"). A
+  `[x]` test-plan item is a verified fact by definition — never check a box for
+  something you only inferred.
+- **No back-jumps**: a bullet that depends on an earlier bullet restates the needed
+  piece in one clause rather than pointing back at it.
+- **Tables**, if used: one kind of content per column; status columns drawn from a
+  small closed set; the table must agree with the surrounding prose.
+
 ### Example
 
 ```

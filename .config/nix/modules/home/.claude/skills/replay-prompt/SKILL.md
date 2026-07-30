@@ -107,6 +107,24 @@ Run this twice — in Phase 3 on each variant before subagent eval, and in Phase
 - **Layering**: the distilled prompt sits at the *why* and *what* layer — keep it about contract and constraints, not implementation steps the new session should derive
 - **`plan-state`**: if the source session built a `plan.md`, reference it by path in Context rather than inlining it
 
+### Response Style
+
+The distilled prompt is read first by a human deciding whether to run it, so the
+`response-style` rule applies. Its reader-facing rules transfer; the table and
+figure rules mostly do not.
+
+- **Lead with the task.** The first line states what the new session must build.
+- **One requirement per line, one meaning each.** A requirement carrying two
+  constraints gets split, or the new session satisfies half of it.
+- **One term per concept**, matching the names in the target repo. A renamed
+  concept forces the new session to guess whether it is something new.
+- **Only established facts** — this is Golden Rule 4 below, and it is
+  `response-style`'s fact-versus-speculation rule applied to a prompt. Where the
+  source session left something genuinely open, say so rather than smoothing it
+  into a requirement.
+- **`Do NOT` lines are a closed set with one meaning**: a path already tried and
+  failed. Do not use them for preferences.
+
 ### Golden Rules
 
 1. **Distill, do not summarize** — the output is an executable prompt, not a session log

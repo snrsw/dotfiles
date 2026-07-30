@@ -260,6 +260,25 @@ Reuses `loop-automation`'s rails — a scored loop still makes unattended mistak
   reach the threshold, surfaces as a DR (`decision-required`) — not an autonomous
   decision.
 
+## Response style
+
+The scored contract is machine-parsed, but its string fields are read by a human
+the moment the loop stalls, and the closing report is read every time. The
+`response-style` rule applies to both.
+
+- **`reason` and `issue` strings carry one meaning each**, in plain words. A
+  finding that bundles two defects splits into two findings, or the reviser fixes
+  one and the score never clears.
+- **Each `fix` is actionable on its own** — no back-jumps to another finding for
+  the context needed to apply it.
+- **A score is a fact, not a hedge.** The anchored deductions produce it, so state
+  it unhedged and put genuine uncertainty in `confidence` where the refute step can
+  act on it. Hedging inside `reason` hides the doubt from the loop.
+- **The closing report leads with the outcome** — landed or blocked, and the PR URL
+  — before axis scores and round counts.
+- **The PR body itself follows `pr-body`**, which carries these rules for PR text;
+  do not restate them differently here.
+
 ## Integration
 
 - **git-wt** — one worktree for the issue (step 1); throwaway worktrees for spikes.

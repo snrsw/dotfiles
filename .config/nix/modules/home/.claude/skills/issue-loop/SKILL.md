@@ -85,6 +85,24 @@ Reuses `loop-automation`'s rails — an unattended batch makes unattended mistak
 - **Escalate, don't guess.** Protected domains and unreachable thresholds surface
   as DRs (`decision-required`), not autonomous fixes.
 
+## Response style
+
+The batch summary from step 5 is what the user actually reads after an unattended
+run, so the `response-style` rule applies to it.
+
+- **Lead with the batch outcome** — how many issues reached a draft PR, how many
+  are blocked — before the per-issue detail.
+- **Present the per-issue results as a table**, since they are parallel items. One
+  kind of content per column: PR URL, lowest final axis score, blocked axes, DR
+  link.
+- **Status values come from a small closed set** — use the same vocabulary as
+  `plan.md` (`done` / `blocked`), one meaning each. Do not invent per-run labels
+  like "done (needs adjustment)"; put the nuance in a notes column.
+- **The table must agree with the prose**, and both must agree with `plan.md`. The
+  user skims the table and trusts it over the surrounding text.
+- **No planning jargon** in the summary — issue slugs are fine, internal axis
+  numbering and round counts are not, unless a score is below threshold.
+
 ## Integration
 
 - **issue-resolver** — the per-issue body; this skill only batches it.

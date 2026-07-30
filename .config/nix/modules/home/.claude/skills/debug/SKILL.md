@@ -71,6 +71,25 @@ Use the `commit-message` skill format:
 - Structural prep: `♻️ refactor` or `🧹 tidy` in separate commits before the fix
 - The commit message should explain the root cause (the "why"), not just what changed
 
+### Response Style
+
+The root-cause explanation and the investigation report are outputs, so the
+`response-style` rule applies to them. It matters most here: a debugging write-up
+that blurs what was observed into what was guessed is actively misleading.
+
+- **Lead with the root cause**, then the evidence that established it. Not the
+  chronology of what you tried — the reader wants the answer first.
+- **Separate fact from speculation, explicitly.** "Reproduced with X, fails at
+  `file:line`" is verified and goes unhedged. "The race is probably in the retry
+  path" is a hypothesis and must be labelled one. Golden Rule 2 ("understand
+  before you fix") is only checkable if the reader can tell which is which.
+- **One meaning per sentence**, so each observation can be confirmed or refuted
+  on its own.
+- **Dead ends stated plainly** — what was ruled out, and what ruled it out. Skip
+  the narrative of how long it took.
+- **Use the terms the code uses** for symbols, files, and error strings, so the
+  reader can grep for them.
+
 ### Integration with Other Skills
 
 - **tdd**: Phase 3 delegates to the Defect Fixing workflow (write failing test first, then minimal fix)

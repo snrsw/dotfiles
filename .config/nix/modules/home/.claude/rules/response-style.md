@@ -22,3 +22,28 @@ Language-agnostic — apply to English and Japanese output alike.
 - Each column holds one kind of content — reasons in the reason column, outcomes in the outcome column.
 - Status or verdict columns draw from a small closed set of values, each used with one meaning.
 - A table must agree with the surrounding prose; readers skim tables first and trust them over the text.
+
+## Where this is restated
+
+This rule is background context, so it loses to a skill's own format spec at the
+moment of writing — satisfying a concrete template feels like finishing the job.
+The skills that produce a concrete artifact therefore restate these rules inline,
+specialized to that artifact. A bare pointer back to this file would be exactly the
+back-jump the Structure section prohibits.
+
+Editing the sentence, vocabulary, or table rules above means checking these for drift:
+
+| Skill | Output it governs |
+|---|---|
+| `pr-body` | PR body prose inside the fixed format |
+| `commit-message` | commit subject line and body |
+| `pr-dependency-review` | the review comment, its tables and diagram labels |
+| `issue-resolver` | scored-review strings and the closing report |
+| `issue-loop` | the batch summary table |
+| `maker-checker` | the checker's verdict and findings |
+| `debug` | root-cause explanation and investigation report |
+| `plan-state` | `plan.md` |
+| `extract-skill-from-session` | skill proposals |
+| `replay-prompt` | the distilled prompt |
+| `document-style` | full prose documents; adds the doc-scale rules |
+| `japanese-technical-writing` | Japanese manuscripts; adds Japanese-specific rules |

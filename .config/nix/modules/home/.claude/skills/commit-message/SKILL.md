@@ -33,6 +33,22 @@ Use `<type emoji>(<target>): <description>` format. `<type emoji>` indicates cha
 - **Multi-type diffs** (e.g. feat + its tests + its new dependency): use the type of the change that delivers the primary user-facing value; supporting tests/deps/docs that exist only to land that change fold into the same commit.
 - **Unrelated changes**: split into separate commits instead of picking a combined type.
 
+### Response Style
+
+The `response-style` rule names "commit messages" explicitly. It applies to both
+the subject line and the body.
+
+- **Subject line carries one meaning.** If it needs an "and", the commit probably
+  needs splitting — see "Unrelated changes" above.
+- **The body leads with why.** State the reason before the mechanics; a reader
+  who stops after the first sentence should still know the motivation.
+- **Use the terms the code uses.** Name the identifier, file, or package exactly
+  as it appears in the diff, not a paraphrase of it, and keep that one term
+  throughout the message.
+- **Separate fact from speculation.** What the change does is fact. Any
+  performance or causal claim is inference — mark it ("we expect", "not
+  measured") rather than asserting it.
+
 ## Examples
 
 **Examples**:

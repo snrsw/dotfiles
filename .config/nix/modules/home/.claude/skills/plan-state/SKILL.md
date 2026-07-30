@@ -79,6 +79,27 @@ This deliberately replaces any "wait for a go after every step" behavior, matchi
 - Record every dead end as a `Do NOT:` line in `## Notes`.
 - Record intentional deferrals — decisions that are "correct as-is, do not action yet" — distinctly from dead ends (e.g. a `Deferred:` line in `## Notes`, or keep the item in `## Blocked / DR` with the reason it is *intentionally* not next). This stops a resumed session from mistaking a deliberate non-action for unfinished work and redoing or "fixing" it.
 
+## Response style
+
+`plan.md` is read cold by a future session and by the user, so the
+`response-style` rule applies to it.
+
+- **No back-jumps.** A `## Next` item must be actionable without reading `##
+  Notes` first. If it depends on a decision recorded there, restate the needed
+  piece inline in one clause.
+- **One term for one thing** across `Done`, `Next`, and `Notes`. A task called
+  "auth refactor" in `Next` and "login cleanup" in `Done` reads as two tasks and
+  a resumed session may redo it.
+- **The `Notes` prefixes are a closed set with one meaning each** — `Do NOT:` for
+  a ruled-out dead end, `Deferred:` for a decision that is correct as-is and
+  intentionally not next. Mixing them is what makes a resumed session "fix"
+  something deliberately left alone.
+- **Separate fact from speculation.** A `Done` item is a verified fact — its check
+  passed and the change is persisted. A hunch about the cause of a blocked item is
+  inference and belongs in `Notes`, marked as one.
+- **Plain, concrete items.** One unit of progress per line, named by what it
+  changes rather than by a phase or task ID.
+
 ## Integration with other skills
 
 - **tdd** — each `## Next` item is implemented via Red → Green → Refactor.
