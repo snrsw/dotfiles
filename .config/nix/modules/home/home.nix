@@ -33,6 +33,8 @@ in
     # Essentials
     curl
     tmux
+    # herdr: multiplexer that runs several coding agents from one terminal
+    herdr
     vscode
     llm-agents.codex
     llm-agents.gemini-cli
