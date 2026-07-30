@@ -21,7 +21,7 @@ the batch, runs the outer until-done loop, and summarizes.
 
 ## Mechanism mapping (read this first)
 
-There is no workflow-script engine and no `/goal` built-in. The mechanisms:
+Orchestration runs on `Agent`-tool fan-out — the no-Workflow-engine decision is stated in `loop-automation`. The mechanisms:
 
 | Loop | Mechanism | Why |
 |---|---|---|
@@ -71,19 +71,14 @@ matters.
 
 ## Safety rails
 
-Reuses `loop-automation`'s rails — an unattended batch makes unattended mistakes:
+The five rails below are shared word-for-word with `loop-automation` and
+`issue-resolver` — only the constants clause after each bold lead differs:
 
-- **Draft PRs only — never merge.** A human owns every merge.
-- **Bound every loop.** The outer loop exits on the stop predicate; the per-issue
-  loops are bounded by issue-resolver's MAX_ROUNDS; a stuck issue or axis is
-  logged `Blocked / DR`, not retried forever.
-- **Cap cost.** MAX_PARALLEL = 10 shared across everything; split very large
-  batches across runs, or use lightweight mode.
-- **Verify, don't self-grade.** Reviewers and refuters are separate fresh-context
-  agents (`maker-checker`) inside issue-resolver; lightweight mode's reviewer is a
-  fresh subagent each round.
-- **Escalate, don't guess.** Protected domains and unreachable thresholds surface
-  as DRs (`decision-required`), not autonomous fixes.
+- **Open draft PRs, never merge.** A human owns every merge.
+- **Bound every loop.** The outer loop exits on the stop predicate and the per-issue loops on issue-resolver's MAX_ROUNDS; a stuck item is logged blocked and raised as a DR, not retried forever.
+- **Cap cost — parallelism is the trap.** MAX_PARALLEL = 10 shared across everything; split very large batches across runs, or use lightweight mode.
+- **Verify, don't self-grade.** Reviewers are separate fresh-context agents (`maker-checker`); no agent scores its own artifact.
+- **Escalate, don't guess.** Protected domains and unreachable thresholds surface as DRs (`decision-required`), not autonomous decisions.
 
 ## Response style
 
@@ -105,11 +100,5 @@ run, so the `response-style` rule applies to it.
 
 ## Integration
 
-- **issue-resolver** — the per-issue body; this skill only batches it.
-- **git-wt** — one worktree per issue (created inside issue-resolver).
-- **tdd**, **maker-checker**, **pr-review-toolkit**, **pr-body** — all used
-  *inside* issue-resolver; lightweight mode uses the code-reviewer directly.
-- **plan-state** — the batch `plan.md` is the loop's state and the resume point.
 - **loop-automation** — to run this batch unattended on a schedule, that skill is
   the heartbeat (a Routine); this skill is the per-issue body it runs.
-- **decision-required** — escalation path for ambiguous or protected-domain calls.

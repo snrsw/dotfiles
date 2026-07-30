@@ -102,10 +102,6 @@ This deliberately replaces any "wait for a go after every step" behavior, matchi
 
 ## Integration with other skills
 
-- **tdd** — each `## Next` item is implemented via Red → Green → Refactor.
 - **tidy-first** — structural changes get their own `## Next` entries and commits, separate from behavioral ones.
-- **git-wt** — `plan.md` lives in the worktree root; one plan per worktree/task.
 - **debug** — if a step fails unexpectedly, switch to `debug`; add the regression test as a `## Next` item, then resume.
-- **commit-message** — mark an item `[x]` only after its commit lands.
-- **replay-prompt** — for moving full context to a fresh session elsewhere; `plan.md` handles same-repo resume on its own.
 - **DR pattern** — an item waiting on a decision goes under `## Blocked / DR` with a link, not silently skipped.

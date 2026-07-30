@@ -43,7 +43,8 @@ stage can run **spikes** to resolve unknowns with evidence instead of guesswork.
 
 ## Mechanism mapping (read this first)
 
-There is no workflow-script engine and no `/goal` built-in. The loop runs in the
+Orchestration runs on `Agent`-tool fan-out — the no-Workflow-engine decision is
+stated in `loop-automation`. The loop runs in the
 **main session** — the session that triggered this skill — which owns the gates,
 the state file, and every dispatch. Fresh context comes from **`Agent`-tool
 subagents**, one per role:
@@ -142,10 +143,9 @@ not a spike.
 1. **Context.** Create a worktree for the issue (`git-wt`, branch `issue/<id>`,
    `id` = short slug). Read the issue and the related code. Start `plan.md` in the
    worktree root with the issue's acceptance criteria.
-2. **Protected-domain gate.** If the issue touches auth, payments, data deletion
-   or migration, security config, infra/deployment, or a breaking API change,
-   raise a DR up front (`decision-required`) and fold the resolution into the plan
-   and the PR — never decide autonomously.
+2. **Protected-domain gate.** If the issue touches a protected domain
+   (`decision-required` lists them), raise a DR up front and fold the resolution
+   into the plan and the PR — never decide autonomously.
 3. **Analyze.** Fan out one subagent per angle, in parallel: root cause & affected
    components; constraints & protected domains; existing utilities to reuse; edge
    cases & failure modes.
@@ -171,18 +171,14 @@ not a spike.
 
 ## Safety rails
 
-Reuses `loop-automation`'s rails — a scored loop still makes unattended mistakes:
+The five rails below are shared word-for-word with `loop-automation` and
+`issue-loop` — only the constants clause after each bold lead differs:
 
-- **Draft PR only — never merge.** A human owns the merge.
-- **Bound every loop.** MAX_ROUNDS per scored loop; a stuck axis is logged blocked
-  and raised as a DR, not retried forever.
-- **Cap cost.** MAX_PARALLEL = 10 shared across all concurrent subagents;
-  MAX_SPIKES caps exploration; spikes always run in throwaway worktrees.
-- **Verify, don't self-grade.** Reviewers and refuters are separate fresh-context
-  agents (`maker-checker`); the orchestrator never scores its own artifact.
-- **Escalate, don't guess.** A protected-domain conflict, or an axis that cannot
-  reach the threshold, surfaces as a DR (`decision-required`) — not an autonomous
-  decision.
+- **Open draft PRs, never merge.** A human owns every merge.
+- **Bound every loop.** MAX_ROUNDS per scored loop; a stuck item is logged blocked and raised as a DR, not retried forever.
+- **Cap cost — parallelism is the trap.** MAX_PARALLEL = 10 shared across all concurrent subagents; MAX_SPIKES caps exploration; spikes always run in throwaway worktrees.
+- **Verify, don't self-grade.** Reviewers are separate fresh-context agents (`maker-checker`); no agent scores its own artifact.
+- **Escalate, don't guess.** Protected domains and unreachable thresholds surface as DRs (`decision-required`), not autonomous decisions.
 
 ## Response style
 
@@ -203,22 +199,3 @@ the moment the loop stalls, and the closing report is read every time. The
 - **The PR body itself follows `pr-body`**, which carries these rules for PR text;
   do not restate them differently here.
 
-## Integration
-
-- **git-wt** — one worktree for the issue (step 1); throwaway worktrees for spikes.
-- **tdd** — implement test-first (step 6); the coverage axis checks a test fails
-  on pre-change behavior.
-- **maker-checker** — the discipline behind every review and the refute step.
-- **pr-review-toolkit** (`code-reviewer`, `pr-test-analyzer`,
-  `silent-failure-hunter`, `type-design-analyzer`) — purpose-built per-axis
-  reviewers in the impl loop.
-- **pr-dependency-review** — its `references/ai-pr-checks.md` is the
-  *ai-pr-checks* axis.
-- **pr-body** — the draft PR description (step 8).
-- **plan-state** — `plan.md` in the issue worktree is the loop's mandatory state:
-  per-round axis scores, confirmed findings, blocked items.
-- **issue-loop** — the batch wrapper: it delegates each issue to this skill and
-  adds the outer until-done loop; its lightweight triage mode reviews on a single
-  severity axis instead of the full scored set. Use `issue-loop` for many issues,
-  this skill for one done deeply.
-- **decision-required** — escalation path for protected domains and stuck axes.

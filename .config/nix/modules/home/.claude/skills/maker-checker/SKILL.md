@@ -25,7 +25,7 @@ Skip it for trivial, obviously-correct changes (a rename, a doc typo) — the ov
 **Checker** — a *separate* agent, fresh context.
 - Receives only: the spec, the diff/artifact, and the test command. Not the maker's self-justification — that is exactly what biases a self-review.
 - Verifies the artifact against the spec: does it actually do what was promised, including edge cases the maker may have skipped?
-- Runs the AI-PR failure-mode checks (delegate to `pr-dependency-review`'s `references/ai-pr-checks.md`): weakened CI, hallucinated correctness, reinvented utilities, phantom imports, scope creep, comprehension debt.
+- Runs the AI-PR failure-mode checks — read `pr-dependency-review`'s `references/ai-pr-checks.md`.
 - Tries to break it. Returns a verdict (pass / fail) + concrete findings with file:line.
 
 ## The loop
@@ -50,7 +50,4 @@ Never let the agent that wrote the code be the one that signs off on it.
 
 - **tdd** — the maker writes failing tests first; the checker confirms a test fails on the pre-change behavior (catches hallucinated correctness).
 - **pr-dependency-review** — supplies the checker's structural/complexity analysis and AI-PR checks.
-- **loop-automation** — maker-checker is the verification gate between a loop's iterations.
 - **plan-state** — record each check's verdict in `## Notes`; a failed check becomes a `## Next` item.
-- **debug** — when the checker finds a real defect, switch to `debug` to fix it.
-- **DR pattern** — maker/checker disagreement on a protected domain escalates as a DR.

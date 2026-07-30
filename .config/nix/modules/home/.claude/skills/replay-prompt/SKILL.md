@@ -88,7 +88,7 @@ Run this twice — in Phase 3 on each variant before subagent eval, and in Phase
 3. **Anti-pattern coverage** — Dead ends explicit as "Do NOT" lines?
 4. **Self-contained executability** — Actionable with zero prior context? No dangling "the file we were working on" references?
 5. **No hallucination / no bloat** — Only facts the session actually established? Every line earns its place?
-6. **Safety preservation** — Protected-domain triggers (auth, deletions, infra, etc.) require the new session to fire `decision-required`? DR resolved in the original session does NOT carry over.
+6. **Safety preservation** — Protected-domain triggers (`decision-required` lists the domains) require the new session to fire a DR? A DR resolved in the original session does NOT carry over.
 7. **Verifiable "Done when"** — Success criterion concrete enough for objective verification?
 
 ### Edge Cases

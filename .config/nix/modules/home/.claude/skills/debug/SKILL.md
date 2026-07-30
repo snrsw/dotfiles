@@ -54,7 +54,7 @@ Before writing any fix code, write a failing test that reproduces the bug. This 
 - Run the full test suite, not just the regression test
 - Confirm the original reproduction case now behaves correctly
 - Check for side effects -- did fixing this break something else?
-- If the fix touches a protected domain (auth, payments, data deletion, security), trigger a DR before merging
+- If the fix touches a protected domain (`decision-required` lists them), trigger a DR before merging
 
 ### Golden Rules
 
@@ -70,14 +70,6 @@ Use the `commit-message` skill format:
 - Bug fixes: `🐛(<scope>): <description of root cause>`
 - Structural prep: `♻️ refactor` or `🧹 tidy` in separate commits before the fix
 - The commit message should explain the root cause (the "why"), not just what changed
-
-### Integration with Other Skills
-
-- **tdd**: Phase 3 delegates to the Defect Fixing workflow (write failing test first, then minimal fix)
-- **tidy-first**: If structural changes are needed to make buggy code testable, separate them into their own commits before the fix
-- **plan-state**: If a bug is discovered during plan execution, pause the plan, debug using this skill, add the regression test as a `## Next` item in plan.md, then resume
-- **git-wt**: For complex investigations, consider creating a worktree to isolate debugging work from in-progress feature development
-- **DR pattern**: Trigger a DR when the fix touches a protected domain, multiple valid fixes exist with meaningful trade-offs, or the bug reveals a design flaw requiring architectural discussion
 
 ## Examples
 

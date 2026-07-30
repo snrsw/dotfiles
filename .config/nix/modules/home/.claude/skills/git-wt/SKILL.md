@@ -74,22 +74,8 @@ When working in a worktree, use absolute paths or `cd` into the worktree directo
 
 ## Integration with Other Skills
 
-Worktrees pair naturally with the existing development workflow:
-
-### With plan-state
-When starting a multi-step feature that needs durable progress tracking:
-1. Create a worktree: `git wt feature-name origin/main`
-2. Create `plan.md` inside the worktree
-3. Follow the plan-state skill from there
-
-### With tdd
-Each worktree is a self-contained workspace. Run the Red → Green → Refactor cycle inside the worktree directory. All test commands should target the worktree path.
-
-### With tidy-first
-If a structural refactor is needed before a behavioral change, consider doing the tidy work in the main tree and the feature work in a worktree, or vice versa — keeping the two concerns physically separated.
-
-### With commit-message
-Commits inside a worktree go to that worktree's branch. Use commit-message skill as usual — the branch context is automatic.
+- **plan-state** — `plan.md` lives in the worktree root; one plan per worktree/task.
+- **tidy-first** — structural and behavioral work can live in different worktrees, keeping the two concerns physically separated.
 
 ## Workflow Examples
 

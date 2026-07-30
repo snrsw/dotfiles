@@ -18,7 +18,7 @@ The heartbeat of a loop: a scheduled trigger that surfaces work without you aski
 | An in-session "until done" loop on one task (iterate until a completion condition holds) | **ralph-loop** plugin |
 | A self-paced in-session loop where the agent picks each next wake-up | **/loop** (ScheduleWakeup) |
 
-There are **two true unattended heartbeats**: Routines (the smart worker — Claude runs natively) and GitHub Actions (the dumb-but-reliable gate). `CronCreate`, `ralph-loop`, and `/loop` are *not* heartbeats — they are session-scoped. There is no `Workflow` orchestration tool and no `/goal` built-in; in-session until-done looping comes from `ralph-loop` or `/loop`.
+There are **two true unattended heartbeats**: Routines (the smart worker — Claude runs natively) and GitHub Actions (the dumb-but-reliable gate). `CronCreate`, `ralph-loop`, and `/loop` are *not* heartbeats — they are session-scoped. Loops are orchestrated with `Agent`-tool fan-out and the mechanisms above — by user decision (logged in the dotfiles decisions.md), never on a harness `Workflow` tool or `/goal` built-in, even where the harness offers one. In-session until-done looping comes from `ralph-loop` or `/loop`.
 
 ## Claude Code Routines — the agentic heartbeat (primary)
 
@@ -55,12 +55,20 @@ Both die with the session. Any state they need across sessions belongs in `plan-
 
 ## Safety rails (the skill's real content)
 
-Unattended loops make unattended mistakes. Every loop must (the parallelism and worktree rails apply only when a run dispatches parallel subagents):
+Unattended loops make unattended mistakes. The five rails below are shared
+word-for-word with `issue-loop` and `issue-resolver` — only the constants
+clause after each bold lead differs; edit the leads in all three files
+together:
 
-- **Open PRs, never merge.** A human reviews and merges — verification stays on you.
-- **Verify between iterations.** Pair with `maker-checker`: a separate agent checks the loop's output before it surfaces.
+- **Open draft PRs, never merge.** A human owns every merge.
+- **Bound every loop.** Every loop has an explicit stop predicate or round cap; a stuck item is logged blocked and raised as a DR, not retried forever.
+- **Cap cost — parallelism is the trap.** Cap parallel subagents explicitly (each one multiplies token burn; unbounded fan-out has produced four-to-five-figure bills) and use a cheap model for triage.
+- **Verify, don't self-grade.** Reviewers are separate fresh-context agents (`maker-checker`); no agent scores its own artifact.
+- **Escalate, don't guess.** Protected domains and unreachable thresholds surface as DRs (`decision-required`), not autonomous decisions.
+
+Heartbeat-specific rails (the parallelism and worktree rails apply only when a run dispatches parallel subagents):
+
 - **Keep state outside the run.** Progress lives in `plan-state`'s `plan.md`, an issue, or a board — never in the ephemeral run (Routines wipe theirs every time).
-- **Bound cost — parallelism is the trap.** Each parallel sub-agent multiplies token burn; unbounded fan-out has produced four-to-five-figure bills. Cap parallel agents explicitly and use a cheap model for triage.
 - **Isolate every subagent in its own worktree.** When the heartbeat fans out one subagent per issue, each works in a dedicated `git-wt` worktree on a distinct branch/path (`issue/<id>`) — so concurrent `git worktree add` never collides and one task's edits never touch another's tree. The whole per-issue chain (analyze → implement → review → PR) shares that one worktree; reclaim merged ones with `git wt -d`.
 - **Respect Routines limits.** 1-hour minimum interval; a capped number of routines per day that varies by plan — check current limits in-app rather than assuming.
 - **Least privilege + a kill switch.** Minimal token scope; `workflow_dispatch` (Actions) or disabling the routine, so you can always stop it.
@@ -68,12 +76,9 @@ Unattended loops make unattended mistakes. Every loop must (the parallelism and 
 
 ## The loop's shape
 
-heartbeat (Routine schedule, or Action) → triage (read CI failures / issues / commits) → isolate (`git-wt`: one worktree per fanned-out subagent, distinct branch/path) → maker drafts (`maker-checker`) → checker verifies → open PR + update `plan.md` (`plan-state`) → human reviews and merges.
+heartbeat (Routine schedule, or Action) → triage (read CI failures / issues / commits) → isolate (`git-wt`) → maker drafts (`maker-checker`) → checker verifies → open PR + update `plan.md` (`plan-state`) → human reviews and merges.
 
 ## Integration
 
-- **maker-checker** — the verification gate between iterations.
-- **plan-state** — `plan.md` is the cross-run memory a fresh (ephemeral) Routine reads to resume.
-- **git-wt** — one worktree per fanned-out subagent, on a distinct branch/path per task so parallel `git worktree add` cannot collide.
 - **issue-loop** — the concrete per-issue body this heartbeat runs: it already implements the worktree-per-issue isolation (one worktree per issue → draft PR), so schedule it rather than re-deriving the procedure.
 - **pr-dependency-review** — the lowest-risk first heartbeat is a scheduled, read-only run of this review on open PRs (it only comments; supports the `GITHUB_ACTIONS` env var).
