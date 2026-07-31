@@ -152,6 +152,7 @@
         inherit pkgs;
         modules = [
           ./home.nix
+          ./darwin.nix
           nix-index-database.homeModules.default
         ];
         extraSpecialArgs = {

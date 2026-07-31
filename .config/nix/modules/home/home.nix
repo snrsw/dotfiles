@@ -10,10 +10,13 @@ let
 in
 
 {
+  # Platform-neutral half of the configuration. Anything that differs per OS —
+  # home directory, casks, GUI packaging, clipboard, container runtime — lives in
+  # darwin.nix or linux.nix, which the flake picks by system.
+
   # Home Manager needs a bit of information about you and the paths it should
   # manage.
   home.username = username;
-  home.homeDirectory = "/Users/${username}";
 
   # This value determines the Home Manager release that your configuration is
   # compatible with. This helps avoid breakage when a new Home Manager release
@@ -35,20 +38,12 @@ in
     tmux
     # herdr: multiplexer that runs several coding agents from one terminal
     herdr
-    vscode
+    # vscode is installed by programs.vscode below, not listed here: on Linux
+    # that package is nixGL-wrapped, and a second unwrapped copy would collide
+    # on bin/code.
     llm-agents.codex
     llm-agents.gemini-cli
     claude-code-minimal
-    # Claude Desktop app only (no bin/claude wrapper to avoid conflict with claude-code CLI)
-    (pkgs.brewCasks.claude.overrideAttrs (old: {
-      installPhase = ''
-        mkdir -p "$out/Applications/Claude.app"
-        cp -R . "$out/Applications/Claude.app"
-      '';
-    }))
-    pkgs.brewCasks.codex-app
-    pkgs.brewCasks.cotypist
-    raycast
     # VCS
     ghq
     git-secrets
@@ -65,8 +60,7 @@ in
     duckdb
     # Shell plugins
     oh-my-posh
-    # Container
-    orbstack # kubectl is included
+    # Container (the runtime itself is platform-specific — see darwin.nix / linux.nix)
     k9s
     # Cloud
     awscli2
@@ -288,10 +282,10 @@ in
     };
   };
 
-  # ghostty from brew-nix
+  # The package differs per platform (cask on darwin, nixGL-wrapped nixpkgs
+  # build on linux); only the settings are shared.
   programs.ghostty = {
     enable = true;
-    package = pkgs.brewCasks.ghostty;
     enableFishIntegration = true;
     settings = {
       font-family = "UDEV Gothic 35NFLG";
@@ -356,15 +350,10 @@ in
         # Claude
         "claudeCode.preferredLocation" = "sidebar";
 
-        # Terminal (Nix fish)
+        # Terminal (Nix fish). The per-OS profile keys and the absolute fish
+        # path live in darwin.nix / linux.nix.
         "terminal.integrated.fontFamily" = "JetBrainsMono Nerd Font";
         "terminal.integrated.fontSize" = 14;
-        "terminal.integrated.defaultProfile.osx" = "fish";
-        "terminal.integrated.profiles.osx" = {
-          "fish" = {
-            "path" = "/Users/${username}/.nix-profile/bin/fish";
-          };
-        };
       };
     };
   };
@@ -424,7 +413,7 @@ in
       gcps = ''gcloud config set project $(gcloud projects list --format="value(projectId)" | fzf) && echo -e "\nYour current config is:\n" && gcloud config list'';
       awsps = ''export AWS_PROFILE=$(aws configure list-profiles | fzf) && echo -e "\nSelected AWS Profile: $AWS_PROFILE"'';
       k8sctx = ''kubectl config use-context $(kubectl config get-contexts -o name | fzf) && echo -e "\nCurrent context:" && kubectl config current-context'';
-      beep = "afplay /System/Library/Sounds/Glass.aiff";
+      # beep is platform-specific — see darwin.nix / linux.nix.
     };
 
     interactiveShellInit = ''
@@ -502,7 +491,7 @@ in
       theme = "github_light_transparent";
       editor = {
         file-picker.hidden = false;
-        clipboard-provider = "pasteboard";
+        # clipboard-provider is platform-specific — see darwin.nix / linux.nix.
         line-number = "relative";
         cursorline = true;
         color-modes = true;
