@@ -1,6 +1,31 @@
 # decisions.md
 
-DR log for the skills loop-engineering refactor (see plan.md).
+DR log for the skills loop-engineering refactor (see plan.md), plus the
+platform-support decisions below.
+
+## Linux support (2026-07-31)
+
+User answers when the config was extended to a second platform. A later session
+should not "correct" these without asking.
+
+- **Target: non-NixOS distro, standalone home-manager.** Not NixOS, not WSL. This
+  is why `targets.genericLinux.enable` and nixGL are needed at all — on NixOS both
+  would be wrong.
+- **Architecture: x86_64-linux only.** aarch64-linux was offered and declined, so
+  `systems` lists two entries. Adding arm64 later means adding its `mo` and
+  `newrelic-cli` release assets to the per-system tables in flake.nix.
+- **Scope: full desktop parity** — VS Code, ghostty, and fonts are ported, not just
+  the CLI set. This is what pulls in nixGL and `fonts.fontconfig.enable`.
+- **nixGL wrapper: `mesa`** (nixGL's `nixGLIntel`, which covers Intel and AMD).
+  Chosen as the safe default because the target machine's GPU was not specified.
+  An NVIDIA host needs `defaultWrapper = "nvidia"`, which is untested here.
+- **Layout: separate module files** (`home.nix` shared + `darwin.nix` / `linux.nix`)
+  rather than `lib.mkIf` guards inside one file.
+- Do NOT: reintroduce `vscode` into `home.packages`. `programs.vscode` installs it,
+  and on Linux that package is nixGL-wrapped — a second copy collides on `bin/code`.
+- Not verified: no x86_64-linux build was run. Verification was cross-evaluation
+  from darwin (catches option/type/attribute errors) plus a byte-identical darwin
+  closure. First real Linux `switch` may still surface build-time breakage.
 
 ## DR: Scored review contract without a schema parameter
 - **Date**: 2026-07-06
