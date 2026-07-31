@@ -327,11 +327,11 @@
         "rev": "53cf31b257bc6c375e95dd68dd471e48c575c997",
         "revCount": 19,
         "type": "git",
-        "url": "ssh://git@github.com/snrsw/prv"
+        "url": "https://github.com/snrsw/prv"
       },
       "original": {
         "type": "git",
-        "url": "ssh://git@github.com/snrsw/prv"
+        "url": "https://github.com/snrsw/prv"
       }
     },
     "root": {

@@ -25,9 +25,10 @@
       url = "github:tomasz-tomczyk/crit";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    # prv: private "Pull-Request like View" CLI. Fetch over SSH (private repo);
-    # keep its own nixpkgs pin so the node_modules FOD hash stays valid.
-    prv.url = "git+ssh://git@github.com/snrsw/prv";
+    # prv: "Pull-Request like View" CLI. The repo is public, so fetch over HTTPS
+    # and no credentials are needed on any machine. Deliberately does NOT follow
+    # our nixpkgs: it keeps its own pin so its node_modules FOD hash stays valid.
+    prv.url = "git+https://github.com/snrsw/prv";
     llm-agents.url = "github:numtide/llm-agents.nix";
     nix-claude-code.url = "github:ryoppippi/nix-claude-code";
     nix-index-database.url = "github:nix-community/nix-index-database";
