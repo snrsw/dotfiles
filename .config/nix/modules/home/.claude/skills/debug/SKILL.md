@@ -73,5 +73,6 @@ Use the `commit-message` skill format:
 
 ## Examples
 
-Worked examples — Bug Mode, Investigation Mode, and a DR trigger — are in
-`references/examples.md`.
+Read `references/examples.md` when you are unsure which mode a problem belongs
+to, or what a phase's output should look like: it walks Bug Mode, Investigation
+Mode, and a DR trigger end to end.

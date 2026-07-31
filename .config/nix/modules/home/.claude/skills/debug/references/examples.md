@@ -1,5 +1,8 @@
 # debug examples
 
+Read this when picking a mode, or when you want to see the shape of a phase's
+output before writing your own.
+
 ## Bug Mode
 
 ```go

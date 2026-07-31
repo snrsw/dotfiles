@@ -68,7 +68,7 @@ sit from the public entry point. Skip only if it duplicates the dependency graph
 (only changed/notable rows)
 
 ### AI-generated-PR checks
-See `references/ai-pr-checks.md`. In brief: scope wider than the task (5+
+See this skill's `references/ai-pr-checks.md`. In brief: scope wider than the task (5+
 unrelated files / no one-sentence purpose), CI weakened (tests removed or
 skipped, coverage or workflow gating), reinvented utilities, phantom imports
 (not in the manifest), unnecessary fan-in-1 abstraction, changed public

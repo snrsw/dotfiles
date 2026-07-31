@@ -10,7 +10,7 @@ Roles are separated so no agent grades its own work: the main session orchestrat
 
 Each round:
 
-1. **Review.** Dispatch a fresh reviewer with this skill file and the document. It scores EVERY item of the Checklist for Revision and ends its reply with exactly one fenced json block:
+1. **Review.** Dispatch a fresh reviewer with the document plus `document-style`'s SKILL.md — the reviewer needs its "Checklist for Revision", which is the scoring rubric and does not live in this file. It scores EVERY checklist item and ends its reply with exactly one fenced json block:
 
    ```json
    {"policies": [{"policy": "<checklist item>", "score": 0-100, "confidence": 0-1,

@@ -67,4 +67,3 @@ inside the format above. That format governs structure; these govern the prose.
   piece in one clause rather than pointing back at it.
 - **Tables**, if used: one kind of content per column; status columns drawn from a
   small closed set; the table must agree with the surrounding prose.
-

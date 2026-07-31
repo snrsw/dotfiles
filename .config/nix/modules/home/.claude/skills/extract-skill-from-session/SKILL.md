@@ -106,8 +106,9 @@ Do not pad with apologies or suggestions for future sessions. Silence on 0 is pa
 
 ## Examples
 
-See `references/examples.md` — a typical 0-candidate session, a 1-candidate
-session, and a candidate that fails the bar.
+Read `references/examples.md` when a candidate sits near the bar and you cannot
+tell which side it falls on: it shows a typical 0-candidate session, a
+1-candidate session, and a candidate that fails.
 
 ## Related
 

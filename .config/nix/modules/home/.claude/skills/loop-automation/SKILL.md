@@ -18,7 +18,7 @@ The heartbeat of a loop: a scheduled trigger that surfaces work without you aski
 | An in-session "until done" loop on one task (iterate until a completion condition holds) | **ralph-loop** plugin |
 | A self-paced in-session loop where the agent picks each next wake-up | **/loop** (ScheduleWakeup) |
 
-There are **two true unattended heartbeats**: Routines (the smart worker — Claude runs natively) and GitHub Actions (the dumb-but-reliable gate). `CronCreate`, `ralph-loop`, and `/loop` are *not* heartbeats — they are session-scoped. Loops are orchestrated with `Agent`-tool fan-out and the mechanisms above — by user decision (logged in the dotfiles decisions.md), never on a harness `Workflow` tool or `/goal` built-in, even where the harness offers one. In-session until-done looping comes from `ralph-loop` or `/loop`.
+There are **two true unattended heartbeats**: Routines (the smart worker — Claude runs natively) and GitHub Actions (the dumb-but-reliable gate). `CronCreate`, `ralph-loop`, and `/loop` are *not* heartbeats — they are session-scoped. Loops are orchestrated with `Agent`-tool fan-out and the mechanisms above — a standing user decision — never on a harness `Workflow` tool or `/goal` built-in, even where the harness offers one. In-session until-done looping comes from `ralph-loop` or `/loop`.
 
 ## Claude Code Routines — the agentic heartbeat (primary)
 

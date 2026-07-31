@@ -11,9 +11,10 @@ Follow Kent Beck's Red → Green → Refactor cycle:
    functionality, one test at a time, with a name that describes the behavior.
 2. **Green** — write just enough code to make it pass, no more.
 3. **Refactor** — improve structure only while green, one refactoring at a
-   time, running all tests (except long-running ones) after each step.
+   time.
 
-Repeat until the feature is complete.
+Run all tests (except long-running ones) after every step of the cycle, not
+only during Refactor. Repeat until the feature is complete.
 
 ## Defect fixing
 

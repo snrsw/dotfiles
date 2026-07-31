@@ -47,8 +47,9 @@ Use small, frequent commits rather than large, infrequent ones.
 
 ## Commit types
 
-The type table and the generic ♻️-vs-🧹 tie-break live in `commit-message`.
-The refactoring-pattern mapping used here: Extract Method, Move Method,
-Extract Class, Inline Method, Replace Temp with Query, Introduce Parameter
-Object → ♻️ refactor; Rename, whitespace, dead-code removal, small
-reorganization → 🧹 tidy. Behavioral changes: ✨ feat or 🐛 fix.
+Structural commits are ♻️ refactor or 🧹 tidy; `commit-message` owns the type
+table and the rule that splits the two (mechanical for an IDE → 🧹; needs
+judgment about module boundaries, control flow, or dependency direction → ♻️).
+Apply that rule to the pattern at hand rather than a fixed pattern-to-emoji
+list: the same named pattern lands either way depending on whether it moves a
+boundary. Behavioral changes: ✨ feat or 🐛 fix.

@@ -27,9 +27,8 @@ Language-agnostic — apply to English and Japanese output alike.
 
 Skills that hand over a **fixed output template** restate these rules inline,
 specialized to that artifact: a concrete template competes with this background
-rule at the moment of writing, and measurement (2026-07-30, executor A/B runs
-logged in the dotfiles decisions.md) showed compliance drops ~11 points without
-the restatement. Skills whose deliverable is free-form prose (a report, a
+rule at the moment of writing, and measurement (2026-07-30, blind executor A/B
+runs) showed compliance drops ~11 points without the restatement. Skills whose deliverable is free-form prose (a report, a
 verdict) carry no restatement — the same measurement showed this rule alone
 holds there.
 

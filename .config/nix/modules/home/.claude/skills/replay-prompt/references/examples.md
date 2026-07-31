@@ -1,5 +1,8 @@
 # replay-prompt examples
 
+Read this before drafting when you are unsure how much of a messy session to
+fold in, or whether a session is smooth enough to skip distillation.
+
 ## Messy session distilled
 
 Original opening prompt:

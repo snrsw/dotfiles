@@ -1,5 +1,8 @@
 # extract-skill-from-session examples
 
+Read this when a candidate sits near the extraction bar and you need a
+calibration point for which side it falls on.
+
 ## Example 1 — 0 candidates (typical)
 
 *Session summary*: user asked you to fix a flaky test; you read the test, found a race in the fixture, patched it, user confirmed.

@@ -124,5 +124,6 @@ figure rules mostly do not.
 
 ## Examples
 
-See `references/examples.md` — a messy-session distillation and a smooth-session
-no-op.
+Read `references/examples.md` before drafting if you are unsure how much of a
+messy session to fold in, or whether a session is smooth enough to skip
+distillation: it shows one of each.
