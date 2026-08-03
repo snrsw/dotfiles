@@ -19,7 +19,15 @@
     }))
     pkgs.brewCasks.codex-app
     pkgs.brewCasks.cotypist
+    # Apple Silicon macOS only upstream, so it cannot move to home.nix.
+    pkgs.terminal-browser
   ];
+
+  # terminal-browser ships an agent skill, and its own installer copies it into
+  # ~/.agents/skills then links it into ~/.claude/skills. Point at the package's
+  # copy instead, so the skill tracks whatever version the flake pins.
+  home.file.".agents/skills/terminal-browser".source = "${pkgs.terminal-browser}/skill";
+  home.file.".claude/skills/terminal-browser".source = "${pkgs.terminal-browser}/skill";
 
   # nixpkgs has no darwin ghostty build; take the cask.
   programs.ghostty.package = pkgs.brewCasks.ghostty;

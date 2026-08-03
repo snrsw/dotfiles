@@ -187,6 +187,44 @@
                 chmod +x "Contents/Resources/app/node_modules.asar.unpacked/@vscode/ripgrep-universal/bin/darwin-arm64/rg"
               '';
             });
+
+            # terminal-browser: not in nixpkgs and ships no flake. Upstream
+            # installs it with a shell script that fetches one prebuilt tarball,
+            # and that script refuses anything but Apple Silicon macOS, so the
+            # package is darwin-only. Bump version and hash together; there is
+            # no release asset on GitHub, the artifact lives on their own host.
+            terminal-browser = final.stdenv.mkDerivation rec {
+              pname = "terminal-browser";
+              version = "0.3.3";
+
+              src = final.fetchzip {
+                url = "https://terminal-browser.sh/install/dl/stable/v${version}/terminal-browser-darwin-arm64.tar.gz";
+                hash = "sha256-xXxX/80RrTDNHj7MHMuDenkqOfefulHspJV8BzhwaNY=";
+              };
+
+              # `bin/terminal-browser` derives its resource root from its own
+              # location (`dirname $0/..`), so the tree has to stay intact and
+              # $out/bin must hold the real script. A symlink there would make
+              # the root resolve to $out and the electron app would go missing.
+              installPhase = ''
+                runHook preInstall
+                mkdir -p "$out"
+                cp -R . "$out/"
+                chmod +x "$out/bin/terminal-browser"
+                runHook postInstall
+              '';
+
+              # The payload is a signed Mach-O binary plus an Electron app
+              # bundle. Stripping them invalidates the signature, which arm64
+              # macOS refuses to run, so skip fixup entirely.
+              dontFixup = true;
+
+              meta = {
+                description = "A browser that runs directly inside your existing terminal";
+                homepage = "https://github.com/zenbu-labs/terminal-browser";
+                platforms = [ "aarch64-darwin" ];
+              };
+            };
           })
         ];
 
