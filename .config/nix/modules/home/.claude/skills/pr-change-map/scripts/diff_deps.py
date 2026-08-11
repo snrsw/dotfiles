@@ -63,6 +63,21 @@ def fan_in(edges):
     return fi
 
 
+def fan_in_stats(fi):
+    """Median and max fan-in over nodes that have any incoming edge.
+
+    Calibration for the brief: "fan-in 7" means nothing to a reader who does
+    not know the repo — "7 (repo median 2, max 9)" places it without grading it.
+    """
+    counts = sorted(fi.values())
+    if not counts:
+        return {"median": 0, "max": 0}
+    n = len(counts)
+    mid = n // 2
+    median = float(counts[mid]) if n % 2 else (counts[mid - 1] + counts[mid]) / 2
+    return {"median": median, "max": counts[-1]}
+
+
 def short(name, maxlen=40):
     return name if len(name) <= maxlen else "…" + name[-(maxlen - 1):]
 
@@ -73,7 +88,14 @@ def mermaid_id(name, table):
     return table[name]
 
 
-def build_mermaid(added, removed, hot_nodes, max_nodes=30):
+def build_mermaid(added, removed, hot_nodes, max_nodes=30, context=None,
+                  max_context=10):
+    """Mermaid diff graph; `context` adds surroundings for the L0 rung.
+
+    Context edges are unchanged head edges whose BOTH endpoints are already on
+    the graph, drawn plain. They anchor the diff in existing structure without
+    adding a single node — a diff-only graph floats in space otherwise.
+    """
     nodes = {}
     lines = ["graph LR"]
     shown_edges = list(added)[: max_nodes] + list(removed)[: max_nodes // 2]
@@ -91,6 +113,26 @@ def build_mermaid(added, removed, hot_nodes, max_nodes=30):
     for a, b in removed:
         if a in nodes and b in nodes:
             lines.append(f"  {nodes[a]} -.->|removed| {nodes[b]}")
+    if context:
+        diffed = set(added) | set(removed)
+        diffed_nodes = {n for e in diffed for n in e}
+        # Unchanged edges touching a diffed node; neighbours may enter (within
+        # the node budget), unrelated corners of the repo may not.
+        candidates = [e for e in sorted(context - diffed)
+                      if e[0] in diffed_nodes or e[1] in diffed_nodes]
+        drawn = 0
+        for a, b in candidates:
+            if drawn >= max_context:
+                break
+            for n in (a, b):
+                if n not in nodes:
+                    if len(nodes) >= max_nodes:
+                        break
+                    mermaid_id(n, nodes)
+                    lines.append(f'  {nodes[n]}["{short(n)}"]')
+            if a in nodes and b in nodes:
+                lines.append(f"  {nodes[a]} --> {nodes[b]}")
+                drawn += 1
     for n in hot_nodes:
         if n in nodes:
             lines.append(f"  style {nodes[n]} fill:#f88,stroke:#900")
@@ -134,7 +176,9 @@ def main():
         b, h = fi_base.get(node, 0), fi_head.get(node, 0)
         if b != h and max(b, h) >= threshold:
             fan_in_changes.append({"node": node, "before": b, "after": h})
-    fan_in_changes.sort(key=lambda x: -(x["after"] - x["before"]))
+    # Largest movement first, sign-blind: a drop of 5 matters as much as a rise
+    # of 5, and the reader reads top-down.
+    fan_in_changes.sort(key=lambda x: (-abs(x["after"] - x["before"]), x["node"]))
 
     out = {
         "summary": {
@@ -150,10 +194,12 @@ def main():
         "resolved_cycles": resolved_cycles,
         "high_fan_in_touched": hot_touched,
         "fan_in_changes": fan_in_changes,
+        # repo-wide calibration for the numbers above (head graph)
+        "fan_in_stats": fan_in_stats(fi_head),
     }
     if args.mermaid and (added or removed):
         out["mermaid"] = build_mermaid(
-            added, removed, [h["node"] for h in hot_touched])
+            added, removed, [h["node"] for h in hot_touched], context=head)
 
     json.dump(out, sys.stdout, indent=1)
     sys.stdout.write("\n")

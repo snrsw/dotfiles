@@ -56,10 +56,17 @@ PR *is* and pick the diagram type before drawing (Step 2).
 BASE_SHA=$(git merge-base origin/${BASE_BRANCH:-main} HEAD)
 git diff --name-only $BASE_SHA HEAD          # changed files
 git diff $BASE_SHA HEAD --unified=0          # to extract changed function/class names
+git log --oneline $BASE_SHA..HEAD            # the author's own chunking
 ```
 
 Extract the names of changed functions/classes from hunk headers and added
 lines. These names feed `call_graph_slice.py` later.
+
+The commit list is free structure: when the PR contains several logical units,
+the commits are the author's own decomposition of them, and the brief's "What
+changed" section presents one bullet per unit instead of forcing the reader to
+un-mix an aggregate. Squashed single-commit PRs get no such help — then the
+units come from reading the diff.
 
 For a PR you did not write, also read its title and description — the map should
 say what the author claims the change does, separately from what the graphs show.
@@ -159,13 +166,46 @@ python scripts/diff_deps.py /tmp/deps-base.json /tmp/deps-head.json \
 
 Output includes: added/removed edges, new/resolved cycles, nodes whose
 fan-in crossed the threshold, changed files that touch high-fan-in nodes,
-and a Mermaid diff graph (added = green, removed = dashed gray,
-high-fan-in touched = red).
+`fan_in_stats` (repo median and max), and a Mermaid diff graph (added = green,
+removed = dashed gray, high-fan-in touched = red, plus **plain context edges**:
+unchanged edges touching a changed node, so the diff sits inside its existing
+structure instead of floating in space — this graph is the brief's L0 rung).
 
 The threshold is a **highlighting** parameter, not a pass/fail line. Report the
-count it surfaced (`fan-in 3 → 7`), not a judgement about the count.
+count it surfaced with its calibration — `fan-in 3 → 7 (repo median 2, max 9)`
+from `fan_in_stats` — not a judgement about the count. The calibration is what
+lets a reader who does not know the repo place the number; that reader is
+exactly who the map is for.
 
-### Step 5 — Blast radius for changed functions (when granularity includes function level)
+### Step 5 — Boundary delta and blast radius (when granularity includes function level)
+
+First the **boundary**: what did the component's promises to its neighbours do?
+
+```bash
+python scripts/astgrep_extract.py defs --lang <lang> --repo /tmp/base-tree /tmp/base-tree > /tmp/defs-base.json
+python scripts/astgrep_extract.py defs --lang <lang> --repo . . > /tmp/defs-head.json
+python scripts/interface_diff.py /tmp/defs-base.json /tmp/defs-head.json > /tmp/iface.json
+```
+
+Added, removed, and signature-changed functions, with before/after signature
+text. This is the brief's L1 rung. Two rules attach to it:
+
+- **The empty result is a finding, not a non-result.** `surface_unchanged:
+  true` becomes the sentence "public surface unchanged (verified)" — the
+  single most load-reducing fact a brief can carry, because it licenses the
+  reader to skip everything outside the component.
+- **A changed hand-off gets a sequence diagram, whatever the archetype.** When
+  a signature gains or loses a parameter that carries data across the
+  boundary, or the call order / sync-async shape changes, draw the
+  before/after sequence at L1 (template in
+  `references/visualization-archetypes.md`). A dependency edge cannot show
+  what a call now carries; a sequence diagram can.
+
+Also state the test-correspondence **fact**: of the changed public functions,
+how many have test changes in this PR (the Step 1 file list includes test
+files). A fact, not a flag — the reader decides what to do with it.
+
+Then the **blast radius**:
 
 ```bash
 python scripts/call_graph_slice.py /tmp/callgraph-head.json \
@@ -206,10 +246,24 @@ by definition, so this is cheap.
 
 ### Step 7 — Write the brief
 
-Read `references/brief-template.md` and use its exact structure — scope line,
-what changed, primary diagram with legend, blast radius, complexity table, and
-what the map does not show. Omit sections that have nothing to report, but keep
-the order.
+Read `references/brief-template.md` and use its exact structure: a **resolution
+ladder** that raises the zoom level section by section —
+
+- **L0 — where it sits**: the collapsed module graph with context edges; the
+  change placed in the codebase around it.
+- **L1 — how the boundary changes**: the interface delta, the hand-off
+  sequence diagram when the protocol moved, the test-correspondence fact.
+- **L2 — inside the component**: the call-graph slice and the complexity
+  table.
+
+A reader may stop after any rung and still hold a correct, coarser picture —
+that is conclusion-first applied to diagrams. Each rung is judged for
+degeneracy **at its own scope** (the per-scope rule below): a degenerate rung
+becomes its one-sentence summary ("all changes inside module X" / "public
+surface unchanged (verified)"), never an empty diagram and never silently
+absent. The archetype from Step 2 decides which rung carries its special
+diagram — data-flow at L1, state-machine at L2 — not whether the ladder is
+used.
 
 Present the markdown to the user in chat. **Do not post it to the PR** — this
 skill produces a map for a reader, not a comment for an author. If the user
@@ -226,9 +280,15 @@ posted.
   fence. Readers cannot decode color-coded graphs without one.
 - Every claim about size or shape carries its measured number (fan-in = N,
   CC = N, cycle path, edge counts). A map without numbers is an impression.
-- One primary diagram per PR; a secondary archetype gets prose unless it earns
-  its space (reference thresholds). Replace a degenerate graph — a star or a
-  one-edge state diagram — with a sentence; never duplicate a node set.
+- At most one diagram per ladder rung; a secondary archetype gets prose unless
+  it earns its space (reference thresholds). Replace a degenerate graph — a
+  star or a one-edge state diagram — with a sentence; never duplicate a node
+  set across rungs (the L2 slice must add nodes or edges the L0 graph did not
+  show, or it collapses into a sentence).
+- Order by magnitude everywhere: table rows and finding bullets sorted by
+  |after − before|, sign-blind. The ladder orders the sections; the size of
+  the movement orders the rows. Every number carries its anchor — `file:line`
+  for a function, repo median/max for a fan-in.
 - "Degenerate" is **per-scope**. Before you drop a dependency graph, name the
   scope you actually judged — module-to-module vs intra-module function-level. A
   new leaf module is degenerate at the module scope (fan-in 0, no cycles) but its

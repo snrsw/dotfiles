@@ -263,6 +263,28 @@ def assign_complexity(func_matches, branch_matches):
     return out
 
 
+def signature_of(text):
+    """A function's signature, cut from its full definition text.
+
+    Language-neutral scanner: walk the text tracking () and [] depth, stop at
+    the first `{`, `:`, `;`, or newline at depth 0, then collapse whitespace.
+    Newlines inside parens survive, so multi-line parameter lists compare as
+    one line. Known limit: Kotlin/Swift return types (`): Int {`) are cut at
+    the colon, so a return-type-only change there reads as unchanged.
+    """
+    depth = 0
+    out = []
+    for ch in text:
+        if ch in "([":
+            depth += 1
+        elif ch in ")]":
+            depth -= 1
+        elif depth == 0 and ch in "{:;\n":
+            break
+        out.append(ch)
+    return " ".join("".join(out).split())
+
+
 def _rel(path, repo):
     if repo:
         return os.path.relpath(path, repo)
@@ -476,6 +498,7 @@ def main():
                 "file": _rel(f["file"], args.repo),
                 "name": _name_of(f) or "<anonymous>",
                 "line": f["range"]["start"]["line"] + 1,
+                "signature": signature_of(f["text"]),
             }
             for f in funcs
         ]

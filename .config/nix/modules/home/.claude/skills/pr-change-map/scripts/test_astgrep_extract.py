@@ -13,6 +13,7 @@ from astgrep_extract import (
     lang_for_path,
     matches_to_call_edges,
     matches_to_import_edges,
+    signature_of,
 )
 
 
@@ -187,6 +188,37 @@ class DedupeMatchesTest(unittest.TestCase):
         a = match("a.rs", 0, 24, name="auth")
         b = match("b.rs", 0, 24, name="auth")
         self.assertEqual(dedupe_matches([a, b]), [a, b])
+
+
+class SignatureOfTest(unittest.TestCase):
+    """The L1 boundary compares signatures, so extraction must be stable.
+
+    The scanner cuts at the first `{`, `:`, `;`, or newline at bracket depth 0,
+    then normalizes whitespace — language-neutral, no grammar knowledge.
+    """
+
+    def test_python_keeps_annotations_and_dict_default(self):
+        text = "def f(x: int, y={}) -> dict:\n    return y"
+        self.assertEqual(signature_of(text), "def f(x: int, y={}) -> dict")
+
+    def test_rust_cuts_at_body_brace(self):
+        self.assertEqual(signature_of("fn handler(p: &Pool) -> bool {\n  x\n}"),
+                         "fn handler(p: &Pool) -> bool")
+
+    def test_go_keeps_second_paren_group_of_returns(self):
+        self.assertEqual(signature_of("func f(a int) (int, error) {\n}"),
+                         "func f(a int) (int, error)")
+
+    def test_multiline_params_collapse_to_one_line(self):
+        text = "def f(\n    a,\n    b,\n):\n    pass"
+        self.assertEqual(signature_of(text), "def f( a, b, )")
+
+    def test_ruby_cuts_at_newline(self):
+        self.assertEqual(signature_of("def f(x)\n  x\nend"), "def f(x)")
+
+    def test_whitespace_only_difference_compares_equal(self):
+        self.assertEqual(signature_of("def f(a,  b):\n  pass"),
+                         signature_of("def f(a, b):\n  pass"))
 
 
 class DedupeEdgesTest(unittest.TestCase):

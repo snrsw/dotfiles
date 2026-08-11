@@ -73,8 +73,11 @@ graph LR
 
 ## When a diagram earns its space
 
-One primary diagram per PR. Draw a second only if it independently clears the bar
-below; otherwise state the secondary point in one sentence.
+At most one diagram per ladder rung (L0 context / L1 boundary / L2 internals —
+see `brief-template.md`). The archetype's special diagram takes its natural
+rung: sequence and data-flow at L1, state-machine at L2. Draw a second diagram
+at the same rung only if it independently clears the bar below; otherwise state
+the secondary point in one sentence.
 
 - Sequence: ≥2 actors that interleave on shared state. A lone call path → a
   sentence.

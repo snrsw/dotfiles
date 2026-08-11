@@ -38,9 +38,24 @@ python3 scripts/astgrep_extract.py calls --lang python --repo . src/ > /tmp/call
 # per-function cyclomatic complexity (Step 6)
 python3 scripts/astgrep_extract.py complexity --lang python src/ > /tmp/cc-head.json
 
-# every function definition, for the uncalled-exports check (Step 5)
+# every function definition with its signature — feeds the uncalled-exports
+# check and the L1 interface delta (Step 5)
 python3 scripts/astgrep_extract.py defs --lang python --repo . src/ > /tmp/defs.json
 ```
+
+The L1 boundary delta is `defs` run on both trees, then diffed:
+
+```bash
+python3 scripts/interface_diff.py /tmp/defs-base.json /tmp/defs-head.json
+# → added / removed / signature-changed functions, and surface_unchanged: true
+#   when the public surface did not move (a verified fact worth a sentence)
+```
+
+Signature extraction is a language-neutral scanner (cut at the first `{ : ;`
+or newline outside brackets, whitespace-normalized), so multi-line parameter
+lists compare as one line. Two stated limits: a rename reads as removed+added,
+and Kotlin/Swift return types sit after the cut point, so a return-type-only
+change there reads as unchanged.
 
 `--lang` is optional when every path resolves to one language by extension.
 `--repo <dir>` strips that prefix so node names are repo-relative and comparable
