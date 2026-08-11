@@ -54,11 +54,17 @@ PR *is* and pick the diagram type before drawing (Step 2).
 ### Step 1 — Identify the change set
 
 ```bash
-# fall back down this chain; echo the result so the base is never a guess
-BASE_SHA=$(git merge-base origin/${BASE_BRANCH:-main} HEAD 2>/dev/null) \
-  || BASE_SHA=$(git merge-base ${BASE_BRANCH:-main} HEAD 2>/dev/null) \
-  || BASE_SHA=$(git rev-parse HEAD~1)
-echo "base: $BASE_SHA"   # state it in the brief's scope line
+# Advance on an unusable RESULT, not on a non-zero exit code. `git merge-base
+# main HEAD` exits 0 and returns HEAD itself when the PR branch *is* main — the
+# commonest local-repo shape — so an exit-status chain stops there and every
+# later step measures an empty diff.
+for cand in "$(git merge-base origin/${BASE_BRANCH:-main} HEAD 2>/dev/null)" \
+            "$(git merge-base ${BASE_BRANCH:-main} HEAD 2>/dev/null)" \
+            "$(git rev-parse HEAD~1 2>/dev/null)"; do
+  [ -n "$cand" ] && [ "$cand" != "$(git rev-parse HEAD)" ] \
+    && [ -n "$(git diff --name-only "$cand" HEAD)" ] && BASE_SHA="$cand" && break
+done
+echo "base: ${BASE_SHA:?no base with a non-empty diff — say so and stop}"
 git diff --name-only $BASE_SHA HEAD          # changed files
 git diff $BASE_SHA HEAD --unified=0          # to extract changed function/class names
 git log --oneline $BASE_SHA..HEAD            # the author's own chunking
@@ -204,6 +210,19 @@ extractor failed — escalate to the fallback, never emit the empty finding:
 | `added_edges` and `removed_edges` both `[]` | does `git diff $BASE_SHA HEAD` contain added/removed import lines? | extractor under-resolved; use `references/generic.md`'s path and say so |
 | `interface_diff` reports `surface_unchanged: true` | do the changed hunks touch any `def`/`func`/`fn` line? | signature scanner missed the form; read the definitions by hand |
 | `archetype_signals.py` returns 0 in every category | do the changed lines assign to a status/lifecycle field, or read-then-write shared state? | the script's patterns did not match this code shape (it looks for `.status =`, not `STORE[k] = {...}`); classify by reading the control flow and say the script was silent |
+
+**The duty attaches to the sentence, not to the field.** Before writing any
+"nothing changed here" claim in the brief, run its cross-check — whether or not
+the script that usually produces it was run, and whether or not the whole
+output object was empty. Three ways executors have been bitten by keying this
+to tool fields instead:
+
+- the non-structural path skips `diff_deps.py` yet still states "no dependency
+  edges changed" — the claim needs the grep even though no field exists;
+- `removed_edges: []` alongside a non-empty `added_edges` never triggers a
+  check keyed to both being empty, so an invisible removal passes;
+- an empty change set from Step 1 sits upstream of every check here, which is
+  why Step 1 now rejects a base whose diff is empty.
 
 This is the one place where the skill spends steps on doubting itself. It is
 worth it: a false "no import edge changed" is worse than no map at all.

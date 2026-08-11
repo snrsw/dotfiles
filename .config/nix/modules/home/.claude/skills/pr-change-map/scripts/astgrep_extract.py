@@ -184,6 +184,12 @@ LANGS = {
 }
 
 
+# Languages whose import statements name a dotted module, so a source file can
+# be mapped into the same namespace as an import target. Elsewhere (JS, Go, C)
+# imports are paths or strings and the file path is already the right node.
+DOTTED_IMPORT_LANGS = {"python", "java", "kotlin", "swift", "csharp"}
+
+
 # ---------------------------------------------------------------- pure helpers
 
 def lang_for_path(path):
@@ -317,7 +323,23 @@ def resolve_import_target(pkg, sub, exists):
     return pkg
 
 
-def matches_to_import_edges(matches, repo=None, resolve=None):
+def module_name_for(path):
+    """Dotted module name for a source file, so both edge endpoints share a namespace.
+
+    `shop/api.py` → `shop.api`, `shop/__init__.py` → `shop`. Without this the
+    import graph is bipartite: sources are paths, targets are dotted names, the
+    two sets never intersect, no path of length 2 exists, and `find_cycles`
+    can never fire.
+    """
+    path = path[2:] if path.startswith("./") else path
+    stem = os.path.splitext(path)[0]
+    parts = [p for p in stem.split("/") if p]
+    if parts and parts[-1] == "__init__":
+        parts.pop()
+    return ".".join(parts)
+
+
+def matches_to_import_edges(matches, repo=None, resolve=None, source_as_module=False):
     """file -> imported-module edges. Matches without a $NAME capture are skipped.
 
     `resolve` is an `exists(path)` predicate rooted at the tree being analysed.
@@ -332,6 +354,8 @@ def matches_to_import_edges(matches, repo=None, resolve=None):
         if not name:
             continue
         src = _rel(m["file"], repo)
+        if source_as_module:
+            src = module_name_for(src)
         subs = _subs_of(m) if resolve else []
         if not subs:
             edges.append({"from": src, "to": name})
@@ -524,9 +548,10 @@ def main():
     if args.mode == "imports":
         matches = scan_patterns(lang, spec["import"], paths)
         root = args.repo or os.path.commonpath([os.path.abspath(p) for p in paths])
+        dotted = lang in DOTTED_IMPORT_LANGS
         edges = dedupe_edges(matches_to_import_edges(
-            matches, repo=args.repo,
-            resolve=lambda rel: os.path.exists(os.path.join(root, rel))))
+            matches, repo=args.repo, source_as_module=dotted,
+            resolve=(lambda rel: os.path.exists(os.path.join(root, rel))) if dotted else None))
         print(json.dumps({"granularity": "module", "edges": edges}, indent=1))
 
     elif args.mode == "calls":

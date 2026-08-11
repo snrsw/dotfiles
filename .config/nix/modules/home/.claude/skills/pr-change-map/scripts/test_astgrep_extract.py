@@ -13,6 +13,7 @@ from astgrep_extract import (
     lang_for_path,
     matches_to_call_edges,
     matches_to_import_edges,
+    module_name_for,
     resolve_import_target,
     signature_of,
 )
@@ -247,6 +248,51 @@ class ImportResolutionTest(unittest.TestCase):
         ms = [imp("shop/api.py", "shop", ["auth"])]
         self.assertEqual(matches_to_import_edges(ms),
                          [{"from": "shop/api.py", "to": "shop"}])
+
+
+class NodeIdentityTest(unittest.TestCase):
+    """Import edges must name both endpoints in ONE namespace.
+
+    Measured defect: sources were file paths (`shop/api.py`) and targets were
+    written module names (`shop.auth`), and the two sets did not intersect at
+    all. The graph was bipartite — no path of length 2 could exist, so
+    `find_cycles` could never fire and fan-out was structurally 0. Relabelling
+    the diagram does not fix that; the identity has to be one namespace in the
+    data.
+    """
+
+    def test_file_path_becomes_a_dotted_module_name(self):
+        self.assertEqual(module_name_for("shop/api.py"), "shop.api")
+        self.assertEqual(module_name_for("a/b/c.py"), "a.b.c")
+
+    def test_package_init_collapses_to_the_package(self):
+        self.assertEqual(module_name_for("shop/__init__.py"), "shop")
+
+    def test_top_level_module_keeps_its_bare_name(self):
+        self.assertEqual(module_name_for("main.py"), "main")
+
+    def test_leading_dot_slash_is_stripped(self):
+        self.assertEqual(module_name_for("./shop/api.py"), "shop.api")
+
+    def test_sources_and_targets_land_in_the_same_namespace(self):
+        exists = {"shop/auth.py"}.__contains__
+        ms = [imp("shop/api.py", "shop", ["auth"])]
+        edges = matches_to_import_edges(ms, resolve=exists, source_as_module=True)
+        self.assertEqual(edges, [{"from": "shop.api", "to": "shop.auth"}])
+
+    def test_a_two_hop_path_is_representable(self):
+        exists = {"shop/auth.py", "shop/db.py"}.__contains__
+        ms = [imp("shop/api.py", "shop", ["auth"]),
+              imp("shop/auth.py", "shop", ["db"])]
+        edges = matches_to_import_edges(ms, resolve=exists, source_as_module=True)
+        nodes_from = {e["from"] for e in edges}
+        nodes_to = {e["to"] for e in edges}
+        self.assertTrue(nodes_from & nodes_to, "graph is still bipartite")
+
+    def test_source_canonicalisation_is_opt_in(self):
+        ms = [imp("svc/a.js", "./b")]
+        self.assertEqual(matches_to_import_edges(ms),
+                         [{"from": "svc/a.js", "to": "./b"}])
 
 
 class SignatureOfTest(unittest.TestCase):
