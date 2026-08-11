@@ -24,12 +24,14 @@ review-priority list, no `gh pr comment`.
 
 ## Core idea
 
-All language-specific tools are normalized into one common edge-list JSON
-format. The bundled scripts then do diffing, blast-radius slicing, and
-Mermaid generation uniformly:
+Every analysis tool is normalized into one common edge-list JSON format. The
+bundled scripts then do diffing, blast-radius slicing, and Mermaid generation
+uniformly, whatever produced the edges:
 
 ```
-language tool output ──normalize_deps.py──▶ normalized JSON (base & head)
+source ──astgrep_extract.py──┐   (default: tree-sitter, 14 languages, one binary)
+                             ├──▶ normalized JSON (base & head)
+language tool ──normalize_deps.py┘  (precision upgrade, when a resolver matters)
                                                │
                           ┌────────────────────┤
                           ▼                    ▼
@@ -109,13 +111,25 @@ exception above):
 ### Step 3 — Read the language reference, run analysis on base AND head
 
 Detect languages from changed-file extensions, then read the matching
-reference file for exact tool commands and normalization invocations:
+reference file for exact tool commands and normalization invocations.
+
+**Start with `references/ast-grep.md`.** ast-grep ships tree-sitter grammars in
+one static binary, so a single zero-install runner gives real AST analysis for 14
+languages — imports, call edges, and cyclomatic complexity — with no
+per-language tool to install. `scripts/astgrep_extract.py` emits the normalized
+JSON directly. This is the default path; the references below are the precision
+upgrade, not the starting point.
+
+Reach for a language-specific reference when the PR turns on something only a
+resolver knows (module path aliasing, barrel files, type-aware dispatch), or when
+that tool already runs in this repo's CI:
 
 - `references/javascript.md` — JS / TypeScript (dependency-cruiser, madge, ts-morph)
 - `references/python.md` — Python (pydeps, code2flow, pyreverse, radon)
 - `references/go.md` — Go (go list, go-callvis/callgraph, gocyclo)
 - `references/java.md` — Java / Kotlin (jdeps, java-callgraph, PMD)
-- `references/generic.md` — any other language (tree-sitter / grep-based fallback, lizard for complexity)
+- `references/generic.md` — grep-based last resort, for languages ast-grep does
+  not cover or when no runner is reachable
 
 Run the analysis **twice**: once at `$BASE_SHA`, once at HEAD. Use
 `git stash` / `git worktree add` so the working tree isn't disturbed:
@@ -127,13 +141,12 @@ git worktree add /tmp/base-tree $BASE_SHA
 git worktree remove /tmp/base-tree --force
 ```
 
-If a tool is missing, try **one** zero-install runner (`pipx run` / `npx` / `go
-run`) — then stop. Do not thrash through a chain of system installers
-(`pip install`, `comma`, `go install`): in CI and sandboxes most of these are
-absent or need a TTY, and chasing them burns the bulk of the time for no gain.
-If the runner isn't there, go **straight** to the no-install fallback — every
-language reference has one (Python's grep-based import parser, `git grep`,
-`references/generic.md`'s tree-sitter/lizard path) — and record the tool as
+If a tool is missing, try **one** zero-install runner (`nix run` / `npx` /
+`pipx run` / `go run`) — then stop. Do not thrash through a chain of system
+installers (`pip install`, `comma`, `go install`): in CI and sandboxes most of
+these are absent or need a TTY, and chasing them burns the bulk of the time for
+no gain. For the ast-grep path that runner is `ASTGREP_BIN`; if it isn't there,
+go **straight** to `references/generic.md`'s grep path — and record the tool as
 unavailable in the brief's "What this map does not show" section. The map must
 never block on tooling.
 
@@ -165,22 +178,31 @@ symbol. Changed nodes are red, transitive callers yellow. This answers the
 reader's real question: *if I touch this, what else is in scope?*
 
 For **new modules**, also map the opposite direction: list public functions with
-intra-module fan-in = 0. Report them as "uncalled exports" and say plainly which
-ones have tests in this PR and which do not — both are facts the reader needs to
-place the module's public surface.
+intra-module fan-in = 0. `astgrep_extract.py defs` gives the full definition
+inventory; subtract the `to` side of the call edges to get the uncalled set.
+Report them as "uncalled exports" and say plainly which ones have tests in this
+PR and which do not — both are facts the reader needs to place the module's
+public surface.
 
 ### Step 6 — Complexity delta
 
-Run the complexity tool from the language reference (lizard works for most
-languages) on base and head, restricted to changed files. Report per-function
-cyclomatic complexity before → after. Only surface functions whose complexity
-changed or that sit above 10 — that keeps the table readable; the number is a
-reporting filter, not a threshold the PR passes or fails.
+```bash
+python3 scripts/astgrep_extract.py complexity --lang <lang> <changed files>
+```
 
-If no complexity tool is available (none installed and no zero-install runner),
-don't skip this step: for the handful of changed functions, compute CC by hand —
-`1 + count(if/elif/for/while/and/or/except/case/ternary)` — and label the table
-"hand-computed". The changed set is small by definition, so this is cheap.
+Run it in the base worktree and at HEAD, then pair functions by name to get
+before → after. Only surface functions whose complexity changed or that sit
+above 10 — that keeps the table readable; the number is a reporting filter, not
+a threshold the PR passes or fails.
+
+`lizard` from the language reference is the alternative and agrees with the
+above (both report CC 8 and 1 for the same two functions on the Python fixture
+used to check it). Use whichever is already reachable.
+
+If neither is available, don't skip this step: for the handful of changed
+functions, compute CC by hand — `1 + count(if/elif/for/while/and/or/except/
+case/ternary)` — and label the table "hand-computed". The changed set is small
+by definition, so this is cheap.
 
 ### Step 7 — Write the brief
 
