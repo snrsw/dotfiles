@@ -42,7 +42,7 @@ LANGS = {
     "python": {
         "ext": [".py"],
         "func_def": ["function_definition"],
-        "import": ["import $NAME", "from $NAME import $$$"],
+        "import": ["from $NAME import $$$SUBS", "import $NAME"],
         "call": ["$NAME($$$)"],
         "branch": [
             "if_statement", "elif_clause", "for_statement", "while_statement",
@@ -291,14 +291,60 @@ def _rel(path, repo):
     return path
 
 
-def matches_to_import_edges(matches, repo=None):
-    """file -> imported-module edges. Matches without a $NAME capture are skipped."""
+def _subs_of(m):
+    """Submodule captures from `from PKG import A, B` — the $$$SUBS metavariable."""
+    multi = m.get("metaVariables", {}).get("multi", {}).get("SUBS")
+    if multi:
+        return [s["text"] for s in multi]
+    single = m.get("metaVariables", {}).get("single", {}).get("SUB")
+    return [single["text"]] if single else []
+
+
+def resolve_import_target(pkg, sub, exists):
+    """Node name for `from PKG import SUB`, given an `exists(path)` predicate.
+
+    Measured defect this fixes: `from shop import auth` and `from shop import
+    db` both collapsed to the node `shop`, so a PR whose whole structural point
+    was a new import edge reported `added: []` — the map said the opposite of
+    the truth. The submodule joins the node name only when it really is a
+    module; `from shop import verify` imports a function and stays on `shop`.
+    """
+    if not sub:
+        return pkg
+    base = pkg.replace(".", "/")
+    if exists(f"{base}/{sub}.py") or exists(f"{base}/{sub}/__init__.py"):
+        return f"{pkg}.{sub}"
+    return pkg
+
+
+def matches_to_import_edges(matches, repo=None, resolve=None):
+    """file -> imported-module edges. Matches without a $NAME capture are skipped.
+
+    `resolve` is an `exists(path)` predicate rooted at the tree being analysed.
+    Without it, edges stay at package granularity (the pre-resolution
+    behaviour); with it, `from PKG import MOD` resolves to `PKG.MOD` when that
+    is really a module. Pass it whenever the language has a from-import form,
+    or a whole class of edges silently merges.
+    """
     edges = []
     for m in matches:
         name = _name_of(m)
         if not name:
             continue
-        edges.append({"from": _rel(m["file"], repo), "to": name})
+        src = _rel(m["file"], repo)
+        subs = _subs_of(m) if resolve else []
+        if not subs:
+            edges.append({"from": src, "to": name})
+            continue
+        # One statement, one edge per distinct target: `from shop import
+        # verify, sign` imports two symbols from one module, not two modules.
+        seen = set()
+        for sub in subs:
+            target = resolve_import_target(name, sub, resolve)
+            if target in seen:
+                continue
+            seen.add(target)
+            edges.append({"from": src, "to": target})
     return edges
 
 
@@ -477,7 +523,10 @@ def main():
 
     if args.mode == "imports":
         matches = scan_patterns(lang, spec["import"], paths)
-        edges = dedupe_edges(matches_to_import_edges(matches, repo=args.repo))
+        root = args.repo or os.path.commonpath([os.path.abspath(p) for p in paths])
+        edges = dedupe_edges(matches_to_import_edges(
+            matches, repo=args.repo,
+            resolve=lambda rel: os.path.exists(os.path.join(root, rel))))
         print(json.dumps({"granularity": "module", "edges": edges}, indent=1))
 
     elif args.mode == "calls":

@@ -1,13 +1,14 @@
 ---
 name: pr-change-map
 description: >
-  Map what a Pull Request changes and how it connects — dependency edges,
-  call-graph blast radius, and complexity deltas, rendered as diagrams — so a
-  reader can understand the change. Use for "what does this PR do", "explain
-  this PR", "map this change", "what does this touch", or when orienting
-  yourself in someone else's PR before working on it. Analysis only: no
-  verdict, no risk rating, no PR comment. Use `pr-dependency-review` when the
-  output should be a review.
+  Map what a Pull Request changes at rising resolution: where it sits in the
+  codebase, how the touched component's interface and data hand-offs change,
+  and what moved inside it — dependency edges, signature deltas, call-graph
+  blast radius, and complexity, rendered as diagrams. Use for "what does this
+  PR do", "explain this PR", "map this change", "what does this touch", or when
+  orienting yourself in someone else's PR before working on it. Analysis only:
+  no verdict, no risk rating, no PR comment. Use `pr-dependency-review` when
+  the output should be a review.
 ---
 
 # PR Change Map
@@ -81,9 +82,14 @@ templates.
 This branch decides which of the steps below you run:
 
 - **Structural** (the common case) — run Steps 3–6, then Step 7.
-- **Behavioral / state-machine / data-flow** — **skip Steps 3–5** (the dependency
-  pipeline: base/head worktree analysis, `diff_deps.py`, blast-radius slice). They
-  measure coupling, which is not the dimension this PR changes, and mapping it
+- **Behavioral / state-machine / data-flow** — **skip the coupling
+  measurements**: Step 3's base/head dependency analysis, Step 4's
+  `diff_deps.py`, and Step 5's *blast-radius slice*. Skip by what is measured,
+  never by step number: Step 5 also holds the **boundary delta**
+  (`interface_diff.py`), which is not a coupling measurement and always runs —
+  its "public surface unchanged (verified)" sentence is exactly as useful for a
+  race fix as for a refactor. The coupling measurements
+  measure a dimension this PR does not change, and mapping it
   draws attention to the wrong place. Instead drive the diagram from
   `archetype_signals.py` plus a direct read of the **full touched
   function/module, not just the diff** (the script is a diff-only lower bound —
@@ -176,6 +182,21 @@ count it surfaced with its calibration — `fan-in 3 → 7 (repo median 2, max 9
 from `fan_in_stats` — not a judgement about the count. The calibration is what
 lets a reader who does not know the repo place the number; that reader is
 exactly who the map is for.
+
+**Prove every empty result before reporting it.** An empty measurement and a
+broken extractor look identical in the output, and the empty one is the
+dangerous direction: a reader trusts "nothing changed here" and stops looking.
+So each of these gets a cheap independent cross-check, and a mismatch means the
+extractor failed — escalate to the fallback, never emit the empty finding:
+
+| Empty result | Cross-check | If they disagree |
+|---|---|---|
+| `added_edges` and `removed_edges` both `[]` | does `git diff $BASE_SHA HEAD` contain added/removed import lines? | extractor under-resolved; use `references/generic.md`'s path and say so |
+| `interface_diff` reports `surface_unchanged: true` | do the changed hunks touch any `def`/`func`/`fn` line? | signature scanner missed the form; read the definitions by hand |
+| `archetype_signals.py` returns 0 in every category | do the changed lines assign to a status/lifecycle field, or read-then-write shared state? | the script's patterns did not match this code shape (it looks for `.status =`, not `STORE[k] = {...}`); classify by reading the control flow and say the script was silent |
+
+This is the one place where the skill spends steps on doubting itself. It is
+worth it: a false "no import edge changed" is worse than no map at all.
 
 ### Step 5 — Boundary delta and blast radius (when granularity includes function level)
 

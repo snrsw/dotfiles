@@ -13,6 +13,7 @@ from astgrep_extract import (
     lang_for_path,
     matches_to_call_edges,
     matches_to_import_edges,
+    resolve_import_target,
     signature_of,
 )
 
@@ -188,6 +189,64 @@ class DedupeMatchesTest(unittest.TestCase):
         a = match("a.rs", 0, 24, name="auth")
         b = match("b.rs", 0, 24, name="auth")
         self.assertEqual(dedupe_matches([a, b]), [a, b])
+
+
+def imp(file, pkg, subs=None, start=0, end=10):
+    """An ast-grep match for an import, with the optional submodule capture."""
+    m = match(file, start, end, name=pkg)
+    if subs is not None:
+        m["metaVariables"]["multi"] = {"SUBS": [{"text": s} for s in subs]}
+    return m
+
+
+class ImportResolutionTest(unittest.TestCase):
+    """`from PKG import MOD` must not collapse to PKG.
+
+    Measured defect: `from shop import auth` and `from shop import db` both
+    became the node `shop`, so a PR that added a whole import edge reported
+    `added: []` — the map stated the opposite of the truth. The submodule is
+    only part of the node name when it really is a module; `from shop import
+    verify` imports a function and still belongs to node `shop`.
+    """
+
+    def test_submodule_that_is_a_module_extends_the_node_name(self):
+        exists = {"shop/auth.py"}.__contains__
+        self.assertEqual(resolve_import_target("shop", "auth", exists), "shop.auth")
+
+    def test_submodule_that_is_a_package_extends_the_node_name(self):
+        exists = {"shop/auth/__init__.py"}.__contains__
+        self.assertEqual(resolve_import_target("shop", "auth", exists), "shop.auth")
+
+    def test_submodule_that_is_a_symbol_keeps_the_package_node(self):
+        self.assertEqual(resolve_import_target("shop", "verify", lambda p: False), "shop")
+
+    def test_dotted_package_resolves_through_its_path(self):
+        exists = {"a/b/c.py"}.__contains__
+        self.assertEqual(resolve_import_target("a.b", "c", exists), "a.b.c")
+
+    def test_no_submodule_keeps_the_package(self):
+        self.assertEqual(resolve_import_target("os", None, lambda p: False), "os")
+
+    def test_each_submodule_in_a_comma_list_gets_its_own_edge(self):
+        exists = {"shop/auth.py", "shop/db.py"}.__contains__
+        ms = [imp("shop/api.py", "shop", ["auth", "db"])]
+        self.assertEqual(
+            matches_to_import_edges(ms, resolve=exists),
+            [{"from": "shop/api.py", "to": "shop.auth"},
+             {"from": "shop/api.py", "to": "shop.db"}],
+        )
+
+    def test_symbol_imports_collapse_to_one_package_edge(self):
+        ms = [imp("shop/api.py", "shop", ["verify", "sign"])]
+        self.assertEqual(
+            matches_to_import_edges(ms, resolve=lambda p: False),
+            [{"from": "shop/api.py", "to": "shop"}],
+        )
+
+    def test_without_a_resolver_behaviour_is_the_old_package_level_edge(self):
+        ms = [imp("shop/api.py", "shop", ["auth"])]
+        self.assertEqual(matches_to_import_edges(ms),
+                         [{"from": "shop/api.py", "to": "shop"}])
 
 
 class SignatureOfTest(unittest.TestCase):

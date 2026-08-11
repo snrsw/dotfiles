@@ -13,20 +13,45 @@ Use `--exclude` in normalize_deps.py to drop stdlib/site-packages noise
 (e.g. `--exclude "node_modules,vendor,site-packages"`), or filter to nodes
 whose name starts with the project package.
 
-Fallback without pydeps — parse imports directly (always works, no install):
+Fallback without pydeps — parse imports directly (always works, no install).
+Write the parser to a file first: `python3 - <<EOF` cannot work here, because
+the heredoc takes over stdin and the piped grep output never arrives.
+
 ```bash
-grep -rn --include='*.py' -E '^(from|import) ' src \
-  | python - <<'EOF'  # build "file -> imported_module" edge lines
-import sys, re
+cat > /tmp/py_imports.py <<'EOF'
+import sys, re, os
 for line in sys.stdin:
     path, _, rest = line.partition(':')
     rest = rest.split(':', 1)[1]
-    m = re.match(r'\s*from\s+([\w.]+)|\s*import\s+([\w.]+)', rest)
+    m = re.match(r'\s*from\s+([\w.]+)\s+import\s+(.+)', rest)
     if m:
-        print(f"{path} -> {m.group(1) or m.group(2)}")
+        pkg, names = m.group(1), m.group(2)
+        for name in (n.strip().split()[0] for n in names.split(',')):
+            base = pkg.replace('.', '/')
+            mod = (f"{pkg}.{name}"
+                   if os.path.exists(f"{base}/{name}.py")
+                   or os.path.exists(f"{base}/{name}/__init__.py")
+                   else pkg)
+            print(f"{path} -> {mod}")
+        continue
+    m = re.match(r'\s*import\s+([\w.]+)', rest)
+    if m:
+        print(f"{path} -> {m.group(1)}")
 EOF
+
+# run from the tree being analysed, so the module-existence checks resolve
+grep -rn --include='*.py' -E '^(from|import) ' . \
+  | python3 /tmp/py_imports.py \
+  | python3 scripts/normalize_deps.py - --format edges --granularity module
 ```
-Pipe through `normalize_deps.py - --format edges`.
+
+**The `from PKG import MOD` resolution above is not optional.** A naive
+`from\s+([\w.]+)` collapses `from shop import auth` and `from shop import db`
+into the single node `shop`, so a PR that adds an import edge shows zero added
+edges — the graph reports the opposite of the truth. The primary path
+(`astgrep_extract.py imports`) resolves the same way; a fallback that fails
+where the primary succeeds is not a fallback. Run both against the same file
+before trusting either.
 
 ## Function-level call graph
 

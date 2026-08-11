@@ -43,8 +43,14 @@ Module-scope facts land here as bullets, largest movement first, each with its
 number: new/resolved cycles (`A → B → A`), fan-in moves, moved symbols and
 phantom imports from `containment_detect.py`.
 
-Degenerate at this scope (all changes inside one module, no import edge in or
-out changed) → one sentence saying exactly that, no diagram.
+**Degeneracy is one measurable predicate, applied per rung:** fewer than 3
+nodes, or fewer than 2 edges, after context edges are added. Nothing else
+decides it — not "it feels thin", and not whether anything changed. A rung with
+one changed edge and no neighbours is degenerate and becomes a sentence; a rung
+with zero changed edges but a rich surrounding structure is not degenerate and
+is still drawn. The sentence must name the scope it judged ("degenerate at the
+module-to-module scope: 2 nodes, 1 edge") so a reader can tell which scope was
+ruled out.
 
 ### How the boundary changes — L1, interfaces and hand-offs
 The `interface_diff.py` result as a table, each row with `file:line`:
