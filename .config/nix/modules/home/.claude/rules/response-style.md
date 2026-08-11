@@ -39,6 +39,7 @@ Editing the sentence, vocabulary, or table rules above means checking these for 
 | `pr-body` | PR body prose inside the fixed format |
 | `commit-message` | commit subject line and body |
 | `pr-dependency-review` | the review comment, its tables and diagram labels |
+| `pr-change-map` | the change-map brief, its tables and diagram labels |
 | `issue-resolver` | scored-review strings and the closing report |
 | `issue-loop` | the batch summary table |
 | `plan-state` | `plan.md` |

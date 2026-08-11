@@ -1,24 +1,26 @@
 ---
-name: pr-dependency-review
+name: pr-change-map
 description: >
-  Analyze and visualize how a Pull Request changes code complexity and
-  dependencies (module, class, and function/call-graph level), then produce a
-  reviewer-friendly PR comment with Mermaid diagrams and risk flags. Use for
-  any PR review — "review this PR" alone is enough, especially for
-  AI-generated PRs — and for assessing a change's impact, blast radius,
-  coupling, or circular dependencies, including inside a GitHub Actions
-  PR-review job.
+  Map what a Pull Request changes and how it connects — dependency edges,
+  call-graph blast radius, and complexity deltas, rendered as diagrams — so a
+  reader can understand the change. Use for "what does this PR do", "explain
+  this PR", "map this change", "what does this touch", or when orienting
+  yourself in someone else's PR before working on it. Analysis only: no
+  verdict, no risk rating, no PR comment. Use `pr-dependency-review` when the
+  output should be a review.
 ---
 
-# PR Dependency & Complexity Review
+# PR Change Map
 
-Produce a structured, visual review of how a PR changes dependencies and
-complexity. The goal is to lower reviewer load: tell them *where to look*,
-*what got riskier*, and *what got better*.
+Build a factual map of a PR: what changed, what it connects to, what got more
+complex. The reader wants to **understand** the change, not be told whether to
+approve it.
 
-Want the analysis without the review — no risk rating, no verdict, no PR
-comment, just a map of what the change touches? Use the `pr-change-map` skill
-instead. It runs the same Steps 1–6 and ends in a factual brief.
+**The line this skill does not cross:** report measurements and what they mean,
+never a judgement about them. "`auth.service` fan-in went 3 → 7" is a map.
+"`auth.service` fan-in is too high, 🔴 fix before merge" is a review — that is
+`pr-dependency-review`'s job, not this skill's. No risk rating, no verdict, no
+review-priority list, no `gh pr comment`.
 
 ## Core idea
 
@@ -33,16 +35,16 @@ language tool output ──normalize_deps.py──▶ normalized JSON (base & he
                           ▼                    ▼
                     diff_deps.py        call_graph_slice.py
               (added/removed edges,    (changed-node-centric
-               cycles, fan-in flags,    subgraph + Mermaid,
+               cycles, fan-in counts,   subgraph + Mermaid,
                Mermaid diff graph)      callers highlighted)
 ```
 
 Normalized format: `{"granularity": "module|class|function", "edges": [{"from": "a", "to": "b"}]}`
 
 The pipeline above is the right picture only when the PR's essence is *structure*
-(coupling, cycles, fan-in). When the risk is *timing*, *state*, or *data flow*, a
-clean "no new edges" graph is false reassurance — classify what the PR *is* and
-pick the diagram type before drawing (Step 2).
+(coupling, cycles, fan-in). When the change is about *timing*, *state*, or *data
+flow*, a clean "no new edges" graph maps the wrong dimension — classify what the
+PR *is* and pick the diagram type before drawing (Step 2).
 
 ## Workflow
 
@@ -57,6 +59,9 @@ git diff $BASE_SHA HEAD --unified=0          # to extract changed function/class
 Extract the names of changed functions/classes from hunk headers and added
 lines. These names feed `call_graph_slice.py` later.
 
+For a PR you did not write, also read its title and description — the map should
+say what the author claims the change does, separately from what the graphs show.
+
 ### Step 2 — Classify the change archetype, then pick the visualization
 
 First decide what the PR *is* — structural, behavioral, state-machine, or
@@ -69,19 +74,21 @@ This branch decides which of the steps below you run:
 - **Structural** (the common case) — run Steps 3–6, then Step 7.
 - **Behavioral / state-machine / data-flow** — **skip Steps 3–5** (the dependency
   pipeline: base/head worktree analysis, `diff_deps.py`, blast-radius slice). They
-  measure coupling, which is not where this PR's risk lives, and a clean graph is
-  false reassurance. Instead drive the diagram from `archetype_signals.py` plus a
-  direct read of the **full touched function/module, not just the diff** (the
-  script is a diff-only lower bound — see the reference's blind-spot note), run
-  Step 6 (complexity) only if it adds signal, and go to Step 7. Lead with the matching diagram and state what it cannot
-  certify; demote the dependency graph to one line or drop it if it degenerates.
+  measure coupling, which is not the dimension this PR changes, and mapping it
+  draws attention to the wrong place. Instead drive the diagram from
+  `archetype_signals.py` plus a direct read of the **full touched
+  function/module, not just the diff** (the script is a diff-only lower bound —
+  see the reference's blind-spot note), run Step 6 (complexity) only if it adds
+  signal, and go to Step 7. Lead with the matching diagram and state what it
+  cannot show; demote the dependency graph to one line or drop it if it
+  degenerates.
 
   **Exception — new or substantial module (any archetype):** "skip Steps 3–5"
   means skip the *cross-module coupling diff* (Steps 3–4), NOT the *function-level
   call graph* (Step 5). When the PR adds a new module/file or a large unit
   (rule of thumb: >10 functions or >200 lines in one file), still run Step 5 on
-  its **internal** call graph. For new code that graph is a comprehension map and
-  overlays directly onto the complexity/coverage risk — it is not a coupling
+  its **internal** call graph. For new code that graph is the comprehension map —
+  the single most useful artifact this skill produces — and it is not a coupling
   measurement, so the "skip" rationale does not apply. Degeneracy is **per-scope**:
   a new leaf module is degenerate at the module-to-module scope (fan-in 0, no
   cycles) yet rich at the intra-module function scope. Judge each scope on its own
@@ -96,7 +103,7 @@ exception above):
 | Many files across packages/dirs (>~10 files or >3 dirs) | Module-level only |
 | Few files, localized change | Module + function-level (call graph slice) |
 | New or substantial module/file (new code, not a modification) | Function-level **internal** call graph — regardless of archetype |
-| Refactoring claim in PR title/description ("reduce coupling", "simplify") | Module + complexity before/after — verify the claim |
+| Refactoring claim in PR title/description ("reduce coupling", "simplify") | Module + complexity before/after — show whether the numbers moved |
 | Changes to a file with high fan-in | Always add function-level slice for that file |
 
 ### Step 3 — Read the language reference, run analysis on base AND head
@@ -123,11 +130,12 @@ git worktree remove /tmp/base-tree --force
 If a tool is missing, try **one** zero-install runner (`pipx run` / `npx` / `go
 run`) — then stop. Do not thrash through a chain of system installers
 (`pip install`, `comma`, `go install`): in CI and sandboxes most of these are
-absent or need a TTY, and chasing them burns the bulk of the review's time for no
-gain. If the runner isn't there, go **straight** to the no-install fallback —
-every language reference has one (Python's grep-based import parser, `git grep`,
-`references/generic.md`'s tree-sitter/lizard path) — and add a one-line note that
-the tool was unavailable. The analysis must never block on tooling.
+absent or need a TTY, and chasing them burns the bulk of the time for no gain.
+If the runner isn't there, go **straight** to the no-install fallback — every
+language reference has one (Python's grep-based import parser, `git grep`,
+`references/generic.md`'s tree-sitter/lizard path) — and record the tool as
+unavailable in the brief's "What this map does not show" section. The map must
+never block on tooling.
 
 ### Step 4 — Diff the graphs
 
@@ -141,6 +149,9 @@ fan-in crossed the threshold, changed files that touch high-fan-in nodes,
 and a Mermaid diff graph (added = green, removed = dashed gray,
 high-fan-in touched = red).
 
+The threshold is a **highlighting** parameter, not a pass/fail line. Report the
+count it surfaced (`fan-in 3 → 7`), not a judgement about the count.
+
 ### Step 5 — Blast radius for changed functions (when granularity includes function level)
 
 ```bash
@@ -150,48 +161,49 @@ python scripts/call_graph_slice.py /tmp/callgraph-head.json \
 ```
 
 This BFS-walks callers (and callees, depth-limited) of every changed
-symbol. Changed nodes are red, transitive callers yellow. For each changed
-public function, check whether its callers' tests were updated in the PR —
-flag if not.
+symbol. Changed nodes are red, transitive callers yellow. This answers the
+reader's real question: *if I touch this, what else is in scope?*
 
-For **new modules**, also check the opposite direction: identify public functions
-with intra-module fan-in = 0 that have no tests added in this PR. These are
-either dead code or intentional API surface without coverage. Surface them in
-the Blast radius section as "uncalled exports — confirm public API intent or
-remove."
+For **new modules**, also map the opposite direction: list public functions with
+intra-module fan-in = 0. Report them as "uncalled exports" and say plainly which
+ones have tests in this PR and which do not — both are facts the reader needs to
+place the module's public surface.
 
 ### Step 6 — Complexity delta
 
 Run the complexity tool from the language reference (lizard works for most
 languages) on base and head, restricted to changed files. Report per-function
-cyclomatic complexity before → after. Only surface functions whose
-complexity changed or that exceed 10.
+cyclomatic complexity before → after. Only surface functions whose complexity
+changed or that sit above 10 — that keeps the table readable; the number is a
+reporting filter, not a threshold the PR passes or fails.
 
 If no complexity tool is available (none installed and no zero-install runner),
 don't skip this step: for the handful of changed functions, compute CC by hand —
 `1 + count(if/elif/for/while/and/or/except/case/ternary)` — and label the table
 "hand-computed". The changed set is small by definition, so this is cheap.
 
-### Step 7 — Write the PR comment
+### Step 7 — Write the brief
 
-Read `references/comment-template.md` and use its exact structure — Risk
-header, Verdict, Review priority, primary visualization with legend, blast
-radius, complexity table, AI-generated-PR checks. Omit sections that have
-nothing to report, but keep the order.
+Read `references/brief-template.md` and use its exact structure — scope line,
+what changed, primary diagram with legend, blast radius, complexity table, and
+what the map does not show. Omit sections that have nothing to report, but keep
+the order.
 
-Post it with `gh pr comment $PR_NUMBER --body-file /tmp/review.md` when
-running in CI (GITHUB_ACTIONS env var present); otherwise just present the
-markdown to the user.
+Present the markdown to the user in chat. **Do not post it to the PR** — this
+skill produces a map for a reader, not a comment for an author. If the user
+explicitly asks to post it, say that `pr-dependency-review` is the skill that
+writes PR comments, and post only if they confirm they want the map itself
+posted.
 
 ## Practical rules
 
 - Keep Mermaid graphs under ~30 nodes. If larger, collapse to directory
   level or show only the changed-node neighborhood. A huge graph is worse
   than no graph.
-- Every Mermaid diagram in the PR comment must have a legend line immediately
-  after its closing fence. Reviewers cannot decode color-coded graphs without one.
-- Every 🔴 Review Priority item must include the measured value that triggered the
-  flag (fan-in = N, CC = N, cycle path). Never flag without a number.
+- Every Mermaid diagram must have a legend line immediately after its closing
+  fence. Readers cannot decode color-coded graphs without one.
+- Every claim about size or shape carries its measured number (fan-in = N,
+  CC = N, cycle path, edge counts). A map without numbers is an impression.
 - One primary diagram per PR; a secondary archetype gets prose unless it earns
   its space (reference thresholds). Replace a degenerate graph — a star or a
   one-edge state diagram — with a sentence; never duplicate a node set.
@@ -200,12 +212,13 @@ markdown to the user.
   new leaf module is degenerate at the module scope (fan-in 0, no cycles) but its
   internal call graph can be rich (shared helpers, deep call chains). A conclusion
   at one scope never licenses skipping the other.
-- Match the diagram to the change: a call graph for a race is false reassurance.
-  Draw the dimension that holds the risk, not the one the template defaults to.
+- Match the diagram to the change: a call graph for a race maps the wrong
+  dimension. Draw where the change actually lives, not the one the pipeline
+  defaults to.
 - Static call graphs miss dynamic dispatch / DI. Say so when relevant —
   present the slice as "static callers found", not ground truth.
-- Never fail the whole review because one tool failed; report what worked
-  and note what was skipped.
+- Never abandon the whole map because one tool failed; report what worked
+  and list what was skipped.
 - Token discipline: feed yourself the *diff* JSON and *slice* JSON, not the
   full repo graphs.
 - When the PR is huge (>50 files), do module-level only and say explicitly
@@ -213,21 +226,23 @@ markdown to the user.
 
 ## Response style
 
-The `response-style` rule names "review comments" explicitly. The comment
-template above fixes the structure; these govern the prose inside it.
+The `response-style` rule applies to every output. The brief template fixes the
+structure; these govern the prose inside it.
 
-- **Verdict leads with the conclusion** — did coupling and complexity go up or
-  down — then the evidence. A reviewer who reads only the Verdict must come away
-  with the right answer.
+- **Lead with the conclusion.** The first line of "What changed" says what the PR
+  does in one sentence. A reader who stops there must still have the right idea.
 - **One term per node, everywhere.** The name in the prose, the node label in the
   Mermaid diagram, and the row in the Complexity table must be the same string.
   A module called `auth.service` in one place and `AuthService` in another reads
   as two modules.
 - **Table columns hold one kind of content.** `Before` and `After` hold
-  measurements only — never a measurement in one row and a judgement in the next.
-  Risk markers stay in the small closed set 🔴/🟡/🟢, one meaning each.
+  measurements only — never a measurement in one row and a comment in the next.
 - **Measured values are fact; the rest is inference.** A fan-in count or CC number
-  is unhedged. A claim about *why* it changed, or what will break, is marked as
-  inference — the same discipline as "static callers found, not ground truth".
-- **The table must agree with the prose.** Reviewers skim the Complexity table and
-  Review Priority list before reading the Verdict, and trust them over it.
+  is unhedged. A claim about *why* something changed, or what it implies, is
+  marked as inference — the same discipline as "static callers found, not ground
+  truth".
+- **Describe, don't grade.** Write "fan-in 3 → 7, all seven callers are in
+  `checkout/`", not "worryingly high fan-in". Adjectives of severity belong to
+  `pr-dependency-review`.
+- **The table must agree with the prose.** Readers skim the Complexity table
+  before reading anything else, and trust it over the text.
