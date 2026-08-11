@@ -4,7 +4,7 @@ import sys
 import unittest
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from diff_deps import build_mermaid, fan_in, fan_in_stats
+from diff_deps import build_mermaid, fan_in, fan_in_changes, fan_in_stats
 
 
 class FanInStatsTest(unittest.TestCase):
@@ -19,6 +19,37 @@ class FanInStatsTest(unittest.TestCase):
 
     def test_empty_graph_gives_zeros(self):
         self.assertEqual(fan_in_stats(fan_in(set())), {"median": 0, "max": 0})
+
+
+class FanInChangesTest(unittest.TestCase):
+    """The threshold highlights; it must never suppress.
+
+    Measured defect: `fan_in_changes` only emitted nodes crossing the
+    threshold, so on a small repo a real 0 → 1 or 1 → 2 move was absent from
+    the JSON — while the brief template requires a calibrated fan-in for every
+    changed node. Two independent executors hand-computed it to fill the gap.
+    """
+
+    def test_every_change_is_emitted_regardless_of_threshold(self):
+        out = fan_in_changes({"a": 1}, {"a": 2}, threshold=5)
+        self.assertEqual([c["node"] for c in out], ["a"])
+        self.assertEqual((out[0]["before"], out[0]["after"]), (1, 2))
+
+    def test_threshold_crossers_are_flagged_not_filtered(self):
+        out = fan_in_changes({"big": 4, "small": 1}, {"big": 9, "small": 2}, threshold=5)
+        flags = {c["node"]: c["highlighted"] for c in out}
+        self.assertEqual(flags, {"big": True, "small": False})
+
+    def test_unchanged_nodes_are_absent(self):
+        self.assertEqual(fan_in_changes({"a": 3}, {"a": 3}, threshold=1), [])
+
+    def test_node_only_in_head_counts_from_zero(self):
+        out = fan_in_changes({}, {"new": 1}, threshold=5)
+        self.assertEqual((out[0]["before"], out[0]["after"]), (0, 1))
+
+    def test_sorted_by_absolute_movement_then_name(self):
+        out = fan_in_changes({"a": 0, "b": 0, "c": 5}, {"a": 3, "b": 1, "c": 0}, threshold=99)
+        self.assertEqual([c["node"] for c in out], ["c", "a", "b"])
 
 
 class ContextEdgesTest(unittest.TestCase):

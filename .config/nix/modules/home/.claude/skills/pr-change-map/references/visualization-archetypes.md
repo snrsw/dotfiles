@@ -80,7 +80,11 @@ at the same rung only if it independently clears the bar below; otherwise state
 the secondary point in one sentence.
 
 - Sequence: ≥2 actors that interleave on shared state. A lone call path → a
-  sentence.
+  sentence. **Exception, and it wins: SKILL Step 5's "a changed hand-off gets a
+  sequence diagram, whatever the archetype".** When a signature gains or loses
+  a parameter that carries data across the boundary, or the call order or
+  sync/async shape moves, draw it even with one actor — the diagram is showing
+  what the call now carries, which is not what this bar is guarding against.
 - State-machine: ≥3 states or ≥2 changed transitions. A single new edge (e.g. one
   `SYNCING→ACTIVE`) → a sentence ("adds a `SYNCING→ACTIVE` restore on the
   transient path"), not a diagram.

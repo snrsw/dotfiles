@@ -54,7 +54,11 @@ PR *is* and pick the diagram type before drawing (Step 2).
 ### Step 1 — Identify the change set
 
 ```bash
-BASE_SHA=$(git merge-base origin/${BASE_BRANCH:-main} HEAD)
+# fall back down this chain; echo the result so the base is never a guess
+BASE_SHA=$(git merge-base origin/${BASE_BRANCH:-main} HEAD 2>/dev/null) \
+  || BASE_SHA=$(git merge-base ${BASE_BRANCH:-main} HEAD 2>/dev/null) \
+  || BASE_SHA=$(git rev-parse HEAD~1)
+echo "base: $BASE_SHA"   # state it in the brief's scope line
 git diff --name-only $BASE_SHA HEAD          # changed files
 git diff $BASE_SHA HEAD --unified=0          # to extract changed function/class names
 git log --oneline $BASE_SHA..HEAD            # the author's own chunking
@@ -144,15 +148,21 @@ that tool already runs in this repo's CI:
 - `references/generic.md` — grep-based last resort, for languages ast-grep does
   not cover or when no runner is reachable
 
-Run the analysis **twice**: once at `$BASE_SHA`, once at HEAD. Use
-`git stash` / `git worktree add` so the working tree isn't disturbed:
+Run the analysis **twice**: once at `$BASE_SHA`, once at HEAD. What Step 3
+needs is a second tree to read; how you materialize it is free. Default to the
+form that writes nothing into the repo under analysis, because that repo is
+often a shared or read-only checkout:
 
 ```bash
-git worktree add /tmp/base-tree $BASE_SHA
+mkdir -p /tmp/base-tree && git archive $BASE_SHA | tar -x -C /tmp/base-tree
 # run tools in /tmp/base-tree → /tmp/deps-base.json (normalized)
 # run tools in repo root      → /tmp/deps-head.json (normalized)
-git worktree remove /tmp/base-tree --force
 ```
+
+`git worktree add /tmp/base-tree $BASE_SHA` (then `git worktree remove
+--force`) is the alternative when the repo is yours to write to — it registers
+metadata under `.git/worktrees/`, which is a modification. Either satisfies
+the requirement; do not treat one as the only recipe.
 
 If a tool is missing, try **one** zero-install runner (`nix run` / `npx` /
 `pipx run` / `go run`) — then stop. Do not thrash through a chain of system
@@ -220,7 +230,13 @@ text. This is the brief's L1 rung. Two rules attach to it:
   boundary, or the call order / sync-async shape changes, draw the
   before/after sequence at L1 (template in
   `references/visualization-archetypes.md`). A dependency edge cannot show
-  what a call now carries; a sequence diagram can.
+  what a call now carries; a sequence diagram can. **This overrides that
+  reference's "≥2 actors interleaving on shared state" bar** — that bar exists
+  to stop a lone call path being drawn for atmosphere, and a changed hand-off
+  is not atmosphere. One before/after diagram, `Note over` bands separating
+  the two states; if the change yields several such windows, they become
+  labelled segments inside that one diagram, and the legend says the segments
+  are alternatives rather than one timeline.
 
 Also state the test-correspondence **fact**: of the changed public functions,
 how many have test changes in this PR (the Step 1 file list includes test
@@ -338,6 +354,14 @@ structure; these govern the prose inside it.
   Mermaid diagram, and the row in the Complexity table must be the same string.
   A module called `auth.service` in one place and `AuthService` in another reads
   as two modules.
+- **This rule beats the generated output — relabel it.** The scripts hand back
+  Mermaid whose labels come from two naming spaces: `imports` names sources by
+  file path and targets by written import name, and `calls` names a definition
+  `verify` while its call sites read `auth.verify`. Left alone, one function
+  appears as two nodes and the graph breaks into fragments. You are expected to
+  normalize the generated diagram to one canonical name per node, merge the
+  duplicate nodes, and record what you merged or renamed in "What this map does
+  not show". Never paste labels you know are wrong to stay faithful to a tool.
 - **Table columns hold one kind of content.** `Before` and `After` hold
   measurements only — never a measurement in one row and a comment in the next.
 - **Measured values are fact; the rest is inference.** A fan-in count or CC number

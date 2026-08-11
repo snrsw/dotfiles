@@ -63,6 +63,28 @@ def fan_in(edges):
     return fi
 
 
+def fan_in_changes(fi_base, fi_head, threshold):
+    """Every node whose fan-in moved, largest movement first.
+
+    The threshold flags rows (`highlighted`); it never removes them. It used to
+    gate inclusion, which meant a small repo's real 1 → 2 move was simply
+    absent from the JSON while the brief template required a fan-in for every
+    changed node — so the number had to be recomputed by hand. A filter
+    parameter must not suppress data a template treats as mandatory.
+    """
+    out = []
+    for node in set(fi_base) | set(fi_head):
+        before, after = fi_base.get(node, 0), fi_head.get(node, 0)
+        if before == after:
+            continue
+        out.append({
+            "node": node, "before": before, "after": after,
+            "highlighted": max(before, after) >= threshold,
+        })
+    out.sort(key=lambda c: (-abs(c["after"] - c["before"]), c["node"]))
+    return out
+
+
 def fan_in_stats(fi):
     """Median and max fan-in over nodes that have any incoming edge.
 
@@ -171,14 +193,7 @@ def main():
             hot_touched.append(
                 {"node": node, "fan_in": count, "dependents": dependents})
 
-    fan_in_changes = []
-    for node in set(fi_base) | set(fi_head):
-        b, h = fi_base.get(node, 0), fi_head.get(node, 0)
-        if b != h and max(b, h) >= threshold:
-            fan_in_changes.append({"node": node, "before": b, "after": h})
-    # Largest movement first, sign-blind: a drop of 5 matters as much as a rise
-    # of 5, and the reader reads top-down.
-    fan_in_changes.sort(key=lambda x: (-abs(x["after"] - x["before"]), x["node"]))
+    changes = fan_in_changes(fi_base, fi_head, threshold)
 
     out = {
         "summary": {
@@ -193,7 +208,7 @@ def main():
         "new_cycles": new_cycles,
         "resolved_cycles": resolved_cycles,
         "high_fan_in_touched": hot_touched,
-        "fan_in_changes": fan_in_changes,
+        "fan_in_changes": changes,
         # repo-wide calibration for the numbers above (head graph)
         "fan_in_stats": fan_in_stats(fi_head),
     }
