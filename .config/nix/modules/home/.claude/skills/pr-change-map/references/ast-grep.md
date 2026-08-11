@@ -10,13 +10,18 @@ that `diff_deps.py` and `call_graph_slice.py` already consume.
 
 ## Getting the binary
 
-The script looks for `$ASTGREP_BIN`, then `ast-grep`, then `sg` on PATH. Set the
-variable to a zero-install runner when it is not installed:
+The script looks for `$ASTGREP_BIN`, then `ast-grep`, then `sg` on PATH. When it
+is installed (this repo's `home.nix` lists it in `home.packages`), nothing needs
+setting. Otherwise point the variable at a zero-install runner:
 
 ```bash
 export ASTGREP_BIN="nix run nixpkgs#ast-grep --"     # nix
 export ASTGREP_BIN="npx --yes @ast-grep/cli"          # node
 ```
+
+The kind table below was checked against **0.40.0 and 0.44.1**, which agree on
+all 128 kinds. Treat any other version as unverified until `verify` says
+otherwise.
 
 Per Step 3's rule: try one runner, and if it fails go straight to
 `references/generic.md`'s grep path. Do not chase installers.

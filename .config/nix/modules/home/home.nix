@@ -58,6 +58,10 @@ in
     # Search
     fzf
     duckdb
+    # ast-grep: tree-sitter structural search. The pr-change-map skill uses it as
+    # its default analysis backend and finds it on PATH; without it that skill
+    # falls back to grep, which conflates same-named symbols across scopes.
+    ast-grep
     # Shell plugins
     oh-my-posh
     # Container (the runtime itself is platform-specific — see darwin.nix / linux.nix)
