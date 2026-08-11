@@ -372,8 +372,20 @@ def matches_to_import_edges(matches, repo=None, resolve=None, source_as_module=F
     return edges
 
 
-def matches_to_call_edges(func_matches, call_matches, repo=None):
+def matches_to_call_edges(func_matches, call_matches, repo=None, known=None,
+                          internal_only=False):
     """caller -> callee edges. Caller is the enclosing function, else the file.
+
+    `known` is the set of function names defined in the tree under analysis.
+    With it, a qualified call site (`auth.verify`) resolves to the definition it
+    names (`verify`), so one function is one node instead of two — without it
+    the definition and its call sites were separate nodes and the graph broke
+    into fragments. Resolution only fires when the last dotted segment is
+    actually defined here, so `json.dumps` keeps its full text.
+
+    `internal_only` then drops callees that are defined nowhere in the tree
+    (builtins, stdlib, methods on parameters). Use it for an internal call
+    graph; leave it off when external dependencies are part of the picture.
 
     Self-recursive edges are dropped: they add a self-loop to every call graph
     without telling a reader anything about coupling.
@@ -383,6 +395,12 @@ def matches_to_call_edges(func_matches, call_matches, repo=None):
         callee = _name_of(c)
         if not callee:
             continue
+        if known:
+            tail = callee.rsplit(".", 1)[-1]
+            if tail in known:
+                callee = tail
+            elif internal_only:
+                continue
         owner = _innermost_container(func_matches, c)
         caller = _name_of(owner) if owner is not None else _rel(c["file"], repo)
         if caller == callee:
@@ -524,6 +542,9 @@ def main():
     ap.add_argument("paths", nargs="*", default=[])
     ap.add_argument("--lang")
     ap.add_argument("--repo", help="strip this prefix from file paths in node names")
+    ap.add_argument("--internal-only", action="store_true",
+                    help="calls mode: drop callees not defined in the analysed tree "
+                         "(builtins, stdlib, methods on parameters)")
     # argparse cannot backfill a trailing nargs="*" positional once an optional
     # appears between it and `mode`, so `complexity --lang python src/` would be
     # rejected. Collect the leftovers as paths instead of dictating flag order.
@@ -557,7 +578,10 @@ def main():
     elif args.mode == "calls":
         funcs = scan_kinds(lang, spec["func_def"], paths, capture_name=True)
         calls = scan_patterns(lang, spec["call"], paths)
-        edges = dedupe_edges(matches_to_call_edges(funcs, calls, repo=args.repo))
+        known = {n for n in (_name_of(f) for f in funcs) if n}
+        edges = dedupe_edges(matches_to_call_edges(
+            funcs, calls, repo=args.repo, known=known,
+            internal_only=args.internal_only))
         print(json.dumps({"granularity": "function", "edges": edges}, indent=1))
 
     elif args.mode == "complexity":

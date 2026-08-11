@@ -39,6 +39,11 @@ grading it.
 > Legend: 🟢 added edge / ~~gray~~ removed edge / thin plain arrow = unchanged
 > edge (context) / 🔴 fan-in above threshold (highlight, not a pass/fail line)
 
+Read the encoding off the generated Mermaid rather than copying this line: the
+script marks an added edge with the label `|added|` and may emit no colour at
+all. Name every encoding the diagram actually uses, and every node class it
+actually contains — including callees pulled in only by the depth limit.
+
 Module-scope facts land here as bullets, largest movement first, each with its
 number: new/resolved cycles (`A → B → A`), fan-in moves, moved symbols and
 phantom imports from `containment_detect.py`.
@@ -92,6 +97,10 @@ reader reads top-down and the biggest movement comes first:
 | Function | Before | After |
 |---|---|---|
 (only changed/notable rows; label the table "hand-computed" when no tool ran)
+
+`Before` holds measurements only. For a function that did not exist at base,
+write `—` and say once below the table that the em dash means "did not exist",
+not a measured 0. The explanation goes in prose, never in the cell.
 
 ### What this map does not show
 One bullet per gap, so the reader knows the edges of the picture:

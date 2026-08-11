@@ -167,6 +167,56 @@ class CallEdgesTest(unittest.TestCase):
         self.assertEqual(matches_to_call_edges(funcs, calls), [])
 
 
+class CallNodeIdentityTest(unittest.TestCase):
+    """A definition and its call sites must be ONE node.
+
+    `calls` names a definition `verify` but its call sites `auth.verify`, so a
+    function appeared twice and the graph broke into fragments. Four separate
+    executors merged the pair by hand. Resolution is by last dotted segment,
+    but only against names that are actually defined here — `json.dumps` must
+    not become `dumps`.
+    """
+
+    def test_qualified_call_resolves_to_the_definition_it_names(self):
+        funcs = [match("a.py", 0, 100, name="handler")]
+        calls = [match("a.py", 10, 20, name="auth.verify")]
+        self.assertEqual(
+            matches_to_call_edges(funcs, calls, known={"verify", "handler"}),
+            [{"from": "handler", "to": "verify"}],
+        )
+
+    def test_unknown_qualified_call_keeps_its_full_text(self):
+        calls = [match("a.py", 10, 20, name="json.dumps")]
+        self.assertEqual(
+            matches_to_call_edges([], calls, known={"verify"}),
+            [{"from": "a.py", "to": "json.dumps"}],
+        )
+
+    def test_resolution_makes_a_call_self_recursive_and_it_is_dropped(self):
+        funcs = [match("a.py", 0, 100, name="walk")]
+        calls = [match("a.py", 10, 20, name="tree.walk")]
+        self.assertEqual(matches_to_call_edges(funcs, calls, known={"walk"}), [])
+
+    def test_internal_only_drops_callees_defined_nowhere_here(self):
+        funcs = [match("a.py", 0, 100, name="handler")]
+        calls = [match("a.py", 10, 20, name="auth.verify"),
+                 match("a.py", 30, 40, name="json.dumps"),
+                 match("a.py", 50, 60, name="len")]
+        self.assertEqual(
+            matches_to_call_edges(funcs, calls, known={"verify", "handler"},
+                                  internal_only=True),
+            [{"from": "handler", "to": "verify"}],
+        )
+
+    def test_without_known_names_behaviour_is_unchanged(self):
+        funcs = [match("a.py", 0, 100, name="handler")]
+        calls = [match("a.py", 10, 20, name="auth.verify")]
+        self.assertEqual(
+            matches_to_call_edges(funcs, calls),
+            [{"from": "handler", "to": "auth.verify"}],
+        )
+
+
 class DedupeMatchesTest(unittest.TestCase):
     """Several patterns per language can hit the same source span.
 

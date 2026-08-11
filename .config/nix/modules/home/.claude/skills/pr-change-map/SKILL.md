@@ -53,6 +53,9 @@ PR *is* and pick the diagram type before drawing (Step 2).
 
 ### Step 1 — Identify the change set
 
+The snippets in this skill are **bash**. In another shell, run them with
+`bash -c '...'` or write them to a file rather than pasting them.
+
 ```bash
 # Advance on an unusable RESULT, not on a non-zero exit code. `git merge-base
 # main HEAD` exits 0 and returns HEAD itself when the PR branch *is* main — the
@@ -103,8 +106,8 @@ This branch decides which of the steps below you run:
   draws attention to the wrong place. Instead drive the diagram from
   `archetype_signals.py` plus a direct read of the **full touched
   function/module, not just the diff** (the script is a diff-only lower bound —
-  see the reference's blind-spot note), run Step 6 (complexity) only if it adds
-  signal, and go to Step 7. Lead with the matching diagram and state what it
+  see the reference's blind-spot note), run Step 6 (complexity) — run it by default and
+  drop the table only when no changed function's CC moved — and go to Step 7. Lead with the matching diagram and state what it
   cannot show; demote the dependency graph to one line or drop it if it
   degenerates.
 
@@ -182,8 +185,13 @@ never block on tooling.
 ### Step 4 — Diff the graphs
 
 ```bash
+# First pass to read the distribution, then set the threshold from it. A fixed 5
+# highlights nothing in a repo whose max fan-in is 2, and everything in a large
+# one; the script already computes the distribution, so do not guess.
+python scripts/diff_deps.py /tmp/deps-base.json /tmp/deps-head.json > /tmp/t.json
+T=$(python3 -c "import json;s=json.load(open('/tmp/t.json'))['fan_in_stats'];print(max(3,int(s['median'])+2))")
 python scripts/diff_deps.py /tmp/deps-base.json /tmp/deps-head.json \
-  --fan-in-threshold 5 --mermaid > /tmp/deps-diff.json
+  --fan-in-threshold $T --mermaid > /tmp/deps-diff.json
 ```
 
 Output includes: added/removed edges, new/resolved cycles, nodes whose
@@ -264,12 +272,18 @@ files). A fact, not a flag — the reader decides what to do with it.
 Then the **blast radius**:
 
 ```bash
+# --internal-only drops callees defined nowhere in the tree (builtins, stdlib,
+# methods on parameters). Use it for a new module's internal graph, where those
+# nodes are noise; leave it off when external dependencies are part of the story.
+python scripts/astgrep_extract.py calls --lang <lang> --repo . --internal-only . \
+  > /tmp/callgraph-head.json
 python scripts/call_graph_slice.py /tmp/callgraph-head.json \
-  --changed "funcA,ClassB.method,parse_config" --depth 2 --mermaid \
-  > /tmp/blast.json
+  --changed "funcA,parse_config" --depth 2 --mermaid > /tmp/blast.json
 ```
 
-This BFS-walks callers (and callees, depth-limited) of every changed
+Pass changed symbols by their **definition** name (`verify`, not `auth.verify`):
+`calls` resolves qualified call sites back to the definition, so one function is
+one node. This BFS-walks callers (and callees, depth-limited) of every changed
 symbol. Changed nodes are red, transitive callers yellow. This answers the
 reader's real question: *if I touch this, what else is in scope?*
 
@@ -320,6 +334,13 @@ surface unchanged (verified)"), never an empty diagram and never silently
 absent. The archetype from Step 2 decides which rung carries its special
 diagram — data-flow at L1, state-machine at L2 — not whether the ladder is
 used.
+
+**The ladder order always wins over "lead with the primary diagram".** When the
+primary archetype's diagram lands at L2, do not reorder the rungs: say so in one
+clause in "What changed" ("the change lives in the lifecycle field; its diagram
+is at L2") and let the reader walk down. A second diagram needs **both** a free
+rung **and** its own earns-its-space bar cleared — the per-rung cap and the
+secondary-archetype default are a conjunction, not alternatives.
 
 Present the markdown to the user in chat. **Do not post it to the PR** — this
 skill produces a map for a reader, not a comment for an author. If the user
