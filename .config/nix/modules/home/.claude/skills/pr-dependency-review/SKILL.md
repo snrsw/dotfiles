@@ -16,6 +16,10 @@ Produce a structured, visual review of how a PR changes dependencies and
 complexity. The goal is to lower reviewer load: tell them *where to look*,
 *what got riskier*, and *what got better*.
 
+Want the analysis without the review — no risk rating, no verdict, no PR
+comment, just a map of what the change touches? Use the `pr-change-map` skill
+instead. It runs the same Steps 1–6 and ends in a factual brief.
+
 ## Core idea
 
 All language-specific tools are normalized into one common edge-list JSON
