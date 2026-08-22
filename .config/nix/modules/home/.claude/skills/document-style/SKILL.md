@@ -1,6 +1,6 @@
 ---
 name: document-style
-description: Document structure and writing standards for any prose document — design docs, READMEs, proposals, articles, reports, explanations, wikis. Use whenever writing or revising a document, even if the user just says "write a doc", "write up X", "explain X", "draft a proposal", or "document this". Covers top-down structure, argument ordering, paragraph and sentence discipline, vocabulary, lists and hierarchy, tables, references, figures, and examples. Language-agnostic — apply to English and Japanese documents alike.
+description: Document structure and writing standards for any prose document — design docs, READMEs, proposals, articles, reports, explanations, wikis. Use whenever writing or revising a document, even if the user just says "write a doc", "write up X", "explain X", "draft a proposal", or "document this". Covers top-down structure, argument ordering, assumed knowledge, paragraph and sentence discipline, vocabulary, lists and hierarchy, tables, references, figures, and examples. Language-agnostic — apply to English and Japanese documents alike.
 ---
 
 # Document Style
@@ -35,6 +35,26 @@ Present material in this order:
 Attach an example to every important definition, problem, and solution. Examples are never optional decoration: a rule the reader cannot instantiate is a rule they have not understood. When you cannot exemplify everything, attach the example to what the reader will use first — an API doc that exemplifies a rarely-used endpoint but not the one every client integrates first has its examples backwards.
 
 Use a figure wherever it explains structure or flow better than prose — architecture, sequences, state transitions, data flow. A reader parses in seconds a diagram that prose would take paragraphs to serialize.
+
+## Assumed Knowledge
+
+Assume as little prior knowledge as possible. Write for the least-prepared reader who plausibly opens the document — a new team member, a reader from a neighboring team — not for the colleague who already knows the material. The knowledge the writer gained while producing the work is exactly the knowledge the reader lacks.
+
+- Define every term of art and expand every acronym at first use, even ones that feel obvious inside the team.
+- Do not depend on unstated context — prior meetings, chat threads, project history. State the needed fact in the document itself.
+- When the background is too large to inline, link it and summarize in one clause what the reader needs from it, so reading continues without following the link.
+
+A gloss is one clause, not a tutorial. The goal is that the reader can keep reading, not that the document teaches the whole field — depth belongs in the linked source.
+
+**Example:**
+
+> Bad: "After the cutover, shadow writes go through the DAL."
+>
+> Good: "After the cutover (the moment reads switch from the old database to the new one), writes are still duplicated to both databases ("shadow writes") through the data-access layer (DAL)."
+
+The bad version requires three pieces of team-internal knowledge. The good version carries each in one inline clause, and a reader from outside the project follows it on first read.
+
+Test a draft by imagining its least-prepared plausible reader: every sentence they cannot follow marks a term to define, a fact to state, or a link to add.
 
 ## Paragraphs and Sentences
 
@@ -140,6 +160,7 @@ A structural label at the head of a list item ("**Problem awareness** — …") 
 - [ ] Truncating at any section boundary leaves a non-misleading document
 - [ ] Order: problem awareness → definitions → formalized problem → solution
 - [ ] Every important definition, problem, and solution has an example
+- [ ] Terms of art and acronyms are defined at first use; no unstated context (meetings, chats, project history) is needed to follow the document
 - [ ] Each paragraph's first sentence announces its topic
 - [ ] Each sentence carries one meaning
 - [ ] Every sentence adds information — no announcement sentences, and no sentence whose deletion changes nothing
