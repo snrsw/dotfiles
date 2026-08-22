@@ -38,7 +38,7 @@ Use a figure wherever it explains structure or flow better than prose — archit
 
 ## Assumed Knowledge
 
-Assume as little prior knowledge as possible. Write for the least-prepared reader who plausibly opens the document — a new team member, a reader from a neighboring team — not for the colleague who already knows the material. The knowledge the writer gained while producing the work is exactly the knowledge the reader lacks.
+Assume zero prior knowledge of the topic. The reader brings the general skills of their profession — an engineer can read code, a reader can follow an argument — but nothing about this topic: no term, no history, no context. Everything the document needs, the document supplies. The knowledge the writer gained while producing the work is exactly the knowledge the reader lacks.
 
 - Define every term of art and expand every acronym at first use, even ones that feel obvious inside the team.
 - Do not depend on unstated context — prior meetings, chat threads, project history. State the needed fact in the document itself.
@@ -52,9 +52,9 @@ A gloss is one clause, not a tutorial. The goal is that the reader can keep read
 >
 > Good: "After the cutover (the moment reads switch from the old database to the new one), writes are still duplicated to both databases ("shadow writes") through the data-access layer (DAL)."
 
-The bad version requires three pieces of team-internal knowledge. The good version carries each in one inline clause, and a reader from outside the project follows it on first read.
+The bad version requires three pieces of team-internal knowledge. The good version carries each in one inline clause, and a reader who has never heard of the project follows it on first read.
 
-Test a draft by imagining its least-prepared plausible reader: every sentence they cannot follow marks a term to define, a fact to state, or a link to add.
+Test a draft against a reader who knows nothing about the topic: every sentence such a reader cannot follow marks a term to define, a fact to state, or a link to add.
 
 ## Paragraphs and Sentences
 
@@ -160,7 +160,7 @@ A structural label at the head of a list item ("**Problem awareness** — …") 
 - [ ] Truncating at any section boundary leaves a non-misleading document
 - [ ] Order: problem awareness → definitions → formalized problem → solution
 - [ ] Every important definition, problem, and solution has an example
-- [ ] Terms of art and acronyms are defined at first use; no unstated context (meetings, chats, project history) is needed to follow the document
+- [ ] The document reads with zero prior knowledge of its topic: terms of art and acronyms are defined at first use, and no unstated context (meetings, chats, project history) is needed
 - [ ] Each paragraph's first sentence announces its topic
 - [ ] Each sentence carries one meaning
 - [ ] Every sentence adds information — no announcement sentences, and no sentence whose deletion changes nothing
