@@ -146,6 +146,15 @@ in
       }}/empirical-prompt-tuning";
       recursive = true;
     };
+    ".claude/skills/eli5" = {
+      source = "${pkgs.fetchFromGitHub {
+        owner = "anthropics";
+        repo = "claude-plugins-community";
+        rev = "f4c9452f5ca091f1be7064d9faab1b001ea21645";
+        sha256 = "01bskp4cs849iam6a5qim7fjrjyqxxfkcbyv0w03myzlj6gwiaw8";
+      }}/eli5/skills/eli5";
+      recursive = true;
+    };
   };
 
   # Home Manager can also manage your environment variables through
