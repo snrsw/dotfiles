@@ -42,6 +42,16 @@ Write in paragraphs by default. Open each paragraph by stating what it will disc
 
 Give each sentence one meaning. When a sentence carries two claims, split it. A period tells the reader: digest this before moving on.
 
+Every sentence must add information. A sentence that only announces another sentence — "Let me state the conclusion first", 「結論を先に述べます」 — adds nothing; state the conclusion itself. Test by deletion: if removing a sentence leaves the document's information unchanged, remove the sentence.
+
+**Example:**
+
+> Bad: "First, let me state the conclusion. We should remove the retry queue."
+>
+> Good: "We should remove the retry queue."
+
+The announcement sentence carries nothing the conclusion does not. Leading with the conclusion needs no announcement — the conclusion's position already announces it.
+
 Use punctuation deliberately to control the reader's load:
 
 - A comma separates items within one thought and marks a small pause — a breath when read aloud.
@@ -54,9 +64,25 @@ Punctuation sets the reader's rhythm. Reading a passage aloud is a fast test of 
 
 Use plain words. Prefer the everyday term over the impressive one; the reader's energy should go to the content, not the phrasing.
 
+Match the telling to the fact. An easy fact takes one plain sentence — no build-up, no padding. A complex fact still takes simple sentences: state the rule plainly, then let an example carry the complexity.
+
+**Example:**
+
+> Easy fact: "The poll interval is 250 ms."
+>
+> Complex fact: "Retries back off exponentially with full jitter: attempt 2 waits 0–400 ms, attempt 3 waits 0–800 ms, capped at 30 s."
+
 Repeat the same word for the same concept. Do not rotate synonyms for aesthetic variety — every new word forces the reader to check whether it means something new. Once a term is defined, keep using that exact term. This holds across every representation: prose, tables, figures, headings, and identifiers must all carry the one term — a section named "Appendix" in one place and its translation in another reads as two different things.
 
 Do not coin a name for a concept the document uses only once; state the idea plainly. Introduce a name only when the document will refer back to it.
+
+Do not use metaphor. Explain with words that already appear in the context — the document's own nouns and verbs. A metaphor imports a second vocabulary the reader must map back onto the first, and the mapping is where misreadings start.
+
+**Example:**
+
+> Bad: "The scheduler is the conductor of the pipeline."
+>
+> Good: "The scheduler decides which pipeline stage runs next."
 
 State things concisely, without decoration. Delete sentences that only build atmosphere.
 
@@ -96,6 +122,18 @@ A table that summarizes prose must agree with that prose. Readers skim tables fi
 >
 > Good: a status column limited to "adopted / declined / deferred / out of scope", with the nuance ("adopted; format under discussion") in a notes column.
 
+## Emphasis
+
+Bold marks core sentences only. The bold sentences form a skim layer: a reader who reads nothing but the bold text must still get the document's essence, so they can choose that layer for an overview and the full text for depth. Every bolded fragment that is not a core sentence — an adverb, a warning label, a keyword — pollutes the layer and dilutes the sentences that earn it.
+
+**Example:**
+
+> Bad: "**Note:** the migration is **very** slow, so plan the deploy window **carefully**."
+>
+> Good: "**Deploys are blocked until the migration completes.** The migration takes about 40 minutes on the production dataset, so schedule the deploy window after it."
+
+A structural label at the head of a list item ("**Problem awareness** — …") works as a small heading, not emphasis; the skim-layer rule governs bold inside prose.
+
 ## Checklist for Revision
 
 - [ ] The opening states the subject, the motivation, and the key conclusion before any detail
@@ -104,14 +142,18 @@ A table that summarizes prose must agree with that prose. Readers skim tables fi
 - [ ] Every important definition, problem, and solution has an example
 - [ ] Each paragraph's first sentence announces its topic
 - [ ] Each sentence carries one meaning
+- [ ] Every sentence adds information — no announcement sentences, and no sentence whose deletion changes nothing
 - [ ] The same term is used for the same concept throughout — in prose, tables, figures, and headings alike
 - [ ] No coined terms that appear only once
+- [ ] No metaphor — explanations use words already in the context
+- [ ] Easy facts are stated in one plain sentence; complex facts are stated simply, with an example carrying the complexity
 - [ ] Facts and speculation are explicitly distinguished
 - [ ] Parallel items are bullet lists; hierarchical content is nested structure
 - [ ] Each table column holds one kind of content; status columns use a small closed set of values; tables agree with the prose
 - [ ] No back-jumps: earlier content needed later is restated inline
 - [ ] References are linked inline at the point of use
 - [ ] Figures are used where structure or flow beats prose
+- [ ] Bold marks core sentences only — reading just the bold sentences gives the document's essence
 
 ## Verification Loop
 

@@ -39,7 +39,9 @@
       "name": "revise-messy-architecture",
       "prompt": "Revise this Architecture section of our README. Keep all of the technical information, but improve the structure and writing so it is easy to read. Save the result as revised-architecture.md.",
       "expected_output": "A revision that adds an overview before the low-level details, splits run-on sentences so each carries one meaning, replaces the rotating synonyms (component/module/service/subsystem/engine) with one consistent term per referent, removes decoration and marks speculation as speculation, converts parallel items into bullet lists, resolves back-references by restating inline, and links references at the point of use.",
-      "files": ["files/messy-architecture.md"],
+      "files": [
+        "files/messy-architecture.md"
+      ],
       "assertions": [
         "overview-first: an overview of what SyncWorker does precedes the low-level details (poll interval, buffer size, backoff)",
         "one-meaning-per-sentence: the original run-on sentences are split, no sentence chains 3+ independent facts with 'and'",
@@ -50,6 +52,23 @@
         "no-back-references: 'described earlier' / 'the section above' / 'as previously mentioned' are resolved by restating inline",
         "inline-references: reference [2] is named or linked inline at the point of use, not only as a trailing numeric citation",
         "information-preserved: all technical facts survive (250ms poll, 16KB buffer, backoff 500ms to 32s, checkpoints/ dir, StatsD UDP 8125, YAML/env/CLI merge, shared connection pool)"
+      ]
+    },
+    {
+      "id": 3,
+      "name": "revise-overwrought-rollout",
+      "prompt": "Revise this rollout plan. Keep all of the technical information, but improve the writing so it is easy to read and easy to skim. Save the result as revised-rollout.md.",
+      "expected_output": "A revision that deletes the announcement sentences and states the staged-rollout conclusion directly, replaces every metaphor with the document's own terms, states the shadow-phase duration in one plain sentence, adds a concrete example for the weight-doubling scheme, and moves bold onto core sentences only so that reading just the bold text gives the plan's essence.",
+      "files": [
+        "files/overwrought-rollout.md"
+      ],
+      "assertions": [
+        "entropy: the announcement sentences ('let me first explain', 'in this document we will describe') are deleted and the staged-rollout conclusion is stated directly",
+        "no-metaphor: 'beating heart', 'tightrope walk', and the orchestra/movements framing are replaced with plain terms already in the context (index, cutover, phases)",
+        "easy-fact-easily: the shadow phase duration is stated in one plain sentence, without 'it should be noted' padding",
+        "complex-fact-example: the weight-doubling scheme comes with a concrete example (e.g. 5% -> 10% -> 20% with hold times)",
+        "bold-skim-layer: bold appears only on core sentences, never on labels or adverbs ('Note:', 'very', 'extremely'), and reading only the bold sentences yields the plan's essence",
+        "information-preserved: the three phases, the one-week shadow, weighted doubling with holds, and the search.v2.enabled rollback flag all survive"
       ]
     }
   ]
