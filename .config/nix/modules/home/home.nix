@@ -7,6 +7,14 @@ let
     rev = "205b6e0b30366a969412d9aab7b99bea99d58db1";
     sha256 = "1qyxyrhxrqaybww0zyxvnzzg0khz7q4wg0s0585ys15ljkjlw9nj";
   };
+  # Matt Pocock's skills collection (skills.sh/mattpocock/skills). Hoisted here
+  # because more than one skill below is taken from the same pinned checkout.
+  mattpocockSkills = pkgs.fetchFromGitHub {
+    owner = "mattpocock";
+    repo = "skills";
+    rev = "5b15a47f2d7150f545fbcacbfe381787fc0230dc";
+    sha256 = "0n9swpmvvrkzwh4yx2ya63hyr0knvpsqzrahmj3rc0vasfi01w0l";
+  };
 in
 
 {
@@ -153,6 +161,17 @@ in
         rev = "f4c9452f5ca091f1be7064d9faab1b001ea21645";
         sha256 = "01bskp4cs849iam6a5qim7fjrjyqxxfkcbyv0w03myzlj6gwiaw8";
       }}/eli5/skills/eli5";
+      recursive = true;
+    };
+    # grill-me is only a user-invocable trigger whose SKILL.md says "Call the
+    # Skill tool with grilling" — the actual behavior lives in grilling, so the
+    # two must be installed together.
+    ".claude/skills/grill-me" = {
+      source = "${mattpocockSkills}/skills/productivity/grill-me";
+      recursive = true;
+    };
+    ".claude/skills/grilling" = {
+      source = "${mattpocockSkills}/skills/productivity/grilling";
       recursive = true;
     };
   };
