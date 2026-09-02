@@ -80,7 +80,7 @@ The five rails below are shared word-for-word with `loop-automation` and
 ## Response style
 
 The batch summary from step 5 is what the user actually reads after an unattended
-run, so the `response-style` rule applies to it.
+run.
 
 - **Lead with the batch outcome** — how many issues reached a draft PR, how many
   are blocked — before the per-issue detail.

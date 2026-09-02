@@ -213,8 +213,7 @@ markdown to the user.
 
 ## Response style
 
-The `response-style` rule names "review comments" explicitly. The comment
-template above fixes the structure; these govern the prose inside it.
+The comment template above fixes the structure; these govern the prose inside it.
 
 - **Verdict leads with the conclusion** — did coupling and complexity go up or
   down — then the evidence. A reviewer who reads only the Verdict must come away

@@ -35,8 +35,7 @@ Use `<type emoji>(<target>): <description>` format. `<type emoji>` indicates cha
 
 ### Response Style
 
-The `response-style` rule names "commit messages" explicitly. It applies to both
-the subject line and the body.
+These rules apply to both the subject line and the body.
 
 - **Subject line carries one meaning.** If it needs an "and", the commit probably
   needs splitting — see "Unrelated changes" above.

@@ -189,4 +189,3 @@ policy ≥ 80 with no confirmed critical/high issue, MAX_ROUNDS = 3.
 ## Related Skills
 
 - `japanese-technical-writing` — Japanese-specific manuscript rules (formatting, phrasing, banned filler expressions). Apply both when writing Japanese manuscripts.
-- `response-style` rule (`.claude/rules/response-style.md`) — the always-on, response-scale subset of this skill; it applies to every output, not only documents. When editing the sentence-level, vocabulary, or table rules here, update the rule to match.

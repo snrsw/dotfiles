@@ -179,8 +179,7 @@ The five rails below are shared word-for-word with `loop-automation` and
 ## Response style
 
 The scored contract is machine-parsed, but its string fields are read by a human
-the moment the loop stalls, and the closing report is read every time. The
-`response-style` rule applies to both.
+the moment the loop stalls, and the closing report is read every time.
 
 - **`reason` and `issue` strings carry one meaning each**, in plain words. A
   finding that bundles two defects splits into two findings, or the reviser fixes

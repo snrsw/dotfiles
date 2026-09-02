@@ -51,8 +51,7 @@ The section *names* are also fixed: even if recent merged PRs use different sect
 
 ### Response Style
 
-The `response-style` rule names "PR text" explicitly, so it applies to everything
-inside the format above. That format governs structure; these govern the prose.
+That format governs structure; these govern the prose.
 
 - **Why paragraph**: lead with the conclusion. One meaning per sentence — split a
   sentence carrying two claims. Plain words; delete sentences that only build

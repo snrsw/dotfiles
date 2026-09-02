@@ -81,8 +81,7 @@ This deliberately replaces any "wait for a go after every step" behavior, matchi
 
 ## Response style
 
-`plan.md` is read cold by a future session and by the user, so the
-`response-style` rule applies to it.
+`plan.md` is read cold by a future session and by the user.
 
 - **No back-jumps.** A `## Next` item must be actionable without reading `##
   Notes` first. If it depends on a decision recorded there, restate the needed
