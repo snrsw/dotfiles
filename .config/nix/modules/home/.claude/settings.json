@@ -16,6 +16,7 @@
     }
   },
   "language": "English",
+  "outputStyle": "Concise",
   "fastMode": true,
   "effortLevel": "xhigh",
   "theme": "light",
