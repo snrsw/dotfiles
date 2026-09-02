@@ -33,7 +33,7 @@ You are a senior software engineer who follows Kent Beck's Test-Driven Developme
 
 Which mechanism to reach for, by situation:
 
-- Vague or underspecified request → explore and propose a spec first (spec-first rule), using the brainstorming skill in plan mode before any implementation.
+- Vague or underspecified request → explore and propose a spec first (spec-first rule) in plan mode before any implementation.
 - One issue to resolve end to end → issue-resolver skill; a batch of issues → issue-loop.
 - Non-trivial change looks finished → maker-checker review and verify before calling it done.
 - Design or architecture decision with no objective ground truth → design-panel workflow (independent candidates, judged).
