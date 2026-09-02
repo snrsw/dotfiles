@@ -34,7 +34,7 @@ The C-wave (2026-07-30) applies the Claude 5 context-engineering rules (trust ju
 - MAX_PARALLEL = 10 is a user decision (DR); do NOT "correct" it back to 4.
 - Do NOT: reintroduce Workflow-tool or /goal-based orchestration in any skill.
 - Do NOT: touch golang-pr-review (user instruction — excluded from scope: no adopt, no refactor, no evals).
-- Deferred deliberately (not unfinished work): pr-body self-check; .agents/skills codex-portability rewrite; the superpowers plugin's 9 trigger-competing skills (DR 2026-07-30 — separate follow-up).
+- Deferred deliberately (not unfinished work): pr-body self-check; the `.agents/skills` codex-portability *content* rewrite — the delivery plumbing landed 2026-09-02 (all 21 skills and the three rules now load in Codex; see decisions.md), so what remains is rewording the 7 skills that name Claude-only tools; the superpowers plugin's 9 trigger-competing skills (DR 2026-07-30 — separate follow-up).
 - Deferred: safety rails stay inline in all three loop skills (an unattended issue-resolver run never loads loop-automation); C3 made the five leads word-identical so drift is grep-checkable. Do NOT "finish" this by collapsing them to one file.
 - Deferred: `replay-prompt/references/examples.md` deliberately drops the old worked example's invented eval scores ("Minimal 17/25, …"). Fabricated numbers anchor a fresh session; Phase 5's deliverable #3 is described in the skill body instead. Do NOT restore them.
 - empirical-prompt-tuning stays third-party-pinned (home.nix:127); skill-lint must whitelist it.
