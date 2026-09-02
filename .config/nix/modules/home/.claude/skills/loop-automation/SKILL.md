@@ -63,7 +63,7 @@ together:
 - **Bound every loop.** Every loop has an explicit stop predicate or round cap; a stuck item is logged blocked and raised as a DR, not retried forever.
 - **Cap cost — parallelism is the trap.** Cap parallel subagents explicitly (each one multiplies token burn; unbounded fan-out has produced four-to-five-figure bills) and use a cheap model for triage.
 - **Verify, don't self-grade.** Reviewers are separate fresh-context agents (`maker-checker`); no agent scores its own artifact.
-- **Escalate, don't guess.** Protected domains and unreachable thresholds surface as DRs (`decision-required`), not autonomous decisions.
+- **Escalate, don't guess.** Protected domains (auth, payments, data deletion or migration, security config, infrastructure, breaking API contracts, licensing) and unreachable thresholds surface as DRs, not autonomous decisions.
 
 Heartbeat-specific rails (the parallelism and worktree rails apply only when a run dispatches parallel subagents):
 

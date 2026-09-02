@@ -129,10 +129,6 @@ in
       source = ./.claude/skills;
       recursive = true;
     };
-    ".claude/rules" = {
-      source = ./.claude/rules;
-      recursive = true;
-    };
     ".claude/workflows" = {
       source = ./.claude/workflows;
       recursive = true;

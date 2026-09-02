@@ -140,7 +140,7 @@ not a spike.
    `id` = short slug). Read the issue and the related code. Start `plan.md` in the
    worktree root with the issue's acceptance criteria.
 2. **Protected-domain gate.** If the issue touches a protected domain
-   (`decision-required` lists them), raise a DR up front and fold the resolution
+   (auth, payments, data deletion or migration, security config, infrastructure, breaking API contracts, licensing), raise a DR up front and fold the resolution
    into the plan and the PR — never decide autonomously.
 3. **Analyze.** Fan out one subagent per angle, in parallel: root cause & affected
    components; constraints & protected domains; existing utilities to reuse; edge
@@ -174,7 +174,7 @@ The five rails below are shared word-for-word with `loop-automation` and
 - **Bound every loop.** MAX_ROUNDS per scored loop; a stuck item is logged blocked and raised as a DR, not retried forever.
 - **Cap cost — parallelism is the trap.** MAX_PARALLEL = 10 shared across all concurrent subagents; MAX_SPIKES caps exploration; spikes always run in throwaway worktrees.
 - **Verify, don't self-grade.** Reviewers are separate fresh-context agents (`maker-checker`); no agent scores its own artifact.
-- **Escalate, don't guess.** Protected domains and unreachable thresholds surface as DRs (`decision-required`), not autonomous decisions.
+- **Escalate, don't guess.** Protected domains (auth, payments, data deletion or migration, security config, infrastructure, breaking API contracts, licensing) and unreachable thresholds surface as DRs, not autonomous decisions.
 
 ## Response style
 

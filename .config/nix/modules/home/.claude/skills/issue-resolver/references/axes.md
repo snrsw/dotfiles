@@ -23,7 +23,7 @@ plan-phase axis that needs evidence to score honestly can be marked
 - *correctness* — mutation-tested, not just green
 - *spec-fit* — incl. no scope creep
 - *test coverage* — a test must fail on pre-change behavior
-- *security* — the protected domains in `decision-required`
+- *security* — the protected domains (auth, payments, data deletion or migration, security config, infrastructure, breaking API contracts, licensing)
 - *performance* — hot paths, complexity, allocations, N+1 / unnecessary work
 - *architecture* — macro: boundaries, dependency direction, coupling; no cycles
 - *design* — micro: type/API design, encapsulation, invariants — the unit, not the wiring

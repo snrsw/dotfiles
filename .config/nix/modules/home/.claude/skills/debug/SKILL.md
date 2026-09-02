@@ -54,7 +54,7 @@ Before writing any fix code, write a failing test that reproduces the bug. This 
 - Run the full test suite, not just the regression test
 - Confirm the original reproduction case now behaves correctly
 - Check for side effects -- did fixing this break something else?
-- If the fix touches a protected domain (`decision-required` lists them), trigger a DR before merging
+- If the fix touches a protected domain (auth, payments, data deletion or migration, security config, infrastructure, breaking API contracts, licensing), trigger a DR before merging
 
 ### Golden Rules
 

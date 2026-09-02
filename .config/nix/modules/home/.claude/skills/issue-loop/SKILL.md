@@ -75,7 +75,7 @@ The five rails below are shared word-for-word with `loop-automation` and
 - **Bound every loop.** The outer loop exits on the stop predicate and the per-issue loops on issue-resolver's MAX_ROUNDS; a stuck item is logged blocked and raised as a DR, not retried forever.
 - **Cap cost — parallelism is the trap.** MAX_PARALLEL = 10 shared across everything; split very large batches across runs, or use lightweight mode.
 - **Verify, don't self-grade.** Reviewers are separate fresh-context agents (`maker-checker`); no agent scores its own artifact.
-- **Escalate, don't guess.** Protected domains and unreachable thresholds surface as DRs (`decision-required`), not autonomous decisions.
+- **Escalate, don't guess.** Protected domains (auth, payments, data deletion or migration, security config, infrastructure, breaking API contracts, licensing) and unreachable thresholds surface as DRs, not autonomous decisions.
 
 ## Response style
 
