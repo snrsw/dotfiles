@@ -15,6 +15,28 @@ let
     rev = "5b15a47f2d7150f545fbcacbfe381787fc0230dc";
     sha256 = "0n9swpmvvrkzwh4yx2ya63hyr0knvpsqzrahmj3rc0vasfi01w0l";
   };
+
+  # ./.claude/skills is the single source for both agents, but they discover
+  # skills differently. Claude Code reads the whole tree, so ".claude/skills"
+  # below can stay recursive. Codex scans ~/.agents/skills and does NOT follow a
+  # symlinked SKILL.md — and `recursive = true` produces exactly that (a real
+  # directory holding one symlink per file), so every skill was invisible to it.
+  # Linking each skill directory as a unit is what Codex does follow.
+  # Verified on codex-cli 0.151.0 with `codex debug prompt-input`, which renders
+  # the model-visible prompt: before, only terminal-browser (a whole-directory
+  # link from darwin.nix) appeared; after, all of these do.
+  ownSkillNames = builtins.attrNames (
+    lib.filterAttrs (_name: type: type == "directory") (builtins.readDir ./.claude/skills)
+  );
+
+  agentsSkillLinks = lib.listToAttrs (
+    map (
+      name:
+      lib.nameValuePair ".agents/skills/${name}" {
+        source = ./.claude/skills + "/${name}";
+      }
+    ) ownSkillNames
+  );
 in
 
 {
@@ -104,7 +126,8 @@ in
 
   # Home Manager is pretty good at managing dotfiles. The primary way to manage
   # plain files is through 'home.file'.
-  home.file = {
+  # agentsSkillLinks adds one ~/.agents/skills/<skill> entry per skill.
+  home.file = agentsSkillLinks // {
     # # Building this configuration will create a copy of 'dotfiles/screenrc' in
     # # the Nix store. Activating the configuration will then make '~/.screenrc' a
     # # symlink to the Nix store copy.
@@ -121,10 +144,6 @@ in
     # claudeSettingsWritable activation below, which installs a writable copy so
     # interactive toggles like `/effort` can persist.
     ".codex/AGENTS.md".source = ./.claude/CLAUDE.md;
-    ".agents/skills" = {
-      source = ./.claude/skills;
-      recursive = true;
-    };
     ".claude/skills" = {
       source = ./.claude/skills;
       recursive = true;
