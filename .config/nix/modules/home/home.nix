@@ -15,6 +15,45 @@ let
     rev = "5b15a47f2d7150f545fbcacbfe381787fc0230dc";
     sha256 = "0n9swpmvvrkzwh4yx2ya63hyr0knvpsqzrahmj3rc0vasfi01w0l";
   };
+
+  # ./.claude/skills is the single source for both agents, but they discover
+  # skills differently. Claude Code reads the whole tree, so ".claude/skills"
+  # below can stay recursive. Codex scans ~/.agents/skills and does NOT follow a
+  # symlinked SKILL.md — and `recursive = true` produces exactly that (a real
+  # directory holding one symlink per file), so every skill was invisible to it.
+  # Linking each skill directory as a unit is what Codex does follow.
+  # Verified on codex-cli 0.151.0 with `codex debug prompt-input`, which renders
+  # the model-visible prompt: before, only terminal-browser (a whole-directory
+  # link from darwin.nix) appeared; after, all of these do.
+  ownSkillNames = builtins.attrNames (
+    lib.filterAttrs (_name: type: type == "directory") (builtins.readDir ./.claude/skills)
+  );
+
+  agentsSkillLinks = lib.listToAttrs (
+    map (
+      name:
+      lib.nameValuePair ".agents/skills/${name}" {
+        source = ./.claude/skills + "/${name}";
+      }
+    ) ownSkillNames
+  );
+
+  # Codex has no equivalent of ~/.claude/rules, which Claude Code loads on its
+  # own. AGENTS.md is the one instruction file Codex does read, so the rules are
+  # concatenated onto CLAUDE.md there. Keeping the rules as separate files (not
+  # inlined into CLAUDE.md) preserves the split Claude Code relies on.
+  codexRuleNames = builtins.attrNames (
+    lib.filterAttrs (name: type: type == "regular" && lib.hasSuffix ".md" name) (
+      builtins.readDir ./.claude/rules
+    )
+  );
+
+  codexAgentsMd = pkgs.writeText "AGENTS.md" (
+    lib.concatStringsSep "\n\n" (
+      [ (builtins.readFile ./.claude/CLAUDE.md) ]
+      ++ map (name: builtins.readFile (./.claude/rules + "/${name}")) codexRuleNames
+    )
+  );
 in
 
 {
@@ -104,7 +143,8 @@ in
 
   # Home Manager is pretty good at managing dotfiles. The primary way to manage
   # plain files is through 'home.file'.
-  home.file = {
+  # agentsSkillLinks adds one ~/.agents/skills/<skill> entry per skill.
+  home.file = agentsSkillLinks // {
     # # Building this configuration will create a copy of 'dotfiles/screenrc' in
     # # the Nix store. Activating the configuration will then make '~/.screenrc' a
     # # symlink to the Nix store copy.
@@ -120,11 +160,8 @@ in
     # settings.json is intentionally NOT symlinked here — see the
     # claudeSettingsWritable activation below, which installs a writable copy so
     # interactive toggles like `/effort` can persist.
-    ".codex/AGENTS.md".source = ./.claude/CLAUDE.md;
-    ".agents/skills" = {
-      source = ./.claude/skills;
-      recursive = true;
-    };
+    # CLAUDE.md plus ~/.claude/rules/*.md — see codexAgentsMd above.
+    ".codex/AGENTS.md".source = codexAgentsMd;
     ".claude/skills" = {
       source = ./.claude/skills;
       recursive = true;

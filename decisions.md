@@ -99,3 +99,13 @@ should not "correct" these without asking.
 - **Context**: 9 superpowers skills compete with local skills (tdd, debug, git-wt, maker-checker, plan-state, issue-resolver) for the same triggers — the largest single context cost found in the audit.
 - **Decision**: Out of C-wave scope; handle as a separate follow-up task.
 - **Rationale**: Third-party plugin configuration is a different change surface (settings.json) with its own trade-offs; bundling it would blur the C-wave's verification.
+
+## DR: Codex parity for skills and rules
+- **Date**: 2026-09-02
+- **Context**: `~/.codex/AGENTS.md` and `~/.agents/skills` were already wired, but Codex loaded only 1 of the 21 skills and none of the three rules. Measured with `codex debug prompt-input` on codex-cli 0.151.0, which renders the model-visible prompt.
+- **Root cause**: Codex does not follow a symlinked `SKILL.md`. `recursive = true` on `home.file.".agents/skills"` produces exactly that — a real directory holding one symlink per file. `terminal-browser` was the only skill Codex saw because darwin.nix declares it as a whole-directory symlink. Isolated with three probe skills: real dir + real file loads, symlinked dir loads, real dir + symlinked file does not.
+- **Decision**: One `home.file` entry per skill, generated from `builtins.readDir ./.claude/skills`, so each skill directory is symlinked as a unit. Not a single non-recursive `.agents/skills` link — that would collide with darwin.nix's `terminal-browser` entry and block adding third-party skills individually.
+- **Decision**: `~/.codex/AGENTS.md` is a generated concatenation of `CLAUDE.md` plus `rules/*.md`. Codex has no equivalent of `~/.claude/rules`, and `~/.codex/rules/` is a sandbox-permission file, not instructions. The rules stay separate files on disk, so Claude Code's own loading is unchanged.
+- **Decision**: Own skills only. The four nix-pinned third-party skills (eli5, grilling, grill-me, empirical-prompt-tuning) stay Claude-only — they are written for Claude Code and untested on Codex.
+- **Decision**: No per-skill exclusion list. `loop-automation` is largely about Claude Code Routines, but it also covers GitHub Actions, and an exclusion list is one more thing to keep in sync.
+- **Verified**: All 21 skills and all three rules appear in Codex's prompt; nothing was truncated by the skills context budget. Darwin builds, Linux cross-evaluates. Rewording the 7 skills that name Claude-only tools is still deferred — see plan.md.
