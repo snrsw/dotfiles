@@ -18,7 +18,7 @@ Skip it for trivial, obviously-correct changes (a rename, a doc typo) — the ov
 ## The two roles
 
 **Maker** — produces the change.
-- Writes the code and its tests (via `tdd`).
+- Writes the code and its tests, test-first.
 - States the spec in one or two sentences: what should be true after this change, and how to tell.
 - Hands the checker the spec + the diff. Does *not* hand over its own reasoning about why it is correct.
 
@@ -48,6 +48,6 @@ Never let the agent that wrote the code be the one that signs off on it.
 
 ## Integration
 
-- **tdd** — the maker writes failing tests first; the checker confirms a test fails on the pre-change behavior (catches hallucinated correctness).
+- **test-first** — the maker writes failing tests first; the checker confirms a test fails on the pre-change behavior (catches hallucinated correctness).
 - **pr-dependency-review** — supplies the checker's structural/complexity analysis and AI-PR checks.
 - **plan-state** — record each check's verdict in `## Notes`; a failed check becomes a `## Next` item.

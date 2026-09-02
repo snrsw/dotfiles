@@ -22,7 +22,7 @@ plan-phase axis that needs evidence to score honestly can be marked
 
 - *correctness* — mutation-tested, not just green
 - *spec-fit* — incl. no scope creep
-- *test coverage* — `tdd`; a test must fail on pre-change behavior
+- *test coverage* — a test must fail on pre-change behavior
 - *security* — the protected domains in `decision-required`
 - *performance* — hot paths, complexity, allocations, N+1 / unnecessary work
 - *architecture* — macro: boundaries, dependency direction, coupling; no cycles

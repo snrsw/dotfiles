@@ -47,7 +47,5 @@ Editing the sentence, vocabulary, or table rules above means checking these for 
 | `issue-resolver` | scored-review strings and the closing report |
 | `issue-loop` | the batch summary table |
 | `plan-state` | `plan.md` |
-| `extract-skill-from-session` | skill proposals |
-| `replay-prompt` | the distilled prompt |
 | `document-style` | full prose documents; adds the doc-scale rules |
 | `japanese-technical-writing` | Japanese manuscripts; adds Japanese-specific rules |

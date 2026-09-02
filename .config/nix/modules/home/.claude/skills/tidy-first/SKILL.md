@@ -27,7 +27,7 @@ A structural change is validated by the tests: the full suite passes with
 identical results before and after. If behavior changed, it was not a pure
 structural change.
 
-## Commit gate (owned here — `tdd` and `commit-message` defer to this)
+## Commit gate (owned here — `commit-message` defers to this)
 
 Only commit when:
 

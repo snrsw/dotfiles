@@ -45,7 +45,7 @@ Binary search the problem space to find the root cause.
 
 Before writing any fix code, write a failing test that reproduces the bug. This test is the regression test -- it must fail without the fix and pass with it.
 
-1. Write a failing test for the bug (Red) -- follow the `tdd` skill's Defect Fixing workflow
+1. Write a failing test for the bug (Red) -- confirm it fails on the pre-change behavior
 2. Write the minimal fix to make the test pass (Green)
 3. If structural changes are needed to make the code testable, use `tidy-first` to separate them into their own commits before the fix
 

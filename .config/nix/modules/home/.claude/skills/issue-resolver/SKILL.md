@@ -158,7 +158,7 @@ not a spike.
       plan, and discard the spike code.
    4. Record the round's scores and confirmed findings in `plan.md`. If the round
       limit is hit with an axis still failing, mark it blocked and raise a DR.
-6. **Implement** the refined plan test-first (`tdd`) in the issue worktree — a
+6. **Implement** the refined plan test-first in the issue worktree — a
    subagent; run it in the background when the session has other work.
 7. **Review the implementation** — the same scored loop over the impl axes; the
    fix action applies confirmed findings in the worktree, keeping the spec fixed.
