@@ -385,8 +385,7 @@ posted.
 
 ## Response style
 
-The `response-style` rule applies to every output. The brief template fixes the
-structure; these govern the prose inside it.
+The brief template fixes the structure; these govern the prose inside it.
 
 - **Lead with the conclusion.** The first line of "What changed" says what the PR
   does in one sentence. A reader who stops there must still have the right idea.

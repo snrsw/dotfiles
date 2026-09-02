@@ -1,23 +1,10 @@
 {
   "enabledPlugins": {
-    "crit@crit": true,
     "pr-review-toolkit@claude-plugins-official": true,
-    "skill-creator@claude-plugins-official": true,
-    "ralph-loop@claude-plugins-official": true,
-    "rust-analyzer-lsp@claude-plugins-official": true,
-    "playwright@claude-plugins-official": true,
-    "superpowers@superpowers-marketplace": true,
-    "episodic-memory@superpowers-marketplace": true
-  },
-  "extraKnownMarketplaces": {
-    "superpowers-marketplace": {
-      "source": {
-        "source": "github",
-        "repo": "obra/superpowers-marketplace"
-      }
-    }
+    "skill-creator@claude-plugins-official": true
   },
   "language": "English",
+  "outputStyle": "Concise",
   "fastMode": true,
   "effortLevel": "xhigh",
   "theme": "light",

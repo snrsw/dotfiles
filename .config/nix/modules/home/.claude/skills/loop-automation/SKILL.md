@@ -15,10 +15,10 @@ The heartbeat of a loop: a scheduled trigger that surfaces work without you aski
 | Deterministic gate: run tests / lint, block PRs on red, scripted maintenance | **GitHub Actions** |
 | A cadence *within* a live working session (e.g. re-check CI every 20 min) | **CronCreate** (in-session) |
 | One-shot reminder later today | **CronCreate** `recurring:false` |
-| An in-session "until done" loop on one task (iterate until a completion condition holds) | **ralph-loop** plugin |
+| An in-session "until done" loop on one task (iterate until a completion condition holds) | **/loop** |
 | A self-paced in-session loop where the agent picks each next wake-up | **/loop** (ScheduleWakeup) |
 
-There are **two true unattended heartbeats**: Routines (the smart worker — Claude runs natively) and GitHub Actions (the dumb-but-reliable gate). `CronCreate`, `ralph-loop`, and `/loop` are *not* heartbeats — they are session-scoped. Loops are orchestrated with `Agent`-tool fan-out and the mechanisms above — a standing user decision — never on a harness `Workflow` tool or `/goal` built-in, even where the harness offers one. In-session until-done looping comes from `ralph-loop` or `/loop`.
+There are **two true unattended heartbeats**: Routines (the smart worker — Claude runs natively) and GitHub Actions (the dumb-but-reliable gate). `CronCreate` and `/loop` are *not* heartbeats — they are session-scoped. Loops are orchestrated with `Agent`-tool fan-out and the mechanisms above — a standing user decision — never on a harness `Workflow` tool or `/goal` built-in, even where the harness offers one. In-session until-done looping comes from `/loop`.
 
 ## Claude Code Routines — the agentic heartbeat (primary)
 
@@ -44,14 +44,13 @@ If the work is genuinely agentic, prefer a Routine over wiring an agent into Act
 
 `CronCreate` dies when Claude exits, fires only while the REPL is idle, and recurring jobs auto-expire after 7 days (`durable:true` survives restarts but still needs a live session). Use it for a cadence *within* a working session, never for automation that must run when you are away.
 
-## ralph-loop and /loop — in-session "until done" (not heartbeats)
+## /loop — in-session "until done" (not a heartbeat)
 
-Two more session-scoped mechanisms, for *until-done* rather than *time-based* looping:
+One more session-scoped mechanism, for *until-done* rather than *time-based* looping:
 
-- **ralph-loop** (plugin) re-feeds one task to the session until its completion condition holds. Use it as the outer loop of a batch — e.g. `issue-loop`'s stop predicate ("every issue has a draft PR or a Blocked entry in plan.md").
-- **/loop** (ScheduleWakeup) lets the agent schedule its own next turn, so the cadence adapts to whatever the loop is waiting on.
+- **/loop** (ScheduleWakeup) re-feeds one task to the session until its completion condition holds, and lets the agent schedule its own next turn, so the cadence adapts to whatever the loop is waiting on. Use it as the outer loop of a batch — e.g. `issue-loop`'s stop predicate ("every issue has a draft PR or a Blocked entry in plan.md").
 
-Both die with the session. Any state they need across sessions belongs in `plan-state`'s `plan.md` — same rule as Routines.
+It dies with the session. Any state they need across sessions belongs in `plan-state`'s `plan.md` — same rule as Routines.
 
 ## Safety rails (the skill's real content)
 
@@ -64,7 +63,7 @@ together:
 - **Bound every loop.** Every loop has an explicit stop predicate or round cap; a stuck item is logged blocked and raised as a DR, not retried forever.
 - **Cap cost — parallelism is the trap.** Cap parallel subagents explicitly (each one multiplies token burn; unbounded fan-out has produced four-to-five-figure bills) and use a cheap model for triage.
 - **Verify, don't self-grade.** Reviewers are separate fresh-context agents (`maker-checker`); no agent scores its own artifact.
-- **Escalate, don't guess.** Protected domains and unreachable thresholds surface as DRs (`decision-required`), not autonomous decisions.
+- **Escalate, don't guess.** Protected domains (auth, payments, data deletion or migration, security config, infrastructure, breaking API contracts, licensing) and unreachable thresholds surface as DRs, not autonomous decisions.
 
 Heartbeat-specific rails (the parallelism and worktree rails apply only when a run dispatches parallel subagents):
 

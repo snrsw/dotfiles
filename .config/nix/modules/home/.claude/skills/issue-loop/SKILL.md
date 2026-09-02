@@ -22,7 +22,7 @@ Orchestration runs on `Agent`-tool fan-out — the no-Workflow-engine decision i
 
 | Loop | Mechanism | Why |
 |---|---|---|
-| Outer "until no actionable item" | **ralph-loop**, or **/loop** (ScheduleWakeup) — armed with the stop predicate below. For a small batch, plain sequential grinding in this session is fine | the outer loop must survive many turns without re-prompting |
+| Outer "until no actionable item" | **/loop** (ScheduleWakeup) — armed with the stop predicate below. For a small batch, plain sequential grinding in this session is fine | the outer loop must survive many turns without re-prompting |
 | Per-issue body | the **issue-resolver** procedure, orchestrated from THIS session | reviewer fan-out needs the main session (see issue-resolver's mechanism mapping) |
 | Per-issue isolation | one `git-wt` worktree per issue, branch `issue/<id>` | parallel edits never collide |
 | Batch state | one batch-level `plan.md` (`plan-state`) | the loop's memory across turns and sessions |
@@ -47,7 +47,7 @@ work.
    If the list or any spec is ambiguous, confirm it with the user before starting.
 2. **Write the batch `plan.md`** (`plan-state`): every issue under `## Next`, with
    its acceptance criteria on the spec line.
-3. **Arm the outer loop** (ralph-loop or /loop) with the stop predicate above.
+3. **Arm the outer loop** (/loop) with the stop predicate above.
 4. **Per issue:** run `issue-resolver` end to end — worktree → analyze → scored
    plan loop → implement test-first → scored impl loop → draft PR. Record the PR
    URL (or the blocked reason and DR link) in the batch `plan.md` and move the
@@ -75,12 +75,12 @@ The five rails below are shared word-for-word with `loop-automation` and
 - **Bound every loop.** The outer loop exits on the stop predicate and the per-issue loops on issue-resolver's MAX_ROUNDS; a stuck item is logged blocked and raised as a DR, not retried forever.
 - **Cap cost — parallelism is the trap.** MAX_PARALLEL = 10 shared across everything; split very large batches across runs, or use lightweight mode.
 - **Verify, don't self-grade.** Reviewers are separate fresh-context agents (`maker-checker`); no agent scores its own artifact.
-- **Escalate, don't guess.** Protected domains and unreachable thresholds surface as DRs (`decision-required`), not autonomous decisions.
+- **Escalate, don't guess.** Protected domains (auth, payments, data deletion or migration, security config, infrastructure, breaking API contracts, licensing) and unreachable thresholds surface as DRs, not autonomous decisions.
 
 ## Response style
 
 The batch summary from step 5 is what the user actually reads after an unattended
-run, so the `response-style` rule applies to it.
+run.
 
 - **Lead with the batch outcome** — how many issues reached a draft PR, how many
   are blocked — before the per-issue detail.

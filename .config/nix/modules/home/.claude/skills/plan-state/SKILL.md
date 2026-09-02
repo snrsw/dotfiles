@@ -55,7 +55,7 @@ Location: for code, the repo root — or the worktree root when working under `g
 On activation or resume:
 
 1. **Read `plan.md`.** The top unmarked item in `## Next` is the current item.
-2. **Do the item against a check defined up front.** For code, that check is a test — implement it test-first via the `tdd` skill (Red → Green → Refactor). For work with no test surface (prose, research, config, ops), state the item's acceptance check before starting — what it must contain or satisfy — then do the work and verify against it. Same discipline, domain-appropriate check.
+2. **Do the item against a check defined up front.** For code, that check is a test — implement it test-first (Red → Green → Refactor). For work with no test surface (prose, research, config, ops), state the item's acceptance check before starting — what it must contain or satisfy — then do the work and verify against it. Same discipline, domain-appropriate check.
 3. **Mark it `[x]`** and move it to `## Done`. Record any decision or dead end in `## Notes`.
 4. **Advance automatically to the next item** — do *not* wait for the user — as long as the item's check passed.
 5. **Stop and surface to the user** only when one of these is true:
@@ -68,7 +68,7 @@ This deliberately replaces any "wait for a go after every step" behavior, matchi
 
 ## Resuming across sessions
 
-`plan.md` is the handoff. A fresh session reads it and continues at the top of `## Next` — no re-planning. Reach for `replay-prompt` only when the surrounding *context* (not just the checklist) also needs to move to another machine, branch, or repo.
+`plan.md` is the handoff. A fresh session reads it and continues at the top of `## Next` — no re-planning.
 
 ## Keeping plan.md honest
 
@@ -81,8 +81,7 @@ This deliberately replaces any "wait for a go after every step" behavior, matchi
 
 ## Response style
 
-`plan.md` is read cold by a future session and by the user, so the
-`response-style` rule applies to it.
+`plan.md` is read cold by a future session and by the user.
 
 - **No back-jumps.** A `## Next` item must be actionable without reading `##
   Notes` first. If it depends on a decision recorded there, restate the needed

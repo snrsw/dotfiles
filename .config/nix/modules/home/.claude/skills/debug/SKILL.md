@@ -45,7 +45,7 @@ Binary search the problem space to find the root cause.
 
 Before writing any fix code, write a failing test that reproduces the bug. This test is the regression test -- it must fail without the fix and pass with it.
 
-1. Write a failing test for the bug (Red) -- follow the `tdd` skill's Defect Fixing workflow
+1. Write a failing test for the bug (Red) -- confirm it fails on the pre-change behavior
 2. Write the minimal fix to make the test pass (Green)
 3. If structural changes are needed to make the code testable, use `tidy-first` to separate them into their own commits before the fix
 
@@ -54,7 +54,7 @@ Before writing any fix code, write a failing test that reproduces the bug. This 
 - Run the full test suite, not just the regression test
 - Confirm the original reproduction case now behaves correctly
 - Check for side effects -- did fixing this break something else?
-- If the fix touches a protected domain (`decision-required` lists them), trigger a DR before merging
+- If the fix touches a protected domain (auth, payments, data deletion or migration, security config, infrastructure, breaking API contracts, licensing), trigger a DR before merging
 
 ### Golden Rules
 
