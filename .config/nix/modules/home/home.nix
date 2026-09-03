@@ -23,8 +23,8 @@ let
   # directory holding one symlink per file), so every skill was invisible to it.
   # Linking each skill directory as a unit is what Codex does follow.
   # Verified on codex-cli 0.151.0 with `codex debug prompt-input`, which renders
-  # the model-visible prompt: before, only terminal-browser (a whole-directory
-  # link from darwin.nix) appeared; after, all of these do.
+  # the model-visible prompt: before, only a single whole-directory link
+  # appeared; after, all of these do.
   ownSkillNames = builtins.attrNames (
     lib.filterAttrs (_name: type: type == "directory") (builtins.readDir ./.claude/skills)
   );

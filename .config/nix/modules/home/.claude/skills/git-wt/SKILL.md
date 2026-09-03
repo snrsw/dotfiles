@@ -75,7 +75,6 @@ When working in a worktree, use absolute paths or `cd` into the worktree directo
 ## Integration with Other Skills
 
 - **plan-state** — `plan.md` lives in the worktree root; one plan per worktree/task.
-- **tidy-first** — structural and behavioral work can live in different worktrees, keeping the two concerns physically separated.
 
 ## Workflow Examples
 
