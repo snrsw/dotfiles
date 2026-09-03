@@ -38,22 +38,9 @@ let
     ) ownSkillNames
   );
 
-  # Codex has no equivalent of ~/.claude/rules, which Claude Code loads on its
-  # own. AGENTS.md is the one instruction file Codex does read, so the rules are
-  # concatenated onto CLAUDE.md there. Keeping the rules as separate files (not
-  # inlined into CLAUDE.md) preserves the split Claude Code relies on.
-  codexRuleNames = builtins.attrNames (
-    lib.filterAttrs (name: type: type == "regular" && lib.hasSuffix ".md" name) (
-      builtins.readDir ./.claude/rules
-    )
-  );
-
-  codexAgentsMd = pkgs.writeText "AGENTS.md" (
-    lib.concatStringsSep "\n\n" (
-      [ (builtins.readFile ./.claude/CLAUDE.md) ]
-      ++ map (name: builtins.readFile (./.claude/rules + "/${name}")) codexRuleNames
-    )
-  );
+  # Codex has no equivalent of ~/.claude/rules; AGENTS.md is the one
+  # instruction file Codex does read, so it gets a copy of CLAUDE.md there.
+  codexAgentsMd = pkgs.writeText "AGENTS.md" (builtins.readFile ./.claude/CLAUDE.md);
 in
 
 {
