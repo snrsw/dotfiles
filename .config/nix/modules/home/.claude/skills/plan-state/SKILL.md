@@ -60,7 +60,7 @@ On activation or resume:
 4. **Advance automatically to the next item** — do *not* wait for the user — as long as the item's check passed.
 5. **Stop and surface to the user** only when one of these is true:
    - All `## Next` items are done.
-   - A step fails and you cannot get it green after a reasonable attempt — switch to the `debug` skill.
+   - A step fails and you cannot get it green after a reasonable attempt.
    - A DR trigger fires (protected domain, ambiguous requirement, hard-to-reverse choice).
    - The next item needs a decision `plan.md` does not resolve.
 
@@ -101,6 +101,4 @@ This deliberately replaces any "wait for a go after every step" behavior, matchi
 
 ## Integration with other skills
 
-- **tidy-first** — structural changes get their own `## Next` entries and commits, separate from behavioral ones.
-- **debug** — if a step fails unexpectedly, switch to `debug`; add the regression test as a `## Next` item, then resume.
 - **DR pattern** — an item waiting on a decision goes under `## Blocked / DR` with a link, not silently skipped.
