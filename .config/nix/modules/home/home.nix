@@ -42,11 +42,20 @@ let
   # own. AGENTS.md is the one instruction file Codex does read, so the rules are
   # concatenated onto CLAUDE.md there. Keeping the rules as separate files (not
   # inlined into CLAUDE.md) preserves the split Claude Code relies on.
-  codexRuleNames = builtins.attrNames (
-    lib.filterAttrs (name: type: type == "regular" && lib.hasSuffix ".md" name) (
-      builtins.readDir ./.claude/rules
-    )
-  );
+  #
+  # Git does not track empty directories, so .claude/rules disappears from the
+  # repository whenever the last rule is deleted. Guard the read: an unguarded
+  # readDir aborts evaluation with "Path '.claude/rules' does not exist" on
+  # every clone that lacks the directory.
+  codexRuleNames =
+    if builtins.pathExists ./.claude/rules then
+      builtins.attrNames (
+        lib.filterAttrs (name: type: type == "regular" && lib.hasSuffix ".md" name) (
+          builtins.readDir ./.claude/rules
+        )
+      )
+    else
+      [ ];
 
   codexAgentsMd = pkgs.writeText "AGENTS.md" (
     lib.concatStringsSep "\n\n" (
