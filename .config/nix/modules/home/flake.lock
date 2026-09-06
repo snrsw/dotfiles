@@ -321,11 +321,11 @@
         "nixpkgs": "nixpkgs_4"
       },
       "locked": {
-        "lastModified": 1788660627,
-        "narHash": "sha256-9qWk9k2ajYJkPc755s+3qik+8kE7tL35stPphIu3Bvs=",
+        "lastModified": 1788694068,
+        "narHash": "sha256-gUxBrmpmJalPE3hnRco+IdnMvUi2QDGcgt2YOTVslPI=",
         "ref": "refs/heads/main",
-        "rev": "c3362cb49b5912d6d55d9e3e19bcfbbb33b2fa69",
-        "revCount": 29,
+        "rev": "d869d2820bee8ce503fce694a75c2234035aaf71",
+        "revCount": 39,
         "type": "git",
         "url": "https://github.com/snrsw/prv"
       },
