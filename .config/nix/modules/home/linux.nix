@@ -32,6 +32,12 @@
     # run-time fact, so clipboard-provider is deliberately left unset here.
     wl-clipboard
     xclip
+    # orca runs Electron out of an AppImage (see flake.nix); like vscode it
+    # needs the host's GL driver. Same package name as darwin.nix, so `orca`
+    # works on both machines. The FHS wrapper runs through bubblewrap, so a
+    # distro that blocks unprivileged user namespaces (Ubuntu 24.04's AppArmor
+    # default) needs that restriction lifted before `orca` will start.
+    (config.lib.nixGL.wrap orca)
   ];
 
   # NixOS handles fontconfig globally; standalone home-manager must opt in, or
