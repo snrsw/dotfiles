@@ -21,6 +21,9 @@
     pkgs.brewCasks.cotypist
     # Apple Silicon macOS only upstream, so it cannot move to home.nix.
     pkgs.terminal-browser
+    # orca is packaged per platform in flake.nix (DMG here, AppImage on linux);
+    # it stays out of home.nix because the linux side is nixGL-wrapped.
+    pkgs.orca
   ];
 
   # nixpkgs has no darwin ghostty build; take the cask.

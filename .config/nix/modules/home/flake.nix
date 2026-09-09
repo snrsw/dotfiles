@@ -88,6 +88,24 @@
           hash = "sha256-9gxpOrDqCqrCrOnIzPN5csfJLAD5bKYHh3Iv2KRl4wY=";
         };
       };
+      # orca: Electron desktop app for orchestrating coding agents. Not in
+      # nixpkgs; upstream ships a Homebrew tap (darwin) and an AUR package
+      # (linux), both of which just unpack a GitHub release asset, so do the
+      # same here. The hashes are of the raw asset (fetchurl, not fetchzip) and
+      # match the sha256 in upstream's Casks/orca.rb for the same version.
+      # Bump version and both hashes together:
+      #   nix-prefetch-url https://github.com/stablyai/orca/releases/download/v<ver>/<asset>
+      orcaVersion = "1.4.198";
+      orcaAsset = {
+        aarch64-darwin = {
+          name = "orca-macos-arm64.dmg";
+          hash = "sha256-bUJuOrMhbGWq11AKW0/NuQ7/B+xO8gm4jIqYo398Hlw=";
+        };
+        x86_64-linux = {
+          name = "orca-linux.AppImage";
+          hash = "sha256-Bkf5z3khBytN8Z4z7Bz1G1JsZ71F26QzTK/IOi5l2/w=";
+        };
+      };
 
       overlaysFor =
         system:
@@ -169,6 +187,73 @@
               subPackages = [ "." ];
               ldflags = [ "-s" "-w" ];
             };
+
+            orca =
+              let
+                pname = "orca";
+                version = orcaVersion;
+                asset = orcaAsset.${final.stdenv.hostPlatform.system};
+                src = final.fetchurl {
+                  url = "https://github.com/stablyai/orca/releases/download/v${version}/${asset.name}";
+                  inherit (asset) hash;
+                };
+                meta = {
+                  description = "IDE for orchestrating AI coding agents across terminals and worktrees";
+                  homepage = "https://onorca.dev/";
+                  downloadPage = "https://github.com/stablyai/orca/releases";
+                  license = lib.licenses.mit;
+                  sourceProvenance = [ lib.sourceTypes.binaryNativeCode ];
+                  platforms = builtins.attrNames orcaAsset;
+                  mainProgram = "orca";
+                };
+              in
+              if final.stdenv.hostPlatform.isDarwin then
+                # Mirrors the Homebrew cask: unpack the DMG, keep Orca.app whole,
+                # and put the bundled CLI shim on PATH. The shim finds the .app by
+                # walking symlinks back to its real location, so a bin/ symlink is
+                # enough (that is exactly what `binary` in the cask does).
+                final.stdenv.mkDerivation {
+                  inherit pname version src meta;
+
+                  nativeBuildInputs = [ final.undmg ];
+                  sourceRoot = ".";
+
+                  installPhase = ''
+                    runHook preInstall
+                    mkdir -p "$out/Applications" "$out/bin"
+                    cp -R Orca.app "$out/Applications/Orca.app"
+                    ln -s "$out/Applications/Orca.app/Contents/Resources/bin/orca" "$out/bin/orca"
+                    runHook postInstall
+                  '';
+
+                  # Signed and notarized Mach-O; stripping or patching would break
+                  # the signature, which arm64 macOS refuses to run.
+                  dontFixup = true;
+                }
+              else
+                # The AppImage is the only linux asset that carries no install
+                # scripts, so wrap it in nixpkgs' FHS env. Upstream names the
+                # linux binary `orca-ide` to dodge GNOME's screen reader at
+                # /usr/bin/orca; ~/.nix-profile/bin shadows /usr/bin, and the
+                # Homebrew cask exposes plain `orca`, so keep one name on both
+                # platforms. The desktop entry and icons are not part of the
+                # wrapper, so pull them out of the extracted image.
+                let
+                  contents = final.appimageTools.extractType2 { inherit pname version src; };
+                in
+                final.appimageTools.wrapType2 {
+                  inherit pname version src meta;
+
+                  extraInstallCommands = ''
+                    install -Dm444 ${contents}/orca-ide.desktop "$out/share/applications/orca.desktop"
+                    substituteInPlace "$out/share/applications/orca.desktop" \
+                      --replace-fail 'Exec=AppRun' 'Exec=orca'
+                    for size in 16 24 32 48 64 128 256 512; do
+                      install -Dm444 "${contents}/usr/share/icons/hicolor/$size"x"$size/apps/orca-ide.png" \
+                        "$out/share/icons/hicolor/$size"x"$size/apps/orca-ide.png"
+                    done
+                  '';
+                };
           })
         ]
         # VS Code 1.129 moved the bundled ripgrep (`@vscode/ripgrep-universal`,
