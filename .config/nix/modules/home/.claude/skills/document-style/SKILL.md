@@ -13,7 +13,6 @@ A document is read top-down, once, often under time pressure. Structure it so th
 
 - Writing any prose document: design docs, READMEs, proposals, articles, reports, explanations
 - Revising or reviewing a draft of such a document
-- For Japanese manuscript prose (books, chapters, articles), ALSO apply `japanese-technical-writing` — it adds Japanese-specific formatting and phrasing rules on top of this skill
 
 ## Top-Down Structure
 
@@ -185,7 +184,3 @@ external or client-facing, or the user asks for a verified result ("verified",
 stakes warrant it: fresh reviewer and reviser subagents each round, scores
 anchored by a fixed deduction schedule, refute-before-fix, exit only at every
 policy ≥ 80 with no confirmed critical/high issue, MAX_ROUNDS = 3.
-
-## Related Skills
-
-- `japanese-technical-writing` — Japanese-specific manuscript rules (formatting, phrasing, banned filler expressions). Apply both when writing Japanese manuscripts.
