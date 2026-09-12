@@ -20,7 +20,6 @@ The C-wave (2026-07-30) applies the Claude 5 context-engineering rules (trust ju
 ## Next
 
 - [ ] W4 — adopt safe-lib-upgrade into the nix-managed skills dir. Delete the hand-dropped `~/.claude/skills/safe-lib-upgrade/` first: real files collide with home-manager's recursive linking ("existing file in the way")
-- [ ] W8 — japanese-technical-writing: append a revise loop — write → checklist pass per section → fix → repeat until a pass finds no new violation; fresh-context checker for book manuscripts
 - [ ] W9 — plan-state: bound retries — item fails → switch to debug (existing path) → fix fails twice → Blocked/DR, move on
 - [ ] W10 — evals.json (3 scenarios each, incl. 1 near-miss) for issue-loop, maker-checker, plan-state, debug, loop-automation, replay-prompt. Check: process-skill eval coverage ≥ 80%
 - [ ] W11 — skill-lint script + read-only GitHub Action (DR approved). Checks: frontmatter name = dir; description with trigger phrases; skill-name refs resolve; referenced tools/mechanisms exist; required sections for process skills (stop condition, verification step); SKILL.md line budget warn > 150; description length warn > 600 chars; canonical-sentence duplication check (the five rail leads appear in exactly 3 files; every other canonical passage in exactly 1 — seed list from the C3 commit); references/ paths named in a SKILL.md resolve; evals present. KPIs: dangling refs = 0, eval coverage %, budget violations
