@@ -9,11 +9,16 @@ description: Document structure and writing standards for any prose document —
 
 A document is read top-down, once, often under time pressure. Structure it so the reader always holds the big picture, and can stop reading at any point without losing the most important ideas. Every rule below serves one purpose: spend the writer's effort to save the reader's.
 
+## When to Use
+
+- Writing any prose document: design docs, READMEs, proposals, articles, reports, explanations
+- Revising or reviewing a draft of such a document
+
 ## Goal
 
-A document exists to achieve a goal — the decision, action, or understanding it should produce in its reader. Name that goal in the opening, and let it decide what belongs in the document. Every sentence must advance it.
+A document exists to achieve a goal — what it should let the reader decide, do, or understand. Name that goal in the opening, and let it decide what belongs in the document. Every sentence must advance it.
 
-Test by deletion against the goal: if removing a sentence leaves the goal equally achieved, remove the sentence. A sentence can be true, and add real information, and still fail this test — information the reader does not need in order to decide or act is weight without return. When revising an existing document, this test removes decoration, not substance — a dropped number, name, or constraint is a defect, not a tightening.
+Test by deletion against the goal: if removing a sentence leaves the goal equally achieved, remove the sentence. A sentence can be true, and add real information, and still fail this test: the reader does not need it in order to decide, do, or understand. When revising an existing document, this test removes decoration, not substance — a dropped number, name, or constraint is a defect, not a tightening.
 
 **Example:**
 
@@ -24,11 +29,6 @@ Test by deletion against the goal: if removing a sentence leaves the goal equall
 > Good: "We store one token bucket per API key in Redis (an in-memory data store)."
 
 The release year and the popularity are both true and both add information, but the team approves the design just as readily without them. The gloss stays, because a reader who does not know Redis cannot follow the sentence without it.
-
-## When to Use
-
-- Writing any prose document: design docs, READMEs, proposals, articles, reports, explanations
-- Revising or reviewing a draft of such a document
 
 ## Top-Down Structure
 
@@ -77,7 +77,7 @@ Write in paragraphs by default. Open each paragraph by stating what it will disc
 
 Give each sentence one meaning. When a sentence carries two claims, split it. A period tells the reader: digest this before moving on.
 
-Every sentence must advance the document's goal — the decision, action, or understanding it should produce. A sentence that only announces another sentence — "Let me state the conclusion first", 「結論を先に述べます」 — fails this trivially: it carries nothing, so the goal is equally achieved without it. State the conclusion itself.
+Every sentence must advance the document's goal — what it should let the reader decide, do, or understand. A sentence that only announces another sentence — "Let me state the conclusion first", 「結論を先に述べます」 — fails this trivially: it carries nothing, so the goal is equally achieved without it. State the conclusion itself.
 
 **Example:**
 
@@ -171,7 +171,7 @@ A structural label at the head of a list item ("**Problem awareness** — …") 
 
 ## Checklist for Revision
 
-- [ ] The opening names the document's goal — the decision, action, or understanding it should produce
+- [ ] The opening names the document's goal — what it should let the reader decide, do, or understand
 - [ ] The opening states the subject, the motivation, and the key conclusion before any detail
 - [ ] Truncating at any section boundary leaves a non-misleading document
 - [ ] Order: problem awareness → definitions → formalized problem → solution
