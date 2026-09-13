@@ -15,7 +15,8 @@
         "bullets-for-parallel: parallel items (alternatives, parameters, risks) are bullet lists or tables, not run-on prose",
         "fact-vs-speculation: estimates and expectations (latency impact, capacity) are explicitly marked as such, distinct from facts",
         "one-meaning-per-sentence: no run-on sentences chaining 3+ independent claims with 'and'",
-        "inline-references: at least one external source is cited and linked at the point of use, not only in a trailing list"
+        "inline-references: at least one external source is cited and linked at the point of use, not only in a trailing list",
+        "goal-relevance: the document names what it should enable the reader to decide or do, and every sentence advances that; no true-but-irrelevant background"
       ]
     },
     {
@@ -31,7 +32,8 @@
         "consistent-terms: the same Japanese term is used for each concept throughout, no synonym rotation",
         "no-back-references: no bare back-references like '前述の通り' that force the reader to scroll back",
         "plain-vocabulary: jargon is defined at first use, wording suits Kubernetes beginners",
-        "bullets-for-parallel: the liveness vs readiness comparison uses a list or table"
+        "bullets-for-parallel: the liveness vs readiness comparison uses a list or table",
+        "goal-relevance: the document names what it should enable the reader to decide or do, and every sentence advances that; no true-but-irrelevant background"
       ]
     },
     {
@@ -51,7 +53,8 @@
         "bullets-for-parallel: parallel facts (retry policy, checkpointing, metrics, config sources) appear as bullet lists",
         "no-back-references: 'described earlier' / 'the section above' / 'as previously mentioned' are resolved by restating inline",
         "inline-references: reference [2] is named or linked inline at the point of use, not only as a trailing numeric citation",
-        "information-preserved: all technical facts survive (250ms poll, 16KB buffer, backoff 500ms to 32s, checkpoints/ dir, StatsD UDP 8125, YAML/env/CLI merge, shared connection pool)"
+        "information-preserved: all technical facts survive (250ms poll, 16KB buffer, backoff 500ms to 32s, checkpoints/ dir, StatsD UDP 8125, YAML/env/CLI merge, shared connection pool)",
+        "goal-relevance: the document names what it should enable the reader to decide or do, and every sentence advances that; no true-but-irrelevant background"
       ]
     },
     {
@@ -68,7 +71,8 @@
         "easy-fact-easily: the shadow phase duration is stated in one plain sentence, without 'it should be noted' padding",
         "complex-fact-example: the weight-doubling scheme comes with a concrete example (e.g. 5% -> 10% -> 20% with hold times)",
         "bold-skim-layer: bold appears only on core sentences, never on labels or adverbs ('Note:', 'very', 'extremely'), and reading only the bold sentences yields the plan's essence",
-        "information-preserved: the three phases, the one-week shadow, weighted doubling with holds, and the search.v2.enabled rollback flag all survive"
+        "information-preserved: the three phases, the one-week shadow, weighted doubling with holds, and the search.v2.enabled rollback flag all survive",
+        "goal-relevance: the document names what it should enable the reader to decide or do, and every sentence advances that; no true-but-irrelevant background"
       ]
     }
   ]
