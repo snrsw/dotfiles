@@ -77,7 +77,7 @@ Write in paragraphs by default. Open each paragraph by stating what it will disc
 
 Give each sentence one meaning. When a sentence carries two claims, split it. A period tells the reader: digest this before moving on.
 
-Every sentence must advance the document's goal — what it should let the reader decide, do, or understand. A sentence that only announces another sentence — "Let me state the conclusion first", 「結論を先に述べます」 — fails this trivially: it carries nothing, so the goal is equally achieved without it. State the conclusion itself.
+Every sentence must advance the document's goal — what it should let the reader decide, do, or understand. A sentence that only announces another sentence — "Let me state the conclusion first", "This section explains the trade-offs" — fails this trivially: it carries nothing, so the goal is equally achieved without it. State the conclusion itself.
 
 **Example:**
 
