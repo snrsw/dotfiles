@@ -1,18 +1,34 @@
 ---
 name: document-style
-description: Document structure and writing standards for any prose document — design docs, READMEs, proposals, articles, reports, explanations, wikis. Use whenever writing or revising a document, even if the user just says "write a doc", "write up X", "explain X", "draft a proposal", or "document this". Covers top-down structure, argument ordering, assumed knowledge, paragraph and sentence discipline, vocabulary, lists and hierarchy, tables, references, figures, and examples. Language-agnostic — apply to English and Japanese documents alike.
+description: Document structure and writing standards for any prose document — design docs, READMEs, proposals, articles, reports, explanations, wikis. Use whenever writing or revising a document, even if the user just says "write a doc", "write up X", "explain X", "draft a proposal", or "document this". Covers goal-driven content selection, top-down structure, argument ordering, assumed knowledge, paragraph and sentence discipline, vocabulary, lists and hierarchy, tables, references, figures, and examples. Language-agnostic — apply to English and Japanese documents alike.
 ---
 
 # Document Style
 
 ## Overview
 
-A document is read top-down, once, often under time pressure. Structure it so the reader always holds the big picture, and can stop reading at any point without losing the most important ideas. Every rule below serves one goal: spend the writer's effort to save the reader's.
+A document is read top-down, once, often under time pressure. Structure it so the reader always holds the big picture, and can stop reading at any point without losing the most important ideas. Every rule below serves one purpose: spend the writer's effort to save the reader's.
 
 ## When to Use
 
 - Writing any prose document: design docs, READMEs, proposals, articles, reports, explanations
 - Revising or reviewing a draft of such a document
+
+## Goal
+
+A document exists to achieve a goal — what it should let the reader decide, do, or understand. Name that goal in the opening, and let it decide what belongs in the document. Every sentence must advance it.
+
+Test by deletion against the goal: if removing a sentence leaves the goal equally achieved, remove the sentence. A sentence can be true, and add real information, and still fail this test: the reader does not need it in order to decide, do, or understand. When revising an existing document, this test removes decoration, not substance — a dropped number, name, or constraint is a defect, not a tightening.
+
+**Example:**
+
+> Goal: get the backend team to approve the token-bucket design.
+>
+> Bad: "Redis, an in-memory data store, was first released in 2009 and is now the most-starred key-value store on GitHub. We store one token bucket per API key in Redis."
+>
+> Good: "We store one token bucket per API key in Redis (an in-memory data store)."
+
+The release year and the popularity are both true and both add information, but the team approves the design just as readily without them. The gloss stays, because a reader who does not know Redis cannot follow the sentence without it.
 
 ## Top-Down Structure
 
@@ -61,7 +77,7 @@ Write in paragraphs by default. Open each paragraph by stating what it will disc
 
 Give each sentence one meaning. When a sentence carries two claims, split it. A period tells the reader: digest this before moving on.
 
-Every sentence must add information. A sentence that only announces another sentence — "Let me state the conclusion first", 「結論を先に述べます」 — adds nothing; state the conclusion itself. Test by deletion: if removing a sentence leaves the document's information unchanged, remove the sentence.
+Every sentence must advance the document's goal — what it should let the reader decide, do, or understand. A sentence that only announces another sentence — "Let me state the conclusion first", "This section explains the trade-offs" — fails this trivially: it carries nothing, so the goal is equally achieved without it. State the conclusion itself.
 
 **Example:**
 
@@ -155,6 +171,7 @@ A structural label at the head of a list item ("**Problem awareness** — …") 
 
 ## Checklist for Revision
 
+- [ ] The opening names the document's goal — what it should let the reader decide, do, or understand
 - [ ] The opening states the subject, the motivation, and the key conclusion before any detail
 - [ ] Truncating at any section boundary leaves a non-misleading document
 - [ ] Order: problem awareness → definitions → formalized problem → solution
@@ -162,7 +179,7 @@ A structural label at the head of a list item ("**Problem awareness** — …") 
 - [ ] The document reads with zero prior knowledge of its topic: terms of art and acronyms are defined at first use, and no unstated context (meetings, chats, project history) is needed
 - [ ] Each paragraph's first sentence announces its topic
 - [ ] Each sentence carries one meaning
-- [ ] Every sentence adds information — no announcement sentences, and no sentence whose deletion changes nothing
+- [ ] Every sentence advances the goal — no announcement sentences, and no sentence whose deletion leaves the goal equally achieved
 - [ ] The same term is used for the same concept throughout — in prose, tables, figures, and headings alike
 - [ ] No coined terms that appear only once
 - [ ] No metaphor — explanations use words already in the context
