@@ -1,6 +1,6 @@
 ---
 name: document-style
-description: Document structure and writing standards for any prose document — design docs, READMEs, proposals, articles, reports, explanations, wikis. Use whenever writing or revising a document, even if the user just says "write a doc", "write up X", "explain X", "draft a proposal", or "document this". Covers goal-driven content selection, top-down structure, argument ordering, assumed knowledge, paragraph and sentence discipline, vocabulary, lists and hierarchy, tables, references, figures, and examples. Language-agnostic — apply to English and Japanese documents alike.
+description: Document structure and writing standards for any prose document — design docs, READMEs, proposals, articles, reports, explanations, wikis. Use whenever writing or revising a document, even if the user just says "write a doc", "write up X", "explain X", "draft a proposal", or "document this". Covers an outline-first drafting process, goal-driven content selection, top-down structure, argument ordering, assumed knowledge, paragraph and sentence discipline, sentence order, vocabulary, lists and hierarchy, tables, references, figures, and examples. Language-agnostic — apply to English and Japanese documents alike.
 ---
 
 # Document Style
@@ -29,6 +29,19 @@ Test by deletion against the goal: if removing a sentence leaves the goal equall
 > Good: "We store one token bucket per API key in Redis (an in-memory data store)."
 
 The release year and the popularity are both true and both add information, but the team approves the design just as readily without them. The gloss stays, because a reader who does not know Redis cannot follow the sentence without it.
+
+## Drafting Process
+
+When writing a document from scratch, build it in four versions, from outline to prose. Each version adds one level of detail to the one before, so the structure is settled before any sentence is written, and no sentence has to be moved later.
+
+1. **Outline** — list the main points in the order the reader will meet them. Keep a separate side list for every detail that comes to mind but has no place yet. Do not put details into the outline.
+2. **Sections** — turn the outline into section titles, and write the one claim each section makes. Move each item from the side list into the section it belongs to.
+3. **Story line** — under each claim, add the sub-points in the order they are argued. Some of them are already sentences.
+4. **Prose** — write the paragraphs. This version is close to final.
+
+Do not start writing any other way. Prose written before the structure is settled gets rewritten when the structure changes, and a rewrite costs a whole draft. Each version reuses the one before, so the four versions together cost a fraction of one rewrite. `references/drafting-process.md` carries one document through the four versions.
+
+This section applies to writing from scratch. When revising an existing document, use the Checklist for Revision instead.
 
 ## Top-Down Structure
 
@@ -95,6 +108,22 @@ Use punctuation deliberately to control the reader's load:
 
 Punctuation sets the reader's rhythm. Reading a passage aloud is a fast test of whether the pauses fall where the reader needs them.
 
+### Sentence Order
+
+Inside a sentence, put what the reader already knows before what is new. The document leads with its conclusion and each paragraph leads with its topic, but inside a sentence the emphasis falls at the end. The two rules act at different scales and do not conflict: a sentence that states a conclusion still orders its own words from known to new.
+
+- Use the active voice and name the actor. "We store one bucket per key" says who does what. "One bucket per key is stored" drops the actor, and the reader has to recover it. In a team document, "we" is the natural actor.
+- Keep the verb close to the subject. A long subject with its verb at the far end makes the reader hold the whole subject in memory before learning what is said about it.
+- End on the element the reader should retain. Transitions and background go at the start ("After the cutover,", "Therefore,"), and the new fact goes at the end, because the end of a sentence carries the most emphasis.
+
+**Example:**
+
+> Bad: "Any suggestion that the cause of the poor throughput that rendered the application unusable was rooted in slow hardware and not sloppy software design is unreasonable."
+>
+> Good: "The poor throughput that rendered the application unusable was not the sole result of slow hardware. The primary culprit was sloppy software design."
+
+The bad version separates the subject "suggestion" from its verb "is" by a whole clause, and ends on "unreasonable", a judgment rather than the finding. The good version states each subject next to its verb, and ends on the finding: the software design. The example is from Jeffrey Vitter's [Structure + Style = Communication](https://www.ittc.ku.edu/~jsv/Papers/Vitwritingnotes.pdf).
+
 ## Vocabulary
 
 Use plain words. Prefer the everyday term over the impressive one; the reader's energy should go to the content, not the phrasing.
@@ -107,9 +136,17 @@ Match the telling to the fact. An easy fact takes one plain sentence — no buil
 >
 > Complex fact: "Retries back off exponentially with full jitter: attempt 2 waits 0–400 ms, attempt 3 waits 0–800 ms, capped at 30 s."
 
-Repeat the same word for the same concept. Do not rotate synonyms for aesthetic variety — every new word forces the reader to check whether it means something new. Once a term is defined, keep using that exact term. This holds across every representation: prose, tables, figures, headings, and identifiers must all carry the one term — a section named "Appendix" in one place and its translation in another reads as two different things.
+Repeat the same word for the same concept. Do not rotate synonyms for aesthetic variety — every new word forces the reader to check whether it means something new. Once a term is defined, keep using that exact term. The rule holds across every representation: prose, tables, figures, headings, and identifiers must all carry the one term — a section named "Appendix" in one place and its translation in another reads as two different things.
 
 Do not coin a name for a concept the document uses only once; state the idea plainly. Introduce a name only when the document will refer back to it.
+
+Do not use "this", "that", "these", or "those" as a bare noun. Follow the word with the noun it stands for: "this cap", "those retries". A bare "this" leaves the reader to guess which of the preceding ideas is meant, and the guess is where misreadings start. The same holds for これ and それ in Japanese.
+
+**Example:**
+
+> Bad: "Retries back off exponentially, capped at 30 s per attempt. This means no single wait exceeds 30 s."
+>
+> Good: "Retries back off exponentially, capped at 30 s per attempt. This cap means no single wait exceeds 30 s."
 
 Do not use metaphor. Explain with words that already appear in the context — the document's own nouns and verbs. A metaphor imports a second vocabulary the reader must map back onto the first, and the mapping is where misreadings start.
 
@@ -171,6 +208,7 @@ A structural label at the head of a list item ("**Problem awareness** — …") 
 
 ## Checklist for Revision
 
+- [ ] When written from scratch, the document was built in four versions: outline, then section claims, then sub-points, then prose
 - [ ] The opening names the document's goal — what it should let the reader decide, do, or understand
 - [ ] The opening states the subject, the motivation, and the key conclusion before any detail
 - [ ] Truncating at any section boundary leaves a non-misleading document
@@ -179,9 +217,11 @@ A structural label at the head of a list item ("**Problem awareness** — …") 
 - [ ] The document reads with zero prior knowledge of its topic: terms of art and acronyms are defined at first use, and no unstated context (meetings, chats, project history) is needed
 - [ ] Each paragraph's first sentence announces its topic
 - [ ] Each sentence carries one meaning
+- [ ] Sentences use the active voice with a named actor, keep the verb close to the subject, and end on the new element
 - [ ] Every sentence advances the goal — no announcement sentences, and no sentence whose deletion leaves the goal equally achieved
 - [ ] The same term is used for the same concept throughout — in prose, tables, figures, and headings alike
 - [ ] No coined terms that appear only once
+- [ ] No bare "this" or "that": each is followed by the noun it stands for
 - [ ] No metaphor — explanations use words already in the context
 - [ ] Easy facts are stated in one plain sentence; complex facts are stated simply, with an example carrying the complexity
 - [ ] Facts and speculation are explicitly distinguished
