@@ -16,7 +16,9 @@
         "fact-vs-speculation: estimates and expectations (latency impact, capacity) are explicitly marked as such, distinct from facts",
         "one-meaning-per-sentence: no run-on sentences chaining 3+ independent claims with 'and'",
         "inline-references: at least one external source is cited and linked at the point of use, not only in a trailing list",
-        "goal-relevance: every sentence advances what the document is for; no true-but-irrelevant background (history, popularity, tangential detail) survives"
+        "goal-relevance: every sentence advances what the document is for; no true-but-irrelevant background (history, popularity, tangential detail) survives",
+        "sentence-order: sentences use the active voice with a named actor ('we' or the component), keep the verb close to the subject, and put the new or important element at the end of the sentence",
+        "no-bare-this: 'this' / 'that' / 'these' / 'those' never stands alone as a noun, whether as subject ('This means ...') or object ('prevents that', 'after that'); each is followed by the noun it refers to ('This cap means ...', 'prevents that overrun')"
       ]
     },
     {
@@ -33,7 +35,9 @@
         "no-back-references: no bare back-references like '前述の通り' that force the reader to scroll back",
         "plain-vocabulary: jargon is defined at first use, wording suits Kubernetes beginners",
         "bullets-for-parallel: the liveness vs readiness comparison uses a list or table",
-        "goal-relevance: every sentence advances what the document is for; no true-but-irrelevant background (history, popularity, tangential detail) survives"
+        "goal-relevance: every sentence advances what the document is for; no true-but-irrelevant background (history, popularity, tangential detail) survives",
+        "sentence-order: sentences name the actor (kubelet, the container, the Service) and keep the verb close to the subject; the new or important element comes at the end of the sentence",
+        "no-bare-this: これ / それ / this / that never stands alone as a noun, as subject or object; each is followed by the noun it refers to"
       ]
     },
     {
