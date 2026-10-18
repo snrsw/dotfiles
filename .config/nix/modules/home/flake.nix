@@ -28,7 +28,8 @@
     # prv: "Pull-Request like View" CLI. The repo is public, so fetch over HTTPS
     # and no credentials are needed on any machine. Deliberately does NOT follow
     # our nixpkgs: it keeps its own pin so its node_modules FOD hash stays valid.
-    prv.url = "git+https://github.com/snrsw/prv";
+    # Pinned to a release tag; bump the ref to upgrade.
+    prv.url = "git+https://github.com/snrsw/prv?ref=refs/tags/v0.0.1";
     llm-agents.url = "github:numtide/llm-agents.nix";
     nix-claude-code.url = "github:ryoppippi/nix-claude-code";
     nix-index-database.url = "github:nix-community/nix-index-database";
@@ -170,6 +171,31 @@
               vendorHash = "sha256-O4vqouNxvA3GvrnpRO6GXDD8ysPfFCaaSJVFj2ufxwI=";
               subPackages = [ "." ];
               ldflags = [ "-s" "-w" ];
+            };
+
+            # agnt: TUI for local Claude Code / Codex sessions. Upstream's flake
+            # exposes only a devShell, so build the release tag here. Bump
+            # version, hash and cargoHash together.
+            agnt = final.rustPlatform.buildRustPackage rec {
+              pname = "agnt";
+              version = "0.0.1";
+
+              src = final.fetchFromGitHub {
+                owner = "snrsw";
+                repo = "agnt";
+                rev = version;
+                hash = "sha256-pVxJTtYwEkV1ve3c2lbupVRwOQFpJLo/xEs3JYPHH2I=";
+              };
+
+              cargoHash = "sha256-2kb2QPpYSGfkCB2/H3IRqG5z2pEEVYlikqPf96uGw00=";
+
+              # These drive a real shell on a PTY and watch it `cd`, which the
+              # build sandbox does not allow; the rest of the suite still runs.
+              checkFlags = [
+                "--skip=app::tests::exiting_the_shell_gives_the_text_area_back"
+                "--skip=app::tests::keys_reach_the_embedded_shell_and_the_directory_follows_it"
+                "--skip=shell::tests::a_real_shell_runs_on_the_pty_and_reports_its_directory"
+              ];
             };
 
             roots = final.buildGoModule rec {

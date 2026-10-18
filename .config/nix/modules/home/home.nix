@@ -108,6 +108,7 @@ in
     mo
     crit
     prv
+    agnt
     # Altenatives
     bat
     eza

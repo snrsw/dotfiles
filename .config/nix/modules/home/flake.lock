@@ -322,15 +322,16 @@
         "nixpkgs": "nixpkgs_4"
       },
       "locked": {
-        "lastModified": 1789218721,
-        "narHash": "sha256-k6Io+nzLLkC1XEkIC9jih+YbBtRRS4ZuBcC7rKNCcwM=",
-        "ref": "refs/heads/main",
-        "rev": "a2121a26d7449514a27916b0b941b11907400ed3",
-        "revCount": 40,
+        "lastModified": 1792306339,
+        "narHash": "sha256-bHHdvZKO4lSXI95dKs8mi2pH8zinBzuEnaCUAwX0GbM=",
+        "ref": "refs/tags/v0.0.1",
+        "rev": "08e0b75269811edf41899c52a42139c067932e1e",
+        "revCount": 50,
         "type": "git",
         "url": "https://github.com/snrsw/prv"
       },
       "original": {
+        "ref": "refs/tags/v0.0.1",
         "type": "git",
         "url": "https://github.com/snrsw/prv"
       }
