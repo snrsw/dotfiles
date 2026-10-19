@@ -1,5 +1,22 @@
 {
   "nodes": {
+    "agnt": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1792301129,
+        "narHash": "sha256-pVxJTtYwEkV1ve3c2lbupVRwOQFpJLo/xEs3JYPHH2I=",
+        "ref": "refs/tags/0.0.1",
+        "rev": "f873cbf25e231b5cbb2e8ea804b5ca8b7b7099b7",
+        "revCount": 5,
+        "type": "git",
+        "url": "https://github.com/snrsw/agnt"
+      },
+      "original": {
+        "ref": "refs/tags/0.0.1",
+        "type": "git",
+        "url": "https://github.com/snrsw/agnt"
+      }
+    },
     "brew-api": {
       "flake": false,
       "locked": {
@@ -338,6 +355,7 @@
     },
     "root": {
       "inputs": {
+        "agnt": "agnt",
         "brew-api": "brew-api",
         "brew-nix": "brew-nix",
         "crit": "crit",

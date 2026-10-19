@@ -28,8 +28,15 @@
     # prv: "Pull-Request like View" CLI. The repo is public, so fetch over HTTPS
     # and no credentials are needed on any machine. Deliberately does NOT follow
     # our nixpkgs: it keeps its own pin so its node_modules FOD hash stays valid.
-    # Pinned to a release tag; bump the ref to upgrade.
+    # prv and agnt are pinned to release tags. The `hm-switch` fish function
+    # (home.nix) rewrites both refs to the newest tag before every switch.
     prv.url = "git+https://github.com/snrsw/prv?ref=refs/tags/v0.0.1";
+    # agnt: TUI for local Claude Code / Codex sessions. Upstream's flake
+    # exposes only a devShell, so take the source and build it in the overlay.
+    agnt = {
+      url = "git+https://github.com/snrsw/agnt?ref=refs/tags/0.0.1";
+      flake = false;
+    };
     llm-agents.url = "github:numtide/llm-agents.nix";
     nix-claude-code.url = "github:ryoppippi/nix-claude-code";
     nix-index-database.url = "github:nix-community/nix-index-database";
@@ -49,6 +56,7 @@
       brew-nix,
       crit,
       prv,
+      agnt,
       llm-agents,
       nix-claude-code,
       nix-index-database,
@@ -173,21 +181,13 @@
               ldflags = [ "-s" "-w" ];
             };
 
-            # agnt: TUI for local Claude Code / Codex sessions. Upstream's flake
-            # exposes only a devShell, so build the release tag here. Bump
-            # version, hash and cargoHash together.
-            agnt = final.rustPlatform.buildRustPackage rec {
+            # Built from the `agnt` input. Dependencies come from its own
+            # Cargo.lock, so a new tag needs no hash bump.
+            agnt = final.rustPlatform.buildRustPackage {
               pname = "agnt";
-              version = "0.0.1";
-
-              src = final.fetchFromGitHub {
-                owner = "snrsw";
-                repo = "agnt";
-                rev = version;
-                hash = "sha256-pVxJTtYwEkV1ve3c2lbupVRwOQFpJLo/xEs3JYPHH2I=";
-              };
-
-              cargoHash = "sha256-2kb2QPpYSGfkCB2/H3IRqG5z2pEEVYlikqPf96uGw00=";
+              version = (lib.importTOML "${agnt}/Cargo.toml").package.version;
+              src = agnt;
+              cargoLock.lockFile = "${agnt}/Cargo.lock";
 
               # These drive a real shell on a PTY and watch it `cd`, which the
               # build sandbox does not allow; the rest of the suite still runs.
