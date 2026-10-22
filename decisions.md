@@ -127,3 +127,9 @@ should not "correct" these without asking.
 - **Decision**: A short section in `document-style`, gated to writing from scratch, with the worked example in `references/drafting-process.md`. Not a separate skill.
 - **Rationale**: "write a doc" is one trigger and should load rules and process together. The process exists to produce the structure the Top-Down Structure section demands. Four steps do not justify a skill. Matches the earlier move of the verification loop into `references/`. A separate skill only makes sense for an outline-approval workflow, which can call `document-style` later without moving anything.
 - **Scope of the same review**: adopted sentence order (active voice, verb near subject, known before new) and the no-bare-this rule; deferred phrase-level fillers, italics for defined terms, and an English-mechanics reference file; rejected Vitter's ban on singular "they" as outdated.
+
+## DR: How prv and agnt follow new releases
+- **Date**: 2026-10-22
+- **Context**: prv and agnt should install at their newest release tag without the tag written into this repo. A git or github flake input cannot express "newest tag": with a ref it is fixed, without one it follows the default branch.
+- **Decision**: Publish each release tag of both repos to FlakeHub (snrsw/prv#91, snrsw/agnt#9) and use `https://flakehub.com/f/snrsw/<repo>/*` inputs here. agnt also gains `packages.default`, so its overlay entry becomes `agnt.packages.<system>.default` like prv's.
+- **Rationale**: `*` resolves to the highest published version on a plain `nix flake update`, which the daily lock-update workflow already runs. Rejected: following the default branch (gives the newest commit, not the newest release) and the `hm-switch` tag-rewrite function (works, but needs a custom command and edits `flake.nix` on every switch).

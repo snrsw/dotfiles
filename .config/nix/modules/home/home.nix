@@ -108,6 +108,7 @@ in
     mo
     crit
     prv
+    agnt
     # Altenatives
     bat
     eza
@@ -418,6 +419,25 @@ in
               git wt "$selected"
               commandline -f repaint
           end
+        '';
+      };
+      hm-switch = {
+        description = "Bump prv and agnt to their newest tags, then home-manager switch";
+        body = ''
+          set -l flake (ghq root)/github.com/snrsw/dotfiles/.config/nix/modules/home
+          for repo in prv agnt
+              set -l tag (git ls-remote --tags --refs --sort=-v:refname https://github.com/snrsw/$repo | head -n 1 | string replace -r '.*refs/tags/' "")
+              if test -z "$tag"
+                  echo "hm-switch: no tag found for $repo" >&2
+                  return 1
+              end
+              string replace -r '(?<=github\.com/snrsw/'$repo'\?ref=refs/tags/)[^"]+' $tag <$flake/flake.nix >$flake/flake.nix.tmp
+              and mv $flake/flake.nix.tmp $flake/flake.nix
+              or return 1
+              echo "hm-switch: $repo -> $tag"
+          end
+          nix flake update prv agnt --flake $flake
+          and nix run home-manager/master -- switch --flake $flake --impure
         '';
       };
     };
