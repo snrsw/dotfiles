@@ -1,5 +1,22 @@
 {
   "nodes": {
+    "agnt": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1792301129,
+        "narHash": "sha256-pVxJTtYwEkV1ve3c2lbupVRwOQFpJLo/xEs3JYPHH2I=",
+        "ref": "refs/tags/0.0.1",
+        "rev": "f873cbf25e231b5cbb2e8ea804b5ca8b7b7099b7",
+        "revCount": 5,
+        "type": "git",
+        "url": "https://github.com/snrsw/agnt"
+      },
+      "original": {
+        "ref": "refs/tags/0.0.1",
+        "type": "git",
+        "url": "https://github.com/snrsw/agnt"
+      }
+    },
     "brew-api": {
       "flake": false,
       "locked": {
@@ -322,21 +339,23 @@
         "nixpkgs": "nixpkgs_4"
       },
       "locked": {
-        "lastModified": 1789218721,
-        "narHash": "sha256-k6Io+nzLLkC1XEkIC9jih+YbBtRRS4ZuBcC7rKNCcwM=",
-        "ref": "refs/heads/main",
-        "rev": "a2121a26d7449514a27916b0b941b11907400ed3",
-        "revCount": 40,
+        "lastModified": 1792306339,
+        "narHash": "sha256-bHHdvZKO4lSXI95dKs8mi2pH8zinBzuEnaCUAwX0GbM=",
+        "ref": "refs/tags/v0.0.1",
+        "rev": "08e0b75269811edf41899c52a42139c067932e1e",
+        "revCount": 50,
         "type": "git",
         "url": "https://github.com/snrsw/prv"
       },
       "original": {
+        "ref": "refs/tags/v0.0.1",
         "type": "git",
         "url": "https://github.com/snrsw/prv"
       }
     },
     "root": {
       "inputs": {
+        "agnt": "agnt",
         "brew-api": "brew-api",
         "brew-nix": "brew-nix",
         "crit": "crit",
