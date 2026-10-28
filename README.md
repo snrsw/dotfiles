@@ -33,12 +33,6 @@ nix flake update --flake .config/nix/modules/home/
 ## Re-apply Home Manager configuration
 
 ```shell
-hm-switch
-```
-
-`hm-switch` (a fish function from `home.nix`) moves `prv` and `agnt` to their newest release tags in `flake.nix` and `flake.lock`, then runs the switch below. To switch without bumping them:
-
-```shell
 nix run home-manager/master -- switch --flake .config/nix/modules/home/ --impure
 ```
 

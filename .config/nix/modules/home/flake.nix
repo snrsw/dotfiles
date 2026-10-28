@@ -25,18 +25,13 @@
       url = "github:tomasz-tomczyk/crit";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    # prv: "Pull-Request like View" CLI. The repo is public, so fetch over HTTPS
-    # and no credentials are needed on any machine. Deliberately does NOT follow
-    # our nixpkgs: it keeps its own pin so its node_modules FOD hash stays valid.
-    # prv and agnt are pinned to release tags. The `hm-switch` fish function
-    # (home.nix) rewrites both refs to the newest tag before every switch.
-    prv.url = "git+https://github.com/snrsw/prv?ref=refs/tags/v0.0.1";
-    # agnt: TUI for local Claude Code / Codex sessions. Upstream's flake
-    # exposes only a devShell, so take the source and build it in the overlay.
-    agnt = {
-      url = "git+https://github.com/snrsw/agnt?ref=refs/tags/0.0.1";
-      flake = false;
-    };
+    # prv ("Pull-Request like View" CLI) and agnt (TUI for local Claude Code /
+    # Codex sessions) publish every release tag to FlakeHub. `*` resolves to
+    # the highest published version, so `nix flake update` moves both to their
+    # newest release. Neither follows our nixpkgs: each keeps its own pin, which
+    # keeps prv's node_modules FOD hash valid.
+    prv.url = "https://flakehub.com/f/snrsw/prv/*";
+    agnt.url = "https://flakehub.com/f/snrsw/agnt/*";
     llm-agents.url = "github:numtide/llm-agents.nix";
     nix-claude-code.url = "github:ryoppippi/nix-claude-code";
     nix-index-database.url = "github:nix-community/nix-index-database";
@@ -132,6 +127,7 @@
 
             crit = crit.packages.${final.stdenv.hostPlatform.system}.default;
             prv = prv.packages.${final.stdenv.hostPlatform.system}.default;
+            agnt = agnt.packages.${final.stdenv.hostPlatform.system}.default;
 
             direnv = prev.direnv.overrideAttrs (_: { doCheck = false; });
 
@@ -179,23 +175,6 @@
               vendorHash = "sha256-O4vqouNxvA3GvrnpRO6GXDD8ysPfFCaaSJVFj2ufxwI=";
               subPackages = [ "." ];
               ldflags = [ "-s" "-w" ];
-            };
-
-            # Built from the `agnt` input. Dependencies come from its own
-            # Cargo.lock, so a new tag needs no hash bump.
-            agnt = final.rustPlatform.buildRustPackage {
-              pname = "agnt";
-              version = (lib.importTOML "${agnt}/Cargo.toml").package.version;
-              src = agnt;
-              cargoLock.lockFile = "${agnt}/Cargo.lock";
-
-              # These drive a real shell on a PTY and watch it `cd`, which the
-              # build sandbox does not allow; the rest of the suite still runs.
-              checkFlags = [
-                "--skip=app::tests::exiting_the_shell_gives_the_text_area_back"
-                "--skip=app::tests::keys_reach_the_embedded_shell_and_the_directory_follows_it"
-                "--skip=shell::tests::a_real_shell_runs_on_the_pty_and_reports_its_directory"
-              ];
             };
 
             roots = final.buildGoModule rec {
